@@ -1,0 +1,19 @@
+table link_conversion_order
+	lineageTag: 405d8edf-64f2-5a50-9550-142bc3e84ce4
+
+	column conversion_key
+		dataType: string
+		lineageTag: 85aff0e9-59a2-5d13-bc1e-9c41082df556
+		sourceColumn: conversion_key
+
+	column order_id
+		dataType: string
+		lineageTag: 7a86acd3-8f02-52b7-b396-31a78b74573c
+		sourceColumn: order_id
+
+	partition link_conversion_order = entity
+		mode: directLake
+		source
+			entityName: link_conversion_order
+			schemaName: gold
+			expressionSource: DatabaseQuery

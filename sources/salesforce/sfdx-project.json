@@ -1,0 +1,7 @@
+{
+  "packageDirectories": [{ "path": "force-app", "default": true }],
+  "name": "MSFlixCRM",
+  "namespace": "",
+  "sourceApiVersion": "65.0"
+}
+

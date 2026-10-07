@@ -1,0 +1,9 @@
+{
+  "tenant_id": "1e45d0cb-b0dd-408c-8806-58b447605e96",
+  "subscription_id": "ce9dbfdd-c341-4e8d-a1fa-51617c74c3eb",
+  "region": "southeastasia",
+  "capacity_sku": "F16",
+  "workspace_name": "MSFlix",
+  "capacity_name": "msflixf16sea",
+  "resource_group": "rg-msflix-demo-sea"
+}

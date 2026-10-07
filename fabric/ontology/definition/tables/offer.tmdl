@@ -1,0 +1,49 @@
+table offer
+	lineageTag: fff0bdfb-b69f-5abb-a4d6-a4a17188c56f
+
+	column offer_key
+		dataType: string
+		lineageTag: efdaa55e-6516-564c-8937-7520c2138d0b
+		sourceColumn: offer_key
+
+	column content_key
+		dataType: string
+		lineageTag: 8b9bd48a-0cfe-5ace-bc99-72dbb1b033a9
+		sourceColumn: content_key
+
+	column territory
+		dataType: string
+		lineageTag: f89071cc-ee1c-5d63-8d7a-ae2f06684cd0
+		sourceColumn: territory
+
+	column currency
+		dataType: string
+		lineageTag: 9f1bc74e-29ed-58e7-beed-0fbf5683153c
+		sourceColumn: currency
+
+	column transaction_type
+		dataType: string
+		lineageTag: d12c5a63-0b96-5f17-b07f-a109e7961517
+		sourceColumn: transaction_type
+
+	column price_minor
+		dataType: int64
+		lineageTag: f836a77e-0177-59c4-a3cb-ef25bc8ba348
+		sourceColumn: price_minor
+
+	column start_window_hours
+		dataType: int64
+		lineageTag: 4c1bef57-482e-57b9-bfbd-59f6aac8a65b
+		sourceColumn: start_window_hours
+
+	column play_window_hours
+		dataType: int64
+		lineageTag: 9e5b0c51-99a3-5f3f-a347-e12536b3a458
+		sourceColumn: play_window_hours
+
+	partition offer = entity
+		mode: directLake
+		source
+			entityName: dim_offer
+			schemaName: gold
+			expressionSource: DatabaseQuery

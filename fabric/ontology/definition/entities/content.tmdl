@@ -1,0 +1,64 @@
+entity content
+	lineageTag: e26ead9e-b3d5-53e1-a6bd-c50189864ed8
+	backingTable: content
+	keyProperty: content_key
+
+	property content_key
+		dataType: string
+		lineageTag: bd519821-d15a-5d64-8b9b-3961060977b1
+		backingConfiguration
+			valueColumn: content.content_key
+
+	property title
+		dataType: string
+		lineageTag: 5ac3162b-96a7-55b3-b6b1-466b319d66db
+		backingConfiguration
+			valueColumn: content.title
+
+	property release_date
+		dataType: dateTime
+		lineageTag: f6ed21f2-ce40-5966-9dfc-a0463f05561e
+		backingConfiguration
+			valueColumn: content.release_date
+
+	property duration_seconds
+		dataType: int64
+		lineageTag: 368b5105-6e06-5a32-88f1-cdb423dda788
+		backingConfiguration
+			valueColumn: content.duration_seconds
+
+	property genre
+		dataType: string
+		lineageTag: ba3f4696-5501-53ec-8337-c617603ec4c2
+		backingConfiguration
+			valueColumn: content.genre
+
+	property image_url
+		dataType: string
+		lineageTag: 24bdc89d-6b11-59b9-aa7f-e893d7557733
+		backingConfiguration
+			valueColumn: content.image_url
+
+	property source_url
+		dataType: string
+		lineageTag: 464d853c-2eda-5307-affe-36cccedcd994
+		backingConfiguration
+			valueColumn: content.source_url
+
+	property license
+		dataType: string
+		lineageTag: c243c110-5105-5658-bf87-67ed3500716e
+		backingConfiguration
+			valueColumn: content.license
+
+	property attribution
+		dataType: string
+		lineageTag: c2206c10-83c1-53cf-9670-78b662982133
+		backingConfiguration
+			valueColumn: content.attribution
+
+	property distributor_key
+		dataType: string
+		lineageTag: dde379f2-fc37-5c82-bde3-a03d6c620331
+		backingConfiguration
+			valueColumn: content.distributor_key

@@ -1,0 +1,19 @@
+table link_customer_order
+	lineageTag: 8608e047-4d9c-5e14-9a98-a054b5f9374b
+
+	column customer_key
+		dataType: string
+		lineageTag: 05587702-e5cb-5dcf-9276-642efc65c213
+		sourceColumn: customer_key
+
+	column order_id
+		dataType: string
+		lineageTag: 44e651bf-6ca8-5e9e-99fc-b9ea1529df56
+		sourceColumn: order_id
+
+	partition link_customer_order = entity
+		mode: directLake
+		source
+			entityName: link_customer_order
+			schemaName: gold
+			expressionSource: DatabaseQuery

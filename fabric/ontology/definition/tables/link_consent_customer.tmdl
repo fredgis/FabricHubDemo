@@ -1,0 +1,19 @@
+table link_consent_customer
+	lineageTag: ad3f61cb-8168-51d4-b062-7004b5bafbe8
+
+	column consent_key
+		dataType: string
+		lineageTag: 3b3093bb-42fd-558e-ad47-f62b26fe3b16
+		sourceColumn: consent_key
+
+	column customer_key
+		dataType: string
+		lineageTag: 29818fb1-5d2c-537f-b838-1ae260f8d140
+		sourceColumn: customer_key
+
+	partition link_consent_customer = entity
+		mode: directLake
+		source
+			entityName: link_consent_customer
+			schemaName: gold
+			expressionSource: DatabaseQuery

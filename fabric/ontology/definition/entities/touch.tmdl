@@ -1,0 +1,52 @@
+entity touch
+	lineageTag: 884cd21b-db94-52db-a5f6-e11b1e78ed03
+	backingTable: touch
+	keyProperty: touch_key
+
+	property touch_key
+		dataType: string
+		lineageTag: 4f3ea95e-55ca-5a3b-9c30-0caea2aae5ef
+		backingConfiguration
+			valueColumn: touch.touch_key
+
+	property customer_key
+		dataType: string
+		lineageTag: 2d986c2c-7adf-5413-ab0d-31b0dfb43c28
+		backingConfiguration
+			valueColumn: touch.customer_key
+
+	property campaign_key
+		dataType: string
+		lineageTag: 87e047f7-2131-5130-825f-0e297c241bf5
+		backingConfiguration
+			valueColumn: touch.campaign_key
+
+	property channel
+		dataType: string
+		lineageTag: 86f3f215-3954-5fd5-8bed-01595694e9b2
+		backingConfiguration
+			valueColumn: touch.channel
+
+	property touch_type
+		dataType: string
+		lineageTag: 3260b66c-8f14-5584-8bf8-61b04fe72833
+		backingConfiguration
+			valueColumn: touch.touch_type
+
+	property occurred_at
+		dataType: dateTime
+		lineageTag: 0cf389c5-a057-56c3-a9ed-852df0e98735
+		backingConfiguration
+			valueColumn: touch.occurred_at
+
+	property tracking_token
+		dataType: string
+		lineageTag: 462336eb-1e6f-50be-acb8-f3ea55a63da1
+		backingConfiguration
+			valueColumn: touch.tracking_token
+
+	property source_touch_id
+		dataType: string
+		lineageTag: c8eef8a9-6050-5a87-b509-053d6f44fe61
+		backingConfiguration
+			valueColumn: touch.source_touch_id

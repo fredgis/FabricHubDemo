@@ -1,0 +1,19 @@
+table link_order_offer
+	lineageTag: 6a6c92e4-05d1-5f4b-b4c7-fd1bd88b817f
+
+	column order_id
+		dataType: string
+		lineageTag: b64dd94e-cb46-5e3f-86e9-16a3220a231c
+		sourceColumn: order_id
+
+	column offer_key
+		dataType: string
+		lineageTag: 5dc2f168-5c57-543e-903f-2ede52a9cbeb
+		sourceColumn: offer_key
+
+	partition link_order_offer = entity
+		mode: directLake
+		source
+			entityName: link_order_offer
+			schemaName: gold
+			expressionSource: DatabaseQuery

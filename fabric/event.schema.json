@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:msflix:operational-event:1",
+  "title": "MSFlix operational event envelope",
+  "type": "object",
+  "required": ["event_id", "event_type", "schema_version", "entity_key", "source_sequence", "occurred_at", "produced_at", "run_id", "correlation_id", "payload"],
+  "properties": {
+    "event_id": {"type": "string", "minLength": 1, "maxLength": 128},
+    "event_type": {"type": "string", "minLength": 1, "maxLength": 128},
+    "schema_version": {"const": 1},
+    "entity_key": {"type": "string", "minLength": 1, "maxLength": 128},
+    "source_sequence": {"type": "integer", "minimum": 1, "maximum": 9223372036854775807},
+    "occurred_at": {"type": "string", "format": "date-time", "pattern": "(Z|\\+00:00)$"},
+    "produced_at": {"type": "string", "format": "date-time", "pattern": "(Z|\\+00:00)$"},
+    "run_id": {"type": "string", "minLength": 1, "maxLength": 128},
+    "correlation_id": {"type": "string", "minLength": 1, "maxLength": 128},
+    "payload": {"type": "object"},
+    "payload_json": {"type": "string", "description": "For Eventstream Lakehouse: canonical JSON serialization of payload, identical to the original object"}
+  },
+  "additionalProperties": true
+}

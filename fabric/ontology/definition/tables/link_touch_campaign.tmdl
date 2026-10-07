@@ -1,0 +1,19 @@
+table link_touch_campaign
+	lineageTag: 28b3f8cb-4252-5c2a-af62-7a6ea08f1a5b
+
+	column touch_key
+		dataType: string
+		lineageTag: 0949f14d-9c24-5111-a16f-7401ca6412a1
+		sourceColumn: touch_key
+
+	column campaign_key
+		dataType: string
+		lineageTag: 8c3a3ad1-dbd7-5ac9-81a8-662aa652b3b9
+		sourceColumn: campaign_key
+
+	partition link_touch_campaign = entity
+		mode: directLake
+		source
+			entityName: link_touch_campaign
+			schemaName: gold
+			expressionSource: DatabaseQuery

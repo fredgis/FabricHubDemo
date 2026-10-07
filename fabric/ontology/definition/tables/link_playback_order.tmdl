@@ -1,0 +1,19 @@
+table link_playback_order
+	lineageTag: 68744e78-62b9-5a80-b667-616ca1c33468
+
+	column session_id
+		dataType: string
+		lineageTag: a74efcbb-45a4-52b0-90cf-d40c6cab1548
+		sourceColumn: session_id
+
+	column order_id
+		dataType: string
+		lineageTag: e4b784dd-7e5a-51f2-9c7d-f27cf880c743
+		sourceColumn: order_id
+
+	partition link_playback_order = entity
+		mode: directLake
+		source
+			entityName: link_playback_order
+			schemaName: gold
+			expressionSource: DatabaseQuery

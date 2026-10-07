@@ -1,0 +1,19 @@
+table link_touch_customer
+	lineageTag: afb8a79e-27f5-5fc7-8e05-36c5a8e5e317
+
+	column touch_key
+		dataType: string
+		lineageTag: 17eeab98-8341-5b5a-a97c-4634bb0fcbc3
+		sourceColumn: touch_key
+
+	column customer_key
+		dataType: string
+		lineageTag: 7208e4a8-f36b-5fc7-99fd-a039a007e7a1
+		sourceColumn: customer_key
+
+	partition link_touch_customer = entity
+		mode: directLake
+		source
+			entityName: link_touch_customer
+			schemaName: gold
+			expressionSource: DatabaseQuery

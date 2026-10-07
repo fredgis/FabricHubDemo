@@ -1,0 +1,19 @@
+table link_conversion_campaign
+	lineageTag: 09306a1e-7073-5dad-b6b8-6a831e2d2aa3
+
+	column conversion_key
+		dataType: string
+		lineageTag: 9d7cdc33-9cba-5e49-b0ef-82d14c17307a
+		sourceColumn: conversion_key
+
+	column campaign_key
+		dataType: string
+		lineageTag: ab7bffa1-f471-594f-83c3-58d6a0a1e6d9
+		sourceColumn: campaign_key
+
+	partition link_conversion_campaign = entity
+		mode: directLake
+		source
+			entityName: link_conversion_campaign
+			schemaName: gold
+			expressionSource: DatabaseQuery

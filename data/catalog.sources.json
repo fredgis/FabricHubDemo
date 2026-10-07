@@ -1,0 +1,67 @@
+[
+  {
+    "content_key": "MSF-FILM-SINTEL",
+    "title": "Sintel",
+    "release_date": "2010-09-27",
+    "duration_seconds": 888,
+    "genre": "Fantasy",
+    "source_url": "https://studio.blender.org/projects/sintel/",
+    "license": "CC BY 3.0",
+    "license_url": "https://creativecommons.org/licenses/by/3.0/",
+    "attribution": "Sintel (2010), Blender Foundation. Licensed CC BY 3.0.",
+    "synopsis": "Une jeune voyageuse traverse un monde sauvage a la recherche d'un dragon.",
+    "distributor_key": "BLENDER-FOUNDATION"
+  },
+  {
+    "content_key": "MSF-FILM-SPRING",
+    "title": "Spring",
+    "release_date": "2019-04-04",
+    "duration_seconds": 464,
+    "genre": "Fantasy",
+    "source_url": "https://studio.blender.org/projects/spring/",
+    "license": "CC BY 4.0",
+    "license_url": "https://creativecommons.org/licenses/by/4.0/",
+    "attribution": "Spring (2019), Blender Foundation / Blender Animation Studio. Licensed CC BY 4.0.",
+    "synopsis": "Une bergere et son chien rencontrent les esprits qui font revenir le printemps.",
+    "distributor_key": "BLENDER-FOUNDATION"
+  },
+  {
+    "content_key": "MSF-FILM-BUNNY",
+    "title": "Big Buck Bunny",
+    "release_date": "2008-04-10",
+    "duration_seconds": 596,
+    "genre": "Animation",
+    "source_url": "https://studio.blender.org/projects/big-buck-bunny/",
+    "license": "CC BY 3.0",
+    "license_url": "https://creativecommons.org/licenses/by/3.0/",
+    "attribution": "Big Buck Bunny (2008), Blender Foundation. Licensed CC BY 3.0.",
+    "synopsis": "Un lapin paisible prend sa revanche sur trois petits perturbateurs.",
+    "distributor_key": "BLENDER-FOUNDATION"
+  },
+  {
+    "content_key": "MSF-FILM-STEEL",
+    "title": "Tears of Steel",
+    "release_date": "2012-09-26",
+    "duration_seconds": 734,
+    "genre": "Science-fiction",
+    "source_url": "https://studio.blender.org/projects/tears-of-steel/",
+    "license": "CC BY 3.0",
+    "license_url": "https://creativecommons.org/licenses/by/3.0/",
+    "attribution": "Tears of Steel (2012), Blender Foundation. Licensed CC BY 3.0.",
+    "synopsis": "A Amsterdam, un groupe tente de reparer les souvenirs qui menacent son avenir.",
+    "distributor_key": "BLENDER-FOUNDATION"
+  },
+  {
+    "content_key": "MSF-FILM-ELEPHANTS",
+    "title": "Elephants Dream",
+    "release_date": "2006-03-24",
+    "duration_seconds": 653,
+    "genre": "Animation",
+    "source_url": "https://studio.blender.org/projects/elephants-dream/",
+    "license": "CC BY 2.5",
+    "license_url": "https://creativecommons.org/licenses/by/2.5/",
+    "attribution": "Elephants Dream (2006), Blender Foundation / Orange Open Movie Project. Licensed CC BY 2.5.",
+    "synopsis": "Deux personnages explorent un univers mecanique dont ils ne partagent pas la vision.",
+    "distributor_key": "BLENDER-FOUNDATION"
+  }
+]

@@ -1,0 +1,70 @@
+entity rental
+	lineageTag: 0cf670a0-4d26-5eec-b8d3-41fe772e25cc
+	backingTable: rental
+	keyProperty: order_id
+
+	property order_id
+		dataType: string
+		lineageTag: d07cc386-7a60-5f5d-bc05-3997da1026fa
+		backingConfiguration
+			valueColumn: rental.order_id
+
+	property customer_key
+		dataType: string
+		lineageTag: ea4c0c9d-7581-5ae2-83bd-3f89b329ccf7
+		backingConfiguration
+			valueColumn: rental.customer_key
+
+	property offer_key
+		dataType: string
+		lineageTag: bf6da4cb-c876-508d-8e7c-e1a0c2457eaa
+		backingConfiguration
+			valueColumn: rental.offer_key
+
+	property status
+		dataType: string
+		lineageTag: 67d60338-9267-5a7d-9f0c-c9e91175861e
+		backingConfiguration
+			valueColumn: rental.status
+
+	property amount_minor
+		dataType: int64
+		lineageTag: caa0b24c-639b-5cbd-b040-3144d8716780
+		backingConfiguration
+			valueColumn: rental.amount_minor
+
+	property currency
+		dataType: string
+		lineageTag: b23a10a0-b7e2-55e0-b5b6-c2b86d6f3f84
+		backingConfiguration
+			valueColumn: rental.currency
+
+	property created_at
+		dataType: dateTime
+		lineageTag: 489013d4-7a39-5c00-8211-b8503bf52327
+		backingConfiguration
+			valueColumn: rental.created_at
+
+	property start_deadline
+		dataType: dateTime
+		lineageTag: 6ac9fe3d-bbcd-56dc-b393-6d77f9131721
+		backingConfiguration
+			valueColumn: rental.start_deadline
+
+	property first_play_at
+		dataType: dateTime
+		lineageTag: 8a0cda80-8375-506e-9dfe-b2b2e5a890f3
+		backingConfiguration
+			valueColumn: rental.first_play_at
+
+	property expires_at
+		dataType: dateTime
+		lineageTag: 5e2a4443-dc91-5396-b0fc-aba1c2d0ba5f
+		backingConfiguration
+			valueColumn: rental.expires_at
+
+	property campaign_key
+		dataType: string
+		lineageTag: 05bc4477-ba74-58a7-b71e-5933997f6b28
+		backingConfiguration
+			valueColumn: rental.campaign_key

@@ -1,0 +1,53 @@
+{
+  "compatibilityLevel": "1.0",
+  "sources": [{
+    "name": "OperationalEvents",
+    "type": "AzureEventHubExtended",
+    "properties": {
+      "dataConnectionId": "{{EVENTHUB_CONNECTION_ID}}",
+      "consumerGroupName": "{{CONSUMER_GROUP}}",
+      "startPosition": "Earliest",
+      "inputSerialization": {"type": "Json", "properties": {"encoding": "UTF8"}}
+    }
+  }],
+  "streams": [{
+    "name": "MSFlixIngress-stream",
+    "type": "DefaultStream",
+    "properties": {},
+    "inputNodes": [{"name": "OperationalEvents"}]
+  }],
+  "operators": [{
+    "name": "PreserveRawEnvelope",
+    "type": "SQL",
+    "inputNodes": [{"name": "MSFlixIngress-stream"}],
+    "properties": {
+      "query": "SELECT event_id, event_type, schema_version, entity_key, source_sequence, occurred_at, produced_at, run_id, correlation_id, payload_json AS payload INTO [RawEnvelopeSink] FROM [MSFlixIngress-stream]"
+    }
+  }],
+  "destinations": [{
+    "name": "KqlEnvelopeSink",
+    "type": "Eventhouse",
+    "inputNodes": [{"name": "MSFlixIngress-stream"}],
+    "properties": {
+      "dataIngestionMode": "ProcessedIngestion",
+      "workspaceId": "{{WORKSPACE_ID}}",
+      "itemId": "{{KQL_DATABASE_ID}}",
+      "databaseName": "{{KQL_DATABASE_NAME}}",
+      "tableName": "RawEvents",
+      "inputSerialization": {"type": "Json", "properties": {"encoding": "UTF8"}}
+    }
+  }, {
+    "name": "RawEnvelopeSink",
+    "type": "Lakehouse",
+    "inputNodes": [{"name": "PreserveRawEnvelope"}],
+    "properties": {
+      "workspaceId": "{{WORKSPACE_ID}}",
+      "itemId": "{{RAW_LAKEHOUSE_ID}}",
+      "schema": "raw",
+      "deltaTable": "events_ingress",
+      "minimumRows": 1000,
+      "maximumDurationInSeconds": 60,
+      "inputSerialization": {"type": "Json", "properties": {"encoding": "UTF8"}}
+    }
+  }]
+}

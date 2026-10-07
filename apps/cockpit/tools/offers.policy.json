@@ -1,0 +1,11 @@
+{
+  "description": "Parent-approved persisted MSFlix demo offer policy. Not market prices or bank charges.",
+  "start_window_hours": 720,
+  "play_window_hours": 48,
+  "territories": [
+    { "territory": "FR", "currency": "EUR", "rental_minor": 399, "purchase_minor": 1299 },
+    { "territory": "BE", "currency": "EUR", "rental_minor": 399, "purchase_minor": 1299 },
+    { "territory": "CA", "currency": "CAD", "rental_minor": 599, "purchase_minor": 1899 },
+    { "territory": "CH", "currency": "CHF", "rental_minor": 449, "purchase_minor": 1399 }
+  ]
+}

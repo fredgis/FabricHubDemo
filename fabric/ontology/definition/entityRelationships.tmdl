@@ -1,0 +1,119 @@
+entityRelationship customer_order
+	lineageTag: f0be0b91-919c-594d-a389-d7fcb3dd5c65
+	fromEntity: customer
+	toEntity: rental
+	backingConfiguration
+		type: table
+		table: link_customer_order
+		fromRelationship: join_customer_order_left
+		toRelationship: join_customer_order_right
+
+entityRelationship order_offer
+	lineageTag: d00e421a-24e1-5f5d-a159-684eaa9dc559
+	fromEntity: rental
+	toEntity: offer
+	backingConfiguration
+		type: table
+		table: link_order_offer
+		fromRelationship: join_order_offer_left
+		toRelationship: join_order_offer_right
+
+entityRelationship offer_content
+	lineageTag: c9d4558d-7540-567e-9a55-d3b4ef6083f0
+	fromEntity: offer
+	toEntity: content
+	backingConfiguration
+		type: table
+		table: link_offer_content
+		fromRelationship: join_offer_content_left
+		toRelationship: join_offer_content_right
+
+entityRelationship playback_order
+	lineageTag: a9e04f70-462d-5a78-912c-c569ff734a8e
+	fromEntity: playback
+	toEntity: rental
+	backingConfiguration
+		type: table
+		table: link_playback_order
+		fromRelationship: join_playback_order_left
+		toRelationship: join_playback_order_right
+
+entityRelationship playback_content
+	lineageTag: 111eb792-bdeb-566d-a2f5-cf71498cd6f7
+	fromEntity: playback
+	toEntity: content
+	backingConfiguration
+		type: table
+		table: link_playback_content
+		fromRelationship: join_playback_content_left
+		toRelationship: join_playback_content_right
+
+entityRelationship playback_customer
+	lineageTag: 2f2eb576-d51c-5dd1-a0e8-87effa9e88cf
+	fromEntity: playback
+	toEntity: customer
+	backingConfiguration
+		type: table
+		table: link_playback_customer
+		fromRelationship: join_playback_customer_left
+		toRelationship: join_playback_customer_right
+
+entityRelationship content_distributor
+	lineageTag: 9e218d84-f567-549c-8c65-7731b8bfc27b
+	fromEntity: content
+	toEntity: distributor
+	backingConfiguration
+		type: table
+		table: link_content_distributor
+		fromRelationship: join_content_distributor_left
+		toRelationship: join_content_distributor_right
+
+entityRelationship conversion_campaign
+	lineageTag: 5a40dac1-0693-5bc4-89b3-caa8eea17dc4
+	fromEntity: campaign_conversion
+	toEntity: campaign
+	backingConfiguration
+		type: table
+		table: link_conversion_campaign
+		fromRelationship: join_conversion_campaign_left
+		toRelationship: join_conversion_campaign_right
+
+entityRelationship conversion_order
+	lineageTag: 33e0c038-0e8c-59ca-9b83-a29b1c27276d
+	fromEntity: campaign_conversion
+	toEntity: rental
+	backingConfiguration
+		type: table
+		table: link_conversion_order
+		fromRelationship: join_conversion_order_left
+		toRelationship: join_conversion_order_right
+
+entityRelationship consent_customer
+	lineageTag: 96e87467-daa2-59c1-81fc-4f4286528607
+	fromEntity: consent
+	toEntity: customer
+	backingConfiguration
+		type: table
+		table: link_consent_customer
+		fromRelationship: join_consent_customer_left
+		toRelationship: join_consent_customer_right
+
+entityRelationship touch_customer
+	lineageTag: 7d09f5be-4cae-5489-9772-d4a2d2ee3fef
+	fromEntity: touch
+	toEntity: customer
+	backingConfiguration
+		type: table
+		table: link_touch_customer
+		fromRelationship: join_touch_customer_left
+		toRelationship: join_touch_customer_right
+
+entityRelationship touch_campaign
+	lineageTag: 83a86f08-5cb0-5a29-a887-65f5df51be51
+	fromEntity: touch
+	toEntity: campaign
+	backingConfiguration
+		type: table
+		table: link_touch_campaign
+		fromRelationship: join_touch_campaign_left
+		toRelationship: join_touch_campaign_right

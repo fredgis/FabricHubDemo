@@ -1,0 +1,14 @@
+{
+  "approved": false,
+  "limits_confirmed": false,
+  "catalog_confirmed": false,
+  "run_key": "<exact-plan-run-key>",
+  "workspace_id": "<exact-approved-workspace>",
+  "capacity_id": "<existing-F16-capacity>",
+  "source_manifest_hash": "<from-plan.json>",
+  "policy_hash": "<from-plan.json>",
+  "fingerprint": "<from-plan.json>",
+  "max_orders": 50000,
+  "max_events": 500000,
+  "expires_at": "<explicit-ISO-UTC-approval-expiry>"
+}

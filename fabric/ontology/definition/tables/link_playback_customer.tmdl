@@ -1,0 +1,19 @@
+table link_playback_customer
+	lineageTag: b604daf2-45b2-5b7f-a1fe-de07dbdcb5a5
+
+	column session_id
+		dataType: string
+		lineageTag: 305a0ee9-6ca0-54f8-9ff4-5e878a4b3757
+		sourceColumn: session_id
+
+	column customer_key
+		dataType: string
+		lineageTag: 8c6c95bb-84d7-5a42-b588-46356dedcc2c
+		sourceColumn: customer_key
+
+	partition link_playback_customer = entity
+		mode: directLake
+		source
+			entityName: link_playback_customer
+			schemaName: gold
+			expressionSource: DatabaseQuery

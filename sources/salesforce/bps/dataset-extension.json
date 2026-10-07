@@ -1,0 +1,44 @@
+{
+  "purpose": "Inputs for supported native BPS dataset configuration, not direct SQL metadata writes",
+  "source_system": "Supply the configured Salesforce BPS source system",
+  "dataset": "Supply the active BPS dataset",
+  "documented_action": "Datasets > source system > dataset > Import tables > New Table > Save",
+  "tables": [
+    {
+      "name": "Campaign",
+      "type": "DIMENSION",
+      "key_fields": ["Id"],
+      "delta": true,
+      "required_fields": ["Id", "MSFlix_Key__c", "Name", "MSFlix_BudgetMinor__c", "MSFlix_Currency__c", "MSFlix_Channel__c", "IsDeleted", "SystemModstamp"]
+    },
+    {
+      "name": "MSFlix_Consent__c",
+      "type": "DIMENSION",
+      "key_fields": ["Id"],
+      "delta": true,
+      "required_fields": ["Id", "MSFlix_Key__c", "CustomerKey__c", "Purpose__c", "Channel__c", "Granted__c", "EffectiveAt__c", "IsDeleted", "SystemModstamp"]
+    },
+    {
+      "name": "MSFlix_Touch__c",
+      "type": "FACT",
+      "key_fields": ["Id"],
+      "delta": true,
+      "required_fields": ["Id", "MSFlix_Key__c", "CustomerKey__c", "CampaignKey__c", "Channel__c", "TouchType__c", "OccurredAt__c", "TrackingToken__c", "IsDeleted", "SystemModstamp"]
+    }
+  ],
+  "optional_native_relationships": [
+    {
+      "fact_table": "MSFlix_Touch__c",
+      "dimension_table": "Contact",
+      "join_condition": [["CustomerKey__c", "MSFlix_Key__c", "=="]],
+      "surrogate_column": "_key_Contact"
+    },
+    {
+      "fact_table": "MSFlix_Touch__c",
+      "dimension_table": "Campaign",
+      "join_condition": [["CampaignKey__c", "MSFlix_Key__c", "=="]],
+      "surrogate_column": "_key_Campaign"
+    }
+  ],
+  "after_save": "Confirm native extractionMetadata/inScope and fieldMetadata, then acknowledge the latest completed extraction job to run native extraction > Silver > dimensions > facts again."
+}

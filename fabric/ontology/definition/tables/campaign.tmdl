@@ -1,0 +1,44 @@
+table campaign
+	lineageTag: 4d7bc73d-9c40-5fdb-9474-234549638fa4
+
+	column campaign_key
+		dataType: string
+		lineageTag: f0df3351-b912-585c-9f9c-efd73c9d77f2
+		sourceColumn: campaign_key
+
+	column name
+		dataType: string
+		lineageTag: c04ca0ee-463c-5657-b094-3a4605140662
+		sourceColumn: name
+
+	column territory
+		dataType: string
+		lineageTag: 791e844d-c021-5922-a8ab-14a68b13e74f
+		sourceColumn: territory
+
+	column budget_minor
+		dataType: int64
+		lineageTag: 7d0f1aea-1cad-576c-a6d3-e8d16457ce68
+		sourceColumn: budget_minor
+
+	column currency
+		dataType: string
+		lineageTag: 6a18c774-3e8e-52b8-9959-2a263f8f3c00
+		sourceColumn: currency
+
+	column channel
+		dataType: string
+		lineageTag: d3a5885f-3884-553f-8ea3-25378ee97cc7
+		sourceColumn: channel
+
+	column source_campaign_id
+		dataType: string
+		lineageTag: c2f44fa4-2774-54c6-82a4-3d9e13d8403e
+		sourceColumn: source_campaign_id
+
+	partition campaign = entity
+		mode: directLake
+		source
+			entityName: dim_campaign
+			schemaName: gold
+			expressionSource: DatabaseQuery

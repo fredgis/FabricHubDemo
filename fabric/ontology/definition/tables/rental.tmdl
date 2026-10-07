@@ -1,0 +1,64 @@
+table rental
+	lineageTag: 10532868-f30f-5f22-b8e8-c7486be9c530
+
+	column order_id
+		dataType: string
+		lineageTag: 79f96fb6-2452-519e-b2f2-b9333262dbff
+		sourceColumn: order_id
+
+	column customer_key
+		dataType: string
+		lineageTag: 2d9ca30c-59aa-5a76-afa3-232d4872d48f
+		sourceColumn: customer_key
+
+	column offer_key
+		dataType: string
+		lineageTag: f6bd4deb-b2e0-5d48-bb88-f3a6067a942b
+		sourceColumn: offer_key
+
+	column status
+		dataType: string
+		lineageTag: 8afbaa9c-985a-5735-b322-ac36dd5082dd
+		sourceColumn: status
+
+	column amount_minor
+		dataType: int64
+		lineageTag: af95d312-d932-50d0-afa4-a1a4b923c9ca
+		sourceColumn: amount_minor
+
+	column currency
+		dataType: string
+		lineageTag: 498a3bcb-029e-570d-90d1-108110f8831b
+		sourceColumn: currency
+
+	column created_at
+		dataType: dateTime
+		lineageTag: 21ec9148-ab3f-57a9-848d-06a1351af721
+		sourceColumn: created_at
+
+	column start_deadline
+		dataType: dateTime
+		lineageTag: c1193f18-ecfa-5bda-9c60-2648ec231b31
+		sourceColumn: start_deadline
+
+	column first_play_at
+		dataType: dateTime
+		lineageTag: 3b6f3ad4-114d-5b87-b662-1d85959cd5d2
+		sourceColumn: first_play_at
+
+	column expires_at
+		dataType: dateTime
+		lineageTag: de37f17c-7c53-590e-8bea-0215776709f4
+		sourceColumn: expires_at
+
+	column campaign_key
+		dataType: string
+		lineageTag: 4b6cb7e1-666e-5a68-b179-9be96fed1b8b
+		sourceColumn: campaign_key
+
+	partition rental = entity
+		mode: directLake
+		source
+			entityName: fact_order_line
+			schemaName: gold
+			expressionSource: DatabaseQuery

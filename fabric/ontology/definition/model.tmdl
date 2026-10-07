@@ -1,0 +1,35 @@
+model Model
+
+ref namespace default
+ref table content
+ref entity content
+ref table customer
+ref entity customer
+ref table offer
+ref entity offer
+ref table rental
+ref entity rental
+ref table playback
+ref entity playback
+ref table distributor
+ref entity distributor
+ref table campaign
+ref entity campaign
+ref table consent
+ref entity consent
+ref table touch
+ref entity touch
+ref table campaign_conversion
+ref entity campaign_conversion
+ref table link_customer_order
+ref table link_order_offer
+ref table link_offer_content
+ref table link_playback_order
+ref table link_playback_content
+ref table link_playback_customer
+ref table link_content_distributor
+ref table link_conversion_campaign
+ref table link_conversion_order
+ref table link_consent_customer
+ref table link_touch_customer
+ref table link_touch_campaign

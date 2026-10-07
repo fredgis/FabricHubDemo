@@ -1,0 +1,191 @@
+relationship join_customer_order_left
+	isActive: false
+	fromCardinality: many
+	toCardinality: one
+	fromColumn: link_customer_order.customer_key
+	toColumn: customer.customer_key
+	annotation MSFlixStableId = da187cf0-ad96-5bce-afb2-b67fc39bf13f
+
+relationship join_customer_order_right
+	isActive: false
+	fromCardinality: many
+	toCardinality: one
+	fromColumn: link_customer_order.order_id
+	toColumn: rental.order_id
+	annotation MSFlixStableId = 3494038a-fd4f-566f-a37a-a047e6e16a69
+
+relationship join_order_offer_left
+	isActive: false
+	fromCardinality: many
+	toCardinality: one
+	fromColumn: link_order_offer.order_id
+	toColumn: rental.order_id
+	annotation MSFlixStableId = d3562ed7-696a-5d76-9fd2-80062360f1ce
+
+relationship join_order_offer_right
+	isActive: false
+	fromCardinality: many
+	toCardinality: one
+	fromColumn: link_order_offer.offer_key
+	toColumn: offer.offer_key
+	annotation MSFlixStableId = 4118d1ff-f229-5c00-a6d1-9b5fd5cc4308
+
+relationship join_offer_content_left
+	isActive: false
+	fromCardinality: many
+	toCardinality: one
+	fromColumn: link_offer_content.offer_key
+	toColumn: offer.offer_key
+	annotation MSFlixStableId = b5ab4a66-9647-5f7c-9cf0-d75b78f8c7d7
+
+relationship join_offer_content_right
+	isActive: false
+	fromCardinality: many
+	toCardinality: one
+	fromColumn: link_offer_content.content_key
+	toColumn: content.content_key
+	annotation MSFlixStableId = d335a095-ddac-586e-8363-054b4231c051
+
+relationship join_playback_order_left
+	isActive: false
+	fromCardinality: many
+	toCardinality: one
+	fromColumn: link_playback_order.session_id
+	toColumn: playback.session_id
+	annotation MSFlixStableId = 3ba76399-c65b-59c4-8ce0-2c9660459144
+
+relationship join_playback_order_right
+	isActive: false
+	fromCardinality: many
+	toCardinality: one
+	fromColumn: link_playback_order.order_id
+	toColumn: rental.order_id
+	annotation MSFlixStableId = 6a0ee9f7-25fb-5e32-b6e3-2247e21b14fe
+
+relationship join_playback_content_left
+	isActive: false
+	fromCardinality: many
+	toCardinality: one
+	fromColumn: link_playback_content.session_id
+	toColumn: playback.session_id
+	annotation MSFlixStableId = 07fdd951-8ca5-5dcb-9064-1cf2977a1869
+
+relationship join_playback_content_right
+	isActive: false
+	fromCardinality: many
+	toCardinality: one
+	fromColumn: link_playback_content.content_key
+	toColumn: content.content_key
+	annotation MSFlixStableId = 5479f036-2922-5aa0-b0f3-889f93b8e5d4
+
+relationship join_playback_customer_left
+	isActive: false
+	fromCardinality: many
+	toCardinality: one
+	fromColumn: link_playback_customer.session_id
+	toColumn: playback.session_id
+	annotation MSFlixStableId = 3c82a79f-8032-5e03-97fd-a017adb6648b
+
+relationship join_playback_customer_right
+	isActive: false
+	fromCardinality: many
+	toCardinality: one
+	fromColumn: link_playback_customer.customer_key
+	toColumn: customer.customer_key
+	annotation MSFlixStableId = d14911d1-9abb-57f0-b51a-e32dffad59d9
+
+relationship join_content_distributor_left
+	isActive: false
+	fromCardinality: many
+	toCardinality: one
+	fromColumn: link_content_distributor.content_key
+	toColumn: content.content_key
+	annotation MSFlixStableId = 822b09db-5561-5f4e-86c9-2a4b06b93d9f
+
+relationship join_content_distributor_right
+	isActive: false
+	fromCardinality: many
+	toCardinality: one
+	fromColumn: link_content_distributor.distributor_key
+	toColumn: distributor.distributor_key
+	annotation MSFlixStableId = b760993d-b6cf-53f4-8d66-d107c11af442
+
+relationship join_conversion_campaign_left
+	isActive: false
+	fromCardinality: many
+	toCardinality: one
+	fromColumn: link_conversion_campaign.conversion_key
+	toColumn: campaign_conversion.conversion_key
+	annotation MSFlixStableId = 5141f95f-fff9-57d7-b18a-aeb927a70428
+
+relationship join_conversion_campaign_right
+	isActive: false
+	fromCardinality: many
+	toCardinality: one
+	fromColumn: link_conversion_campaign.campaign_key
+	toColumn: campaign.campaign_key
+	annotation MSFlixStableId = 76491098-82e3-5d6f-8630-94302b5250b3
+
+relationship join_conversion_order_left
+	isActive: false
+	fromCardinality: many
+	toCardinality: one
+	fromColumn: link_conversion_order.conversion_key
+	toColumn: campaign_conversion.conversion_key
+	annotation MSFlixStableId = 2ff629d7-49fe-53a6-8d61-fca3c9006cac
+
+relationship join_conversion_order_right
+	isActive: false
+	fromCardinality: many
+	toCardinality: one
+	fromColumn: link_conversion_order.order_id
+	toColumn: rental.order_id
+	annotation MSFlixStableId = f295ccd6-1387-5d8b-864b-2e7d8b3796f0
+
+relationship join_consent_customer_left
+	isActive: false
+	fromCardinality: many
+	toCardinality: one
+	fromColumn: link_consent_customer.consent_key
+	toColumn: consent.consent_key
+	annotation MSFlixStableId = 21a077e0-ce34-5fe5-810c-f6970014f3de
+
+relationship join_consent_customer_right
+	isActive: false
+	fromCardinality: many
+	toCardinality: one
+	fromColumn: link_consent_customer.customer_key
+	toColumn: customer.customer_key
+	annotation MSFlixStableId = 6a0acd41-e669-5a33-8155-77a687ba1a19
+
+relationship join_touch_customer_left
+	isActive: false
+	fromCardinality: many
+	toCardinality: one
+	fromColumn: link_touch_customer.touch_key
+	toColumn: touch.touch_key
+	annotation MSFlixStableId = dfc81dc7-2e10-52e0-b549-1615dc99366a
+
+relationship join_touch_customer_right
+	isActive: false
+	fromCardinality: many
+	toCardinality: one
+	fromColumn: link_touch_customer.customer_key
+	toColumn: customer.customer_key
+	annotation MSFlixStableId = 207180fc-b142-5cf6-96e3-d44c530d0459
+
+relationship join_touch_campaign_left
+	isActive: false
+	fromCardinality: many
+	toCardinality: one
+	fromColumn: link_touch_campaign.touch_key
+	toColumn: touch.touch_key
+	annotation MSFlixStableId = 816c7282-578a-5539-85fc-7f70ccac073c
+
+relationship join_touch_campaign_right
+	isActive: false
+	fromCardinality: many
+	toCardinality: one
+	fromColumn: link_touch_campaign.campaign_key
+	toColumn: campaign.campaign_key
+	annotation MSFlixStableId = b23a07c9-53c4-5826-a8ee-f49e1362f81d

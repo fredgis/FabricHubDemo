@@ -1,0 +1,52 @@
+entity offer
+	lineageTag: 4236b1d7-1fda-519b-bcac-5984f9f2d807
+	backingTable: offer
+	keyProperty: offer_key
+
+	property offer_key
+		dataType: string
+		lineageTag: ba1fb8c2-aba4-5357-9074-7148a5d9ba58
+		backingConfiguration
+			valueColumn: offer.offer_key
+
+	property content_key
+		dataType: string
+		lineageTag: 149e6959-71b0-518a-a7ff-d33e04b70c8a
+		backingConfiguration
+			valueColumn: offer.content_key
+
+	property territory
+		dataType: string
+		lineageTag: 0c05cb00-e0df-5d62-8a5e-17650da6115c
+		backingConfiguration
+			valueColumn: offer.territory
+
+	property currency
+		dataType: string
+		lineageTag: 69c3ec7f-0bf6-535e-91e5-6bc46c496b71
+		backingConfiguration
+			valueColumn: offer.currency
+
+	property transaction_type
+		dataType: string
+		lineageTag: a59aca28-ef54-577a-9011-5404f0414793
+		backingConfiguration
+			valueColumn: offer.transaction_type
+
+	property price_minor
+		dataType: int64
+		lineageTag: d20c3703-835c-52be-af68-5c4ad602690e
+		backingConfiguration
+			valueColumn: offer.price_minor
+
+	property start_window_hours
+		dataType: int64
+		lineageTag: 21c83079-0858-556d-9fcd-3c5b3257ddc0
+		backingConfiguration
+			valueColumn: offer.start_window_hours
+
+	property play_window_hours
+		dataType: int64
+		lineageTag: b1646edd-3af6-5bbb-9c36-9bc87649e220
+		backingConfiguration
+			valueColumn: offer.play_window_hours
