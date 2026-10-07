@@ -54,35 +54,45 @@ def main():
     mirror = client.request("GET", f"/v1/workspaces/{ws}/mirroredDatabases/{mirrors[0]['id']}",
                             skill="sqldw-cli")[2]
     bps_items = [item for item in client.list(f"/v1/workspaces/{ws}/lakehouses", "sqldw-cli")
-                 if item["displayName"] == "bps_bronze_8fbe0076"]
+                 if item["displayName"] == "bps_silver_8fbe0076"]
     if len(bps_items) != 1:
-        raise DeploymentError("The native BPS Salesforce Bronze Lakehouse is missing or ambiguous")
+        raise DeploymentError("The native BPS Salesforce Silver Lakehouse is missing or ambiguous")
     bps = client.request("GET", f"/v1/workspaces/{ws}/lakehouses/{bps_items[0]['id']}",
                          skill="sqldw-cli")[2]
     rows = {}
     with connect(cfg, mirror, lakehouse=True) as database:
         for entity, query in ORACLE_QUERIES.items():
             rows[entity] = [validate_record(entity, row) for row in execute(database, query)]
-    with connect(cfg, bps, lakehouse=True) as database:
-        customers = execute(database, """
-            SELECT Id,FirstName,LastName,MSFlix_Key__c,MSFlix_Territory__c
-            FROM [MSFlixSF].[Contact] WHERE MSFlix_Key__c LIKE 'MSF-C%' AND IsDeleted=0""")
-        rows["customer"] = conform_salesforce("customer", customers)
+    bps_lineage = {}
+    for entity, filename, table in (
+        ("customer", "contact", "Contact"), ("campaign", "campaign", "Campaign"),
+        ("consent", "consent", "MSFlix_Consent__c"), ("touch", "touch", "MSFlix_Touch__c"),
+    ):
+        provenance = json.loads((ROOT / ".state" / "bps" / f"{filename}.silver.provenance.json").read_text())
+        if (provenance["workspace_id"] != ws or provenance["lakehouse_id"] != bps["id"] or
+                provenance["layer"] != "silver" or provenance["schema"] != "dbo" or provenance["table"] != table):
+            raise DeploymentError(f"Native BPS provenance mismatch for {entity}")
+        source = json.loads((ROOT / ".state" / "bps" / f"{filename}.silver.native.json").read_text())
+        if not isinstance(source, list) or len(source) != provenance["row_count"]:
+            raise DeploymentError(f"Native BPS snapshot/provenance row count differs for {entity}")
+        rows[entity] = conform_salesforce(entity, source)
+        bps_lineage[entity] = {"source_table": "dbo." + table, "observed_at": provenance["observed_at"]}
     actual = {entity: len(values) for entity, values in rows.items()}
     if any(count == 0 for count in actual.values()):
         raise DeploymentError(f"An expected native reference source is empty; refusing mass replacement: {actual}")
     lake = OneLake(cfg, workspace, raw)
     lineage = {}
     for entity, values in rows.items():
-        source_kind = "BPS" if entity == "customer" else "OracleMirror"
-        source_id = bps["id"] if entity == "customer" else mirror["id"]
+        source_kind = "BPS" if entity in bps_lineage else "OracleMirror"
+        source_id = bps["id"] if entity in bps_lineage else mirror["id"]
         path = f"Files/ingress/native/{source_kind}/{entity}.json"
         lake.put(path, (json.dumps(values, ensure_ascii=False, indent=2) + "\n").encode())
         cfg["sources"][entity] = {
             "path": path, "format": "json", "multiline": True, "snapshot_complete": True,
             "source_kind": source_kind, "source_item_id": source_id,
         }
-        lineage[entity] = {"source_kind": source_kind, "source_item_id": source_id, "rows": len(values)}
+        lineage[entity] = {"source_kind": source_kind, "source_item_id": source_id, "rows": len(values),
+                           **bps_lineage.get(entity, {})}
     cfg["master_reference_entities"] = sorted(rows)
     cfg["run_id"] = "msflix-native-masters-" + datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     validate_config(cfg, "process")

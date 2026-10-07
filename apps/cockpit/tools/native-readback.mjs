@@ -26,6 +26,8 @@ const client = new RayfinClient({
 try {
   const session = await signInWithEntraToken(client.auth, { entraToken });
   if (!session.isAuthenticated) throw new Error('Native delegated app authentication did not complete.');
+  const capabilities = await client.functions.capabilities.invoke();
+  console.log(JSON.stringify({ function: 'capabilities', result: capabilities }));
   const health = await client.functions.health.invoke();
   console.log(JSON.stringify({ function: 'health', result: health }));
   const pages = await client.functions.businessViews.invoke();
@@ -36,7 +38,7 @@ try {
   }));
   const graph = await client.functions.businessGraph.invoke();
   const evidence = {
-    native_user_authenticated: true, native_health: health, gold: pages.dashboard.freshness,
+    native_user_authenticated: true, capabilities, native_health: health, gold: pages.dashboard.freshness,
     graph: { state: graph.state, nodes: graph.nodes.length, edges: graph.edges.length },
     verified_at: new Date().toISOString(),
   };

@@ -10,6 +10,8 @@ export function goldSnapshot(pages:GoldPages):Snapshot{
     return number;
   };
   const date=(value:string|null|undefined)=>value?new Date(value):undefined;
+  const policyHours=(value:string|null|undefined,transactionType:string|null|undefined)=>
+    value==null&&transactionType!=='TVOD'?0:integer(value);
   return{
     content:pages.catalog.map(row=>({id:text(row.content_key),content_key:text(row.content_key),title:text(row.title),
       release_date:date(row.release_date)??new Date('invalid'),duration_seconds:integer(row.duration_seconds),
@@ -19,7 +21,8 @@ export function goldSnapshot(pages:GoldPages):Snapshot{
     customers:pages.customers.map(row=>({id:text(row.customer_key),customer_key:text(row.customer_key),name:text(row.name),territory:text(row.territory)})),
     offers:pages.offers.map(row=>({id:text(row.offer_key),offer_key:text(row.offer_key),content_key:text(row.content_key),
       territory:text(row.territory),currency:text(row.currency),transaction_type:text(row.transaction_type),
-      price_minor:integer(row.price_minor),start_window_hours:integer(row.start_window_hours),play_window_hours:integer(row.play_window_hours)})),
+      price_minor:integer(row.price_minor),start_window_hours:policyHours(row.start_window_hours,row.transaction_type),
+      play_window_hours:policyHours(row.play_window_hours,row.transaction_type)})),
     rentals:pages.orders.map(row=>({id:text(row.order_id),order_id:text(row.order_id),customer_key:text(row.customer_key),
       offer_key:text(row.offer_key),status:text(row.status),amount_minor:integer(row.amount_minor),currency:text(row.currency),
       created_at:date(row.created_at)??new Date('invalid'),start_deadline:date(row.start_deadline),first_play_at:date(row.first_play_at),expires_at:date(row.expires_at)})),
