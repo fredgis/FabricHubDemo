@@ -27,7 +27,7 @@ flowchart LR
   subgraph GOLD["MSFLIX BUSINESS MODEL · GOLD WAREHOUSE"]
     Catalogue["CATALOGUE<br/>gold.dim_content · gold.dim_offer<br/>gold.dim_distributor · gold.dim_territory"]
     Clients["CLIENTS<br/>gold.dim_customer"]
-    Marketing["MARKETING · BOOTSTRAP TODAY<br/>gold.dim_campaign · gold.fact_customer_consent<br/>gold.fact_campaign_touch"]
+    Marketing["MARKETING · NATIVE REFRESH<br/>gold.dim_campaign · gold.fact_customer_consent<br/>gold.fact_campaign_touch"]
     Transactions["TRANSACTIONS<br/>gold.fact_order_line<br/>gold.fact_playback_session"]
     Conversions["RECORDED CONVERSIONS · 0<br/>gold.fact_campaign_conversion"]
   end
@@ -39,7 +39,7 @@ flowchart LR
 
   Oracle --> Catalogue
   CRM -->|"700 native Contacts ready + staged"| Clients
-  CRM -.->|"Three native marketing objects pending"| Marketing
+  CRM -.->|"Native marketing load / qualification"| Marketing
   RTI --> Transactions
   Marketing -->|"Campaign key"| Conversions
   RTI -->|"Explicit recorded attribution only"| Conversions
@@ -57,23 +57,23 @@ flowchart LR
   class Catalogue,Clients,Transactions,Conversions business;
   class Marketing pending;
   style GOLD fill:#121315,stroke:#ED6757,color:#F3F0EC;
-  linkStyle 2 stroke:#ED6757,color:#ED6757;
+  linkStyle 2 stroke:#ED6757,stroke-width:2px;
 ```
 
 `content_key`, `customer_key`, `offer_key` and `campaign_key` link the same
 business entities across sources, Gold and Ontology.
 
-Native BPS Contacts are ready and staged; their Gold refresh is running.
-**Red dashed:** campaigns, consents and touches still use bootstrap data until
-those three objects are added to native BPS. Recorded conversions remain
-**0**—none are invented.
+Native BPS Contacts and marketing extracts are available. **Red dashed:**
+downstream marketing source qualification is tracked in the deep dives.
+Recorded conversions remain **0**—none are invented.
 
-RTI and the first Gold publication are verified, including **1,002 actual
-demonstration orders**. The cockpit is deployed; source refresh and Gold-backed
-graph qualification are tracked in the deep dives.
+**Verified backbone:** actual Task Flow **8 tasks / 9 connectors / 46
+assignments**, Gold **1,002 demonstration orders**, and successful Gold-backed
+Ontology graph queries. The cockpit is deployed; **its native graph view still
+has an HTTP 500 integration issue under repair**. Not everything is finished.
 
 The originally proposed **notebook-based simulation was not delivered**.
-A cockpit **Demo tab is an idea only**, outside the current implementation scope.
+A cockpit **Demo tab is being implemented** to generate real, bounded business transactions.
 
 ## Run it
 
