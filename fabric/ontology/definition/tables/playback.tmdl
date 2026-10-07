@@ -1,0 +1,39 @@
+table playback
+	lineageTag: d05ca3b2-b8e7-5764-9394-c2c96569eb73
+
+	column session_id
+		dataType: string
+		lineageTag: 826e7765-8b02-5a0d-a96e-4717a0ff65c2
+		sourceColumn: session_id
+
+	column order_id
+		dataType: string
+		lineageTag: fd964c64-394d-56a0-9cc3-df6d0b1c1384
+		sourceColumn: order_id
+
+	column content_key
+		dataType: string
+		lineageTag: dea48f00-cb95-592c-b1d1-60dc39b5855b
+		sourceColumn: content_key
+
+	column customer_key
+		dataType: string
+		lineageTag: 1ff88aab-1b90-5b09-963b-f95105db6e80
+		sourceColumn: customer_key
+
+	column position_seconds
+		dataType: int64
+		lineageTag: 124701a3-899e-593d-9dd4-d6a12e3ef549
+		sourceColumn: position_seconds
+
+	column status
+		dataType: string
+		lineageTag: 29a7d213-9e6c-59a0-bf3e-5defc5381909
+		sourceColumn: status
+
+	partition playback = entity
+		mode: directLake
+		source
+			entityName: fact_playback_session
+			schemaName: gold
+			expressionSource: DatabaseQuery

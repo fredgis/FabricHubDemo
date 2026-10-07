@@ -1,0 +1,30 @@
+// Marker lines separate intact commands; deployment issues one management call each.
+.create-merge table RawEvents (event_id:string, event_type:string, schema_version:long, entity_key:string, source_sequence:long, occurred_at:datetime, produced_at:datetime, run_id:string, correlation_id:string, payload:dynamic, payload_json:string)
+// @command
+.create-or-alter table RawEvents ingestion json mapping 'MSFlixEnvelope' '[{"column":"event_id","Properties":{"Path":"$.event_id"}},{"column":"event_type","Properties":{"Path":"$.event_type"}},{"column":"schema_version","Properties":{"Path":"$.schema_version"}},{"column":"entity_key","Properties":{"Path":"$.entity_key"}},{"column":"source_sequence","Properties":{"Path":"$.source_sequence"}},{"column":"occurred_at","Properties":{"Path":"$.occurred_at"}},{"column":"produced_at","Properties":{"Path":"$.produced_at"}},{"column":"run_id","Properties":{"Path":"$.run_id"}},{"column":"correlation_id","Properties":{"Path":"$.correlation_id"}},{"column":"payload","Properties":{"Path":"$.payload"}},{"column":"payload_json","Properties":{"Path":"$.payload_json"}}]'
+// @command
+.alter table RawEvents policy streamingingestion enable
+// @command
+.alter table RawEvents policy retention '{"SoftDeletePeriod":"30.00:00:00","Recoverability":"Enabled"}'
+// @command
+.alter table RawEvents policy caching hot = 1d
+// @command
+.alter-merge table RawEvents policy mirroring dataformat=parquet with (IsEnabled=true, TargetLatencyInMinutes=5)
+// @command
+.create-or-alter function with (folder='MSFlix', docstring='One envelope per event_id; never sum state transitions') DeduplicatedEvents() {
+    RawEvents
+    | summarize arg_max(produced_at, *) by event_id
+}
+// @command
+.create-or-alter function with (folder='MSFlix', docstring='Detect conflicting event IDs before serving current state') EventIdConflicts() {
+    RawEvents
+    | extend fingerprint = hash_sha256(strcat(event_type, '|', tostring(schema_version), '|', entity_key, '|', tostring(source_sequence), '|', tostring(occurred_at), '|', tostring(produced_at), '|', run_id, '|', correlation_id, '|', payload_json))
+    | summarize variants=make_set(fingerprint, 2) by event_id
+    | where array_length(variants) > 1
+}
+// @command
+.create-or-alter function with (folder='MSFlix', docstring='Observe branch arrival by exact IDs/run; not a distributed transaction') RunEventIds(requested_run:string) {
+    DeduplicatedEvents()
+    | where run_id == requested_run
+    | project event_id, run_id
+}

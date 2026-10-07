@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 960 600">
+  <title>MSFlix: visuel non disponible</title>
+  <rect width="960" height="600" fill="#1B1C1F"/>
+  <rect x="1" y="1" width="958" height="598" rx="10" fill="none" stroke="#34353A" stroke-width="2"/>
+  <text x="480" y="285" text-anchor="middle" fill="#B2B1B5" font-family="Segoe UI,Arial,sans-serif" font-size="28" letter-spacing="3">MSFLIX</text>
+  <text x="480" y="335" text-anchor="middle" fill="#B2B1B5" font-family="Segoe UI,Arial,sans-serif" font-size="17">Aucun visuel licencié disponible</text>
+</svg>

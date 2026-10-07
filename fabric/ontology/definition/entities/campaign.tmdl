@@ -1,0 +1,46 @@
+entity campaign
+	lineageTag: 195aaa36-8b71-5086-8d7d-a6b57a3e6c19
+	backingTable: campaign
+	keyProperty: campaign_key
+
+	property campaign_key
+		dataType: string
+		lineageTag: c7d5f6d6-df81-53da-a0df-41cc625b59c4
+		backingConfiguration
+			valueColumn: campaign.campaign_key
+
+	property name
+		dataType: string
+		lineageTag: 7735d4b3-5b40-5959-97c3-152e0c13e781
+		backingConfiguration
+			valueColumn: campaign.name
+
+	property territory
+		dataType: string
+		lineageTag: e9d7dc66-534a-5967-b828-c07ce194ca0e
+		backingConfiguration
+			valueColumn: campaign.territory
+
+	property budget_minor
+		dataType: int64
+		lineageTag: 4c3231ac-a889-5582-a5da-9ae23a6159be
+		backingConfiguration
+			valueColumn: campaign.budget_minor
+
+	property currency
+		dataType: string
+		lineageTag: ecc5062d-b35d-5228-b69b-67a51ee078f5
+		backingConfiguration
+			valueColumn: campaign.currency
+
+	property channel
+		dataType: string
+		lineageTag: 3ad965e5-0a54-584a-9cbf-cfcce134372d
+		backingConfiguration
+			valueColumn: campaign.channel
+
+	property source_campaign_id
+		dataType: string
+		lineageTag: 67a284b7-b33d-53dc-8830-9b658fb1b632
+		backingConfiguration
+			valueColumn: campaign.source_campaign_id

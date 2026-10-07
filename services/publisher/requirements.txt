@@ -1,0 +1,4 @@
+azure-identity>=1.25,<2
+confluent-kafka>=2.11,<3
+pyodbc>=5.2,<6
+

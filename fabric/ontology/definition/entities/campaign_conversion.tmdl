@@ -1,0 +1,34 @@
+entity campaign_conversion
+	lineageTag: 8ab94b82-f12e-52d8-8597-035772265a37
+	backingTable: campaign_conversion
+	keyProperty: conversion_key
+
+	property conversion_key
+		dataType: string
+		lineageTag: 9029c373-7e90-58d1-9e72-bf377368438b
+		backingConfiguration
+			valueColumn: campaign_conversion.conversion_key
+
+	property campaign_key
+		dataType: string
+		lineageTag: db072944-4a70-5fce-ae75-61ed1fa04e29
+		backingConfiguration
+			valueColumn: campaign_conversion.campaign_key
+
+	property customer_key
+		dataType: string
+		lineageTag: d87461b1-9589-5ca4-8844-190567da3715
+		backingConfiguration
+			valueColumn: campaign_conversion.customer_key
+
+	property order_id
+		dataType: string
+		lineageTag: cfc5c809-4c96-5c60-a380-922424cf4681
+		backingConfiguration
+			valueColumn: campaign_conversion.order_id
+
+	property converted_at
+		dataType: dateTime
+		lineageTag: 36ff636c-64b8-5637-9e17-e70b20bd5eeb
+		backingConfiguration
+			valueColumn: campaign_conversion.converted_at

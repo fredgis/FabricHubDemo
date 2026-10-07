@@ -1,0 +1,46 @@
+entity consent
+	lineageTag: 980adb24-ef41-5995-ab38-36386ba99b0d
+	backingTable: consent
+	keyProperty: consent_key
+
+	property consent_key
+		dataType: string
+		lineageTag: bd1a03c8-6101-5c45-a734-7c51e9e42a85
+		backingConfiguration
+			valueColumn: consent.consent_key
+
+	property customer_key
+		dataType: string
+		lineageTag: 6f8d7551-665e-558a-b2c6-964f6bcf2e4a
+		backingConfiguration
+			valueColumn: consent.customer_key
+
+	property purpose
+		dataType: string
+		lineageTag: 844f5631-0243-50e8-a44d-fa37bcb7d359
+		backingConfiguration
+			valueColumn: consent.purpose
+
+	property channel
+		dataType: string
+		lineageTag: 6e77c58b-1468-5a8b-90d4-a5ba403b122d
+		backingConfiguration
+			valueColumn: consent.channel
+
+	property granted
+		dataType: boolean
+		lineageTag: 9b5f7ae2-ec2b-5248-be11-455ead43b409
+		backingConfiguration
+			valueColumn: consent.granted
+
+	property effective_at
+		dataType: dateTime
+		lineageTag: 385712fc-011d-5edd-a5bf-607dd23a8327
+		backingConfiguration
+			valueColumn: consent.effective_at
+
+	property source_consent_id
+		dataType: string
+		lineageTag: 6b312512-5d8e-55f4-bfd3-fd413c5e3f27
+		backingConfiguration
+			valueColumn: consent.source_consent_id

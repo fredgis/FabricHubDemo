@@ -1,0 +1,44 @@
+table consent
+	lineageTag: 1eaf7a66-479a-541a-8561-2b3c388238c5
+
+	column consent_key
+		dataType: string
+		lineageTag: 92e56e4b-0e01-537d-a211-812c565fb728
+		sourceColumn: consent_key
+
+	column customer_key
+		dataType: string
+		lineageTag: 7e7a0af5-dd2e-5e60-89b9-0de849f2e5ea
+		sourceColumn: customer_key
+
+	column purpose
+		dataType: string
+		lineageTag: 49021ed5-7adb-56d7-9c79-6465cac5883b
+		sourceColumn: purpose
+
+	column channel
+		dataType: string
+		lineageTag: 1facae53-854e-5103-84c4-5690c7f523bc
+		sourceColumn: channel
+
+	column granted
+		dataType: boolean
+		lineageTag: b2d9a93f-ed3b-5364-8090-e65832d133b4
+		sourceColumn: granted
+
+	column effective_at
+		dataType: dateTime
+		lineageTag: e880ce2a-916b-57d6-9deb-0c73a4b16a0c
+		sourceColumn: effective_at
+
+	column source_consent_id
+		dataType: string
+		lineageTag: 3f518911-1f31-5a7e-bd71-2f2aa32ad950
+		sourceColumn: source_consent_id
+
+	partition consent = entity
+		mode: directLake
+		source
+			entityName: fact_customer_consent
+			schemaName: gold
+			expressionSource: DatabaseQuery

@@ -1,0 +1,59 @@
+table content
+	lineageTag: 41e2d10c-9bff-5f71-8042-2400855d9b4f
+
+	column content_key
+		dataType: string
+		lineageTag: ddaf2ea7-cc0d-5abc-9aec-d0cd15a429ad
+		sourceColumn: content_key
+
+	column title
+		dataType: string
+		lineageTag: a504f2ed-9c14-5ed0-9688-b526ef0ff4de
+		sourceColumn: title
+
+	column release_date
+		dataType: dateTime
+		lineageTag: a16ce45b-d6b3-5d73-ba3b-0946e1586460
+		sourceColumn: release_date
+
+	column duration_seconds
+		dataType: int64
+		lineageTag: 5afdf06f-e192-58fb-8491-d45d45443119
+		sourceColumn: duration_seconds
+
+	column genre
+		dataType: string
+		lineageTag: 09102d9c-871b-5824-a5f5-1cddd84f8d9c
+		sourceColumn: genre
+
+	column image_url
+		dataType: string
+		lineageTag: 2e26c7d0-3df1-5af4-b661-dd4a0cc2949a
+		sourceColumn: image_url
+
+	column source_url
+		dataType: string
+		lineageTag: 236e3ee6-00b5-5335-98b7-71f26dcc65aa
+		sourceColumn: source_url
+
+	column license
+		dataType: string
+		lineageTag: 5dd767db-fd0b-5d0d-b4b9-d1eae5e30f17
+		sourceColumn: license
+
+	column attribution
+		dataType: string
+		lineageTag: 9c503d22-7a7e-5fd5-9985-e216dff190d5
+		sourceColumn: attribution
+
+	column distributor_key
+		dataType: string
+		lineageTag: 5b2c0ab8-2cd9-5af7-9923-73319d3eaaae
+		sourceColumn: distributor_key
+
+	partition content = entity
+		mode: directLake
+		source
+			entityName: dim_content
+			schemaName: gold
+			expressionSource: DatabaseQuery

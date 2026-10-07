@@ -1,0 +1,19 @@
+table distributor
+	lineageTag: cf722d93-a1d6-5832-9a23-495a1b2e3248
+
+	column distributor_key
+		dataType: string
+		lineageTag: bb2239ea-a5e8-56dc-96b4-767d3cd37991
+		sourceColumn: distributor_key
+
+	column name
+		dataType: string
+		lineageTag: 1bbb31a3-f793-5023-9b9a-f76366b1f407
+		sourceColumn: name
+
+	partition distributor = entity
+		mode: directLake
+		source
+			entityName: dim_distributor
+			schemaName: gold
+			expressionSource: DatabaseQuery

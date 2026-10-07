@@ -1,0 +1,49 @@
+table touch
+	lineageTag: 2964bed4-706a-50ae-8d4f-047819deb825
+
+	column touch_key
+		dataType: string
+		lineageTag: 60ff3879-324d-5735-8243-309be3ae33dd
+		sourceColumn: touch_key
+
+	column customer_key
+		dataType: string
+		lineageTag: 397c3acb-4f1e-50d6-89a7-cabb91a60355
+		sourceColumn: customer_key
+
+	column campaign_key
+		dataType: string
+		lineageTag: f4f922d2-44f3-57e9-91f8-235b9248ae4b
+		sourceColumn: campaign_key
+
+	column channel
+		dataType: string
+		lineageTag: cb12f13a-791e-5ce7-8a74-133b3f4bc2e5
+		sourceColumn: channel
+
+	column touch_type
+		dataType: string
+		lineageTag: 0ab22dff-c763-5017-83a5-70728cc27c23
+		sourceColumn: touch_type
+
+	column occurred_at
+		dataType: dateTime
+		lineageTag: e9a0290c-f9a2-5cf0-80fe-36167339058a
+		sourceColumn: occurred_at
+
+	column tracking_token
+		dataType: string
+		lineageTag: 4dcb5693-c4fa-52e6-89aa-ed31bf8b1a64
+		sourceColumn: tracking_token
+
+	column source_touch_id
+		dataType: string
+		lineageTag: bad6ffd2-e336-53a5-86c5-2610bdb875d6
+		sourceColumn: source_touch_id
+
+	partition touch = entity
+		mode: directLake
+		source
+			entityName: fact_campaign_touch
+			schemaName: gold
+			expressionSource: DatabaseQuery

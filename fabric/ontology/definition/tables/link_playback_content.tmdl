@@ -1,0 +1,19 @@
+table link_playback_content
+	lineageTag: 72c46e6d-bc05-5fc0-ac2d-b01e17726af9
+
+	column session_id
+		dataType: string
+		lineageTag: f71f4a23-805f-59ae-9ab2-176788790095
+		sourceColumn: session_id
+
+	column content_key
+		dataType: string
+		lineageTag: 5f420519-d8ae-5941-8326-937820c60090
+		sourceColumn: content_key
+
+	partition link_playback_content = entity
+		mode: directLake
+		source
+			entityName: link_playback_content
+			schemaName: gold
+			expressionSource: DatabaseQuery

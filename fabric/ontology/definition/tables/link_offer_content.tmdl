@@ -1,0 +1,19 @@
+table link_offer_content
+	lineageTag: eeb7c07c-6ef7-5886-a3d9-a0759b72a99d
+
+	column offer_key
+		dataType: string
+		lineageTag: 1826288b-92db-57fd-a770-c62cba31aa96
+		sourceColumn: offer_key
+
+	column content_key
+		dataType: string
+		lineageTag: f6d975fe-dcc8-5d05-b8f8-c87b19e6cf67
+		sourceColumn: content_key
+
+	partition link_offer_content = entity
+		mode: directLake
+		source
+			entityName: link_offer_content
+			schemaName: gold
+			expressionSource: DatabaseQuery

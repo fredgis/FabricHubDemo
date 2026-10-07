@@ -1,0 +1,4 @@
+// Substitute the run ID as an escaped parameter, not a KQL string concatenation.
+declare query_parameters(requested_run:string);
+RunEventIds(requested_run)
+| summarize observed_events=count() by run_id

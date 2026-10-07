@@ -1,0 +1,28 @@
+entity customer
+	lineageTag: 7119bbe4-de24-5b52-aa31-ece7b282b3c8
+	backingTable: customer
+	keyProperty: customer_key
+
+	property customer_key
+		dataType: string
+		lineageTag: c36628e5-33bb-5b9f-ba38-ef604300e999
+		backingConfiguration
+			valueColumn: customer.customer_key
+
+	property name
+		dataType: string
+		lineageTag: 7c87161c-d8ad-51ad-86cd-d49560b78f69
+		backingConfiguration
+			valueColumn: customer.name
+
+	property territory
+		dataType: string
+		lineageTag: 286087b5-8401-519e-a07e-797882e01f73
+		backingConfiguration
+			valueColumn: customer.territory
+
+	property source_customer_id
+		dataType: string
+		lineageTag: 5a6ab700-0ba2-527a-9e91-5f3cf53691ea
+		backingConfiguration
+			valueColumn: customer.source_customer_id

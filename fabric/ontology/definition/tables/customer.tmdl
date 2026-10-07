@@ -1,0 +1,29 @@
+table customer
+	lineageTag: 64d8adc4-b8de-55fa-bac3-b0c0716b998d
+
+	column customer_key
+		dataType: string
+		lineageTag: 9538524a-674d-55ea-b9c0-296ce75bcaeb
+		sourceColumn: customer_key
+
+	column name
+		dataType: string
+		lineageTag: 73b0f11e-b191-5e58-b4b9-63a9ac2d2051
+		sourceColumn: name
+
+	column territory
+		dataType: string
+		lineageTag: 7d5d53b7-0964-50f6-8a2a-95cf58cc8a28
+		sourceColumn: territory
+
+	column source_customer_id
+		dataType: string
+		lineageTag: 5f8bf315-9e76-5506-b0df-9698aa78405e
+		sourceColumn: source_customer_id
+
+	partition customer = entity
+		mode: directLake
+		source
+			entityName: dim_customer
+			schemaName: gold
+			expressionSource: DatabaseQuery

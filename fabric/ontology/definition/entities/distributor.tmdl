@@ -1,0 +1,16 @@
+entity distributor
+	lineageTag: 1c4a0792-c759-584b-a150-ac4bc436aef4
+	backingTable: distributor
+	keyProperty: distributor_key
+
+	property distributor_key
+		dataType: string
+		lineageTag: 93263e9f-879e-5e27-bb74-b1bee46d9ea5
+		backingConfiguration
+			valueColumn: distributor.distributor_key
+
+	property name
+		dataType: string
+		lineageTag: 757199d5-c653-5c7f-be21-85797d723718
+		backingConfiguration
+			valueColumn: distributor.name

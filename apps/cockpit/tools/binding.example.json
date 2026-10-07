@@ -1,0 +1,12 @@
+{
+  "id": "<generated-uuid>",
+  "binding_key": "app-linked-operational",
+  "verified": false,
+  "tenant_id": "<approved-tenant>",
+  "workspace_id": "<approved-MSFlix-workspace>",
+  "capacity_id": "<approved-SEA-F16-capacity>",
+  "fabric_item_id": "<deployed-Rayfin-app-item>",
+  "database_item_id": "<app-settings-linked-SQL-item>",
+  "sql_server": "<linked-SQL-properties.serverFqdn>",
+  "sql_database": "<linked-SQL-properties.databaseName>"
+}

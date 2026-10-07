@@ -1,0 +1,19 @@
+table link_content_distributor
+	lineageTag: d8175139-b6c4-57c1-aabf-5d3359a381a2
+
+	column content_key
+		dataType: string
+		lineageTag: a0e152b6-6236-5d1b-ac29-e100d4c0f2fc
+		sourceColumn: content_key
+
+	column distributor_key
+		dataType: string
+		lineageTag: 37e8ef7d-444a-5803-9ed0-200f7a7819ad
+		sourceColumn: distributor_key
+
+	partition link_content_distributor = entity
+		mode: directLake
+		source
+			entityName: link_content_distributor
+			schemaName: gold
+			expressionSource: DatabaseQuery

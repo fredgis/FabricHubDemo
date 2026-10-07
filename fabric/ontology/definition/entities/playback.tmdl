@@ -1,0 +1,40 @@
+entity playback
+	lineageTag: bd8a7354-c2c2-55ef-88f9-4bf75759a323
+	backingTable: playback
+	keyProperty: session_id
+
+	property session_id
+		dataType: string
+		lineageTag: 70874693-0d05-5900-910e-68bcc3700405
+		backingConfiguration
+			valueColumn: playback.session_id
+
+	property order_id
+		dataType: string
+		lineageTag: e4cc3413-c3e7-5b68-9107-30b95326fed8
+		backingConfiguration
+			valueColumn: playback.order_id
+
+	property content_key
+		dataType: string
+		lineageTag: 59e7c164-c0fb-5ebb-bf37-e7af4770d21a
+		backingConfiguration
+			valueColumn: playback.content_key
+
+	property customer_key
+		dataType: string
+		lineageTag: 70b7e89e-928a-51ab-8886-b7a12d08d0f6
+		backingConfiguration
+			valueColumn: playback.customer_key
+
+	property position_seconds
+		dataType: int64
+		lineageTag: 2e2b20dc-76be-5e3c-a566-0b1dff17e248
+		backingConfiguration
+			valueColumn: playback.position_seconds
+
+	property status
+		dataType: string
+		lineageTag: 59cc9aa7-28dc-5919-80af-4410dee5bfb7
+		backingConfiguration
+			valueColumn: playback.status

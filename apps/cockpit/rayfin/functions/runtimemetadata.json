@@ -1,0 +1,203 @@
+{
+  "schemaVersion": "2.0",
+  "functions": [
+    {
+      "functionName": "capabilities",
+      "delegateParameters": [
+        {
+          "name": "ctx",
+          "type": "RayfinContext<AppSchema>",
+          "optional": false,
+          "hasDefault": false,
+          "position": 0,
+          "isFabricParameter": false
+        }
+      ],
+      "contextAudiences": []
+    },
+    {
+      "functionName": "health",
+      "delegateParameters": [
+        {
+          "name": "ctx",
+          "type": "RayfinContext<AppSchema, AudienceType.Sql>",
+          "optional": false,
+          "hasDefault": false,
+          "position": 0,
+          "isFabricParameter": false
+        }
+      ],
+      "contextAudiences": [
+        "Sql"
+      ]
+    },
+    {
+      "functionName": "businessDashboard",
+      "delegateParameters": [
+        {
+          "name": "ctx",
+          "type": "RayfinContext<AppSchema,AudienceType.Sql>",
+          "optional": false,
+          "hasDefault": false,
+          "position": 0,
+          "isFabricParameter": false
+        }
+      ],
+      "contextAudiences": [
+        "Sql"
+      ]
+    },
+    {
+      "functionName": "businessViews",
+      "delegateParameters": [
+        {
+          "name": "ctx",
+          "type": "RayfinContext<AppSchema,AudienceType.Sql>",
+          "optional": false,
+          "hasDefault": false,
+          "position": 0,
+          "isFabricParameter": false
+        }
+      ],
+      "contextAudiences": [
+        "Sql"
+      ]
+    },
+    {
+      "functionName": "businessGraph",
+      "delegateParameters": [
+        {
+          "name": "ctx",
+          "type": "RayfinContext<AppSchema,AudienceType.Fabric>",
+          "optional": false,
+          "hasDefault": false,
+          "position": 0,
+          "isFabricParameter": false
+        }
+      ],
+      "contextAudiences": [
+        "Fabric"
+      ]
+    },
+    {
+      "functionName": "placeOrder",
+      "delegateParameters": [
+        {
+          "name": "input",
+          "type": "OrderInput",
+          "optional": false,
+          "hasDefault": false,
+          "position": 0,
+          "isFabricParameter": false
+        },
+        {
+          "name": "ctx",
+          "type": "RayfinContext<AppSchema, AudienceType.Sql>",
+          "optional": false,
+          "hasDefault": false,
+          "position": 1,
+          "isFabricParameter": false
+        }
+      ],
+      "contextAudiences": [
+        "Sql"
+      ]
+    },
+    {
+      "functionName": "startPlayback",
+      "delegateParameters": [
+        {
+          "name": "input",
+          "type": "PlayInput",
+          "optional": false,
+          "hasDefault": false,
+          "position": 0,
+          "isFabricParameter": false
+        },
+        {
+          "name": "ctx",
+          "type": "RayfinContext<AppSchema, AudienceType.Sql>",
+          "optional": false,
+          "hasDefault": false,
+          "position": 1,
+          "isFabricParameter": false
+        }
+      ],
+      "contextAudiences": [
+        "Sql"
+      ]
+    },
+    {
+      "functionName": "recordProgress",
+      "delegateParameters": [
+        {
+          "name": "input",
+          "type": "ProgressInput",
+          "optional": false,
+          "hasDefault": false,
+          "position": 0,
+          "isFabricParameter": false
+        },
+        {
+          "name": "ctx",
+          "type": "RayfinContext<AppSchema, AudienceType.Sql>",
+          "optional": false,
+          "hasDefault": false,
+          "position": 1,
+          "isFabricParameter": false
+        }
+      ],
+      "contextAudiences": [
+        "Sql"
+      ]
+    },
+    {
+      "functionName": "expireRentals",
+      "delegateParameters": [
+        {
+          "name": "idempotency_key",
+          "type": "string",
+          "optional": false,
+          "hasDefault": false,
+          "position": 0,
+          "isFabricParameter": false
+        },
+        {
+          "name": "ctx",
+          "type": "RayfinContext<AppSchema, AudienceType.Sql>",
+          "optional": false,
+          "hasDefault": false,
+          "position": 1,
+          "isFabricParameter": false
+        }
+      ],
+      "contextAudiences": [
+        "Sql"
+      ]
+    },
+    {
+      "functionName": "requestControl",
+      "delegateParameters": [
+        {
+          "name": "input",
+          "type": "ControlInput",
+          "optional": false,
+          "hasDefault": false,
+          "position": 0,
+          "isFabricParameter": false
+        },
+        {
+          "name": "ctx",
+          "type": "RayfinContext<AppSchema, AudienceType.Sql>",
+          "optional": false,
+          "hasDefault": false,
+          "position": 1,
+          "isFabricParameter": false
+        }
+      ],
+      "contextAudiences": [
+        "Sql"
+      ]
+    }
+  ]
+}

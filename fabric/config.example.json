@@ -1,0 +1,32 @@
+{
+  "environment": "dev",
+  "tenant_id": "",
+  "subscription_id": "",
+  "region": "southeastasia",
+  "capacity_sku": "F16",
+  "workspace_name": "MSFlix",
+  "capacity_resource_id": "",
+  "workspace_id": "",
+  "names": {
+    "raw": "MSFlixRaw",
+    "silver": "MSFlixSilver",
+    "gold": "MSFlixGold",
+    "eventhouse": "MSFlixEventhouse",
+    "kql": "MSFlixEvents",
+    "eventstream": "MSFlixIngress",
+    "ontology": "MSFlixBusiness"
+  },
+  "eventhub_connection_id": "",
+  "eventhub_namespace": "",
+  "eventhub_name": "msflix-events",
+  "consumer_group": "msflix-fabric",
+  "producer_payload_json_mirror": false,
+  "event_entity_map": {},
+  "delete_event_types": [],
+  "currency_exponents": {"EUR": 2},
+  "commercial_statuses": [],
+  "sources": {},
+  "run_id": "",
+  "max_quarantine_records": 0,
+  "max_input_events": 100000
+}
