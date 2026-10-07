@@ -20,12 +20,14 @@
     "rayfin:up": "node tools/deploy.mjs --binding tools/binding.live.local.json"
   },
   "dependencies": {
+    "@dagrejs/dagre": "3.1.1",
     "@microsoft/rayfin-auth-provider-fabric": "^1.33.1",
     "@microsoft/rayfin-client": "^1.36.2",
     "@microsoft/rayfin-core": "^1.36.2",
     "@microsoft/rayfin-data": "^1.36.2",
     "@phosphor-icons/react": "^2.1.10",
     "@tailwindcss/vite": "^4.1.11",
+    "@xyflow/react": "12.12.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
     "react-router-dom": "^7.1.1"

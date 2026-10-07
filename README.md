@@ -27,7 +27,7 @@ flowchart LR
   subgraph GOLD["MSFLIX BUSINESS MODEL · GOLD WAREHOUSE"]
     Catalogue["CATALOGUE<br/>gold.dim_content · gold.dim_offer<br/>gold.dim_distributor · gold.dim_territory"]
     Clients["CLIENTS<br/>gold.dim_customer"]
-    Marketing["MARKETING · NATIVE REFRESH<br/>gold.dim_campaign · gold.fact_customer_consent<br/>gold.fact_campaign_touch"]
+    Marketing["MARKETING<br/>gold.dim_campaign · gold.fact_customer_consent<br/>gold.fact_campaign_touch"]
     Transactions["TRANSACTIONS<br/>gold.fact_order_line<br/>gold.fact_playback_session"]
     Conversions["RECORDED CONVERSIONS · 0<br/>gold.fact_campaign_conversion"]
   end
@@ -38,8 +38,8 @@ flowchart LR
   Planning["PLANNING<br/>Forecasts and scenarios"]
 
   Oracle --> Catalogue
-  CRM -->|"700 native Contacts ready + staged"| Clients
-  CRM -.->|"Native marketing load / qualification"| Marketing
+  CRM --> Clients
+  CRM --> Marketing
   RTI --> Transactions
   Marketing -->|"Campaign key"| Conversions
   RTI -->|"Explicit recorded attribution only"| Conversions
@@ -52,10 +52,8 @@ flowchart LR
 
   classDef source fill:#1B1C1F,stroke:#ED6757,color:#F3F0EC;
   classDef business fill:#ED6757,stroke:#ED6757,color:#121315;
-  classDef pending fill:#1B1C1F,stroke:#ED6757,color:#F3F0EC,stroke-dasharray:5 4;
   class Oracle,CRM,RTI,Ontology,App,SAP,Planning source;
-  class Catalogue,Clients,Transactions,Conversions business;
-  class Marketing pending;
+  class Catalogue,Clients,Marketing,Transactions,Conversions business;
   style GOLD fill:#121315,stroke:#ED6757,color:#F3F0EC;
   linkStyle 2 stroke:#ED6757,stroke-width:2px;
 ```
@@ -63,17 +61,17 @@ flowchart LR
 `content_key`, `customer_key`, `offer_key` and `campaign_key` link the same
 business entities across sources, Gold and Ontology.
 
-Native BPS Contacts and marketing extracts are available. **Red dashed:**
-downstream marketing source qualification is tracked in the deep dives.
-Recorded conversions remain **0**—none are invented.
+Clients, campaigns, consents and marketing touches reach Gold through native BPS.
+Recorded conversions remain **0**: none are invented.
 
 **Verified backbone:** actual Task Flow **8 tasks / 9 connectors / 46
-assignments**, Gold **1,002 demonstration orders**, and successful Gold-backed
-Ontology graph queries. The cockpit is deployed; **its native graph view still
-has an HTTP 500 integration issue under repair**. Not everything is finished.
+assignments**, Gold **1,002 demonstration orders**, and a live Gold-backed
+Ontology graph. The cockpit combines a cinematic film-led home, business views
+and an interactive graph with visible relationships, zoom and node selection.
 
-The originally proposed **notebook-based simulation was not delivered**.
-A cockpit **Demo tab is being implemented** to generate real, bounded business transactions.
+The **Demo tab** generates bounded, real business transactions through the same
+application commands. Kafka publication and analytics refresh remain separate
+steps; see the refresh instructions below.
 
 ## Run it
 
@@ -93,3 +91,33 @@ Customer identities are fictional. No real bank charge or commercial
 film-distribution right is claimed. Sourced imagery retains its individual
 license; original editorial imagery is never presented as an official poster.
 See [catalog provenance](data/catalog.sources.json).
+
+<details>
+<summary>Refresh the complete Warehouse</summary>
+
+Oracle Mirroring runs continuously. For newly generated transactions, confirm
+Kafka broker ACKs, then wait at least **5 minutes for native OneLake availability**
+before refreshing so the events can arrive.
+
+1. Complete **native BPS extraction → native B2S/Silver**. Native BPS Gold is
+   optional—not a prerequisite for this Warehouse.
+2. Export/stage the **processed BPS snapshots through our CLI**, following the
+   [native-source handoff](docs/SALESFORCE-BPS.md).
+3. Run **MSFlixRawProcessing before MSFlixSilverProcessing**:
+   `--stage process` runs both automatically in that order.
+4. Load **Gold through the CLI**, not a Gold notebook.
+5. Refresh the **Gold-backed Ontology graph**.
+
+```powershell
+py -3 -m fabric.deploy --config fabric\config.live.local.json --stage process
+py -3 -m fabric.deploy --config fabric\config.live.local.json --stage gold
+py -3 -m scripts.refresh_ontology_graph
+```
+
+Full prerequisites and source commands are in the
+[BPS](docs/SALESFORCE-BPS.md), [RTI](docs/RTI.md) and
+[Warehouse](docs/WAREHOUSE-ONTOLOGY.md) deep dives. The native BPS Touch/facts
+relationship gate is separate; it does not block loading its processed Silver
+data into this Warehouse.
+
+</details>

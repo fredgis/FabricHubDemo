@@ -15,7 +15,9 @@ function exactMoney(value:string,currency:string):string{
 function sum(rows:{current_order_lines?:string;current_sessions?:string}[],field:'current_order_lines'|'current_sessions'):string{
   return rows.reduce((total,row)=>total+BigInt(row[field]??'0'),0n).toLocaleString('en');
 }
-export function GoldBusinessDashboard({refreshKey=0}:{refreshKey?:number}){
+export function GoldBusinessDashboard({refreshKey=0,dashboard,onRefresh}:{
+  refreshKey?:number;dashboard?:GoldDashboard;onRefresh?:()=>void;
+}){
   const[data,setData]=useState<GoldDashboard>();
   const[error,setError]=useState('');
   const[loading,setLoading]=useState(true);
@@ -24,19 +26,21 @@ export function GoldBusinessDashboard({refreshKey=0}:{refreshKey?:number}){
     try{setData(await getRayfinClient().functions.businessDashboard.invoke());}
     catch(err){setError(safeError(err));}finally{setLoading(false);}
   },[]);
-  useEffect(()=>{void load();},[load,refreshKey]);
+  useEffect(()=>{
+    if(dashboard){setData(dashboard);setLoading(false);setError('');}
+    else void load();
+  },[load,refreshKey,dashboard]);
   const totals=new Map<string,bigint>();
   for(const row of data?.commercial??[])totals.set(row.currency,(totals.get(row.currency)??0n)+BigInt(row.booked_amount_minor));
-  return <section className="gold-dashboard" aria-label="Gold Warehouse business dashboard" aria-busy={loading}>
-    <div className="gold-source"><div><h2>Business performance</h2><p>Source: MSFlixGold Warehouse. Curated commercial, playback and campaign views.</p>
+  return <section className="gold-dashboard" aria-label="Gold Warehouse business dashboard" aria-busy={loading}
+    style={dashboard?{padding:0,border:0,background:'transparent'}:undefined}>
+    {!dashboard&&<div className="gold-source"><div><h2>Business performance</h2><p>Source: MSFlixGold Warehouse. Curated commercial, playback and campaign views.</p>
       <small>Operational SQL is not used as a fallback.</small></div>
-      <button onClick={()=>void load()} disabled={loading}><ArrowsClockwise aria-hidden="true"/>{loading?'Reading Gold…':'Refresh Gold'}</button></div>
+      <button onClick={onRefresh??(()=>void load())} disabled={loading}><ArrowsClockwise aria-hidden="true"/>{loading?'Reading Gold…':'Refresh Gold'}</button></div>}
     {loading&&<p role="status" className="muted">Reading actual Gold curated views…</p>}
     {error&&<div className="error-state" role="alert"><h3>Gold dashboard unavailable</h3><p>{error}</p>
       <p>No consolidated KPI values are displayed until the Gold query succeeds.</p></div>}
-    {data&&<><p className="gold-freshness">Query: {dateLabel(data.freshness.queried_at)}
-      <br/>Gold publication: {data.freshness.published_at?dateLabel(data.freshness.published_at):'No completed publication recorded'}
-      {data.freshness.publication_run_id&&<small>Publication run: {data.freshness.publication_run_id}</small>}</p>
+    {data&&<>
       {data.state==='unpublished'?<div className="empty-state"><h3>Gold is not published yet</h3>
         <p>The Warehouse endpoint responded, but no completed Gold publication exists. Operational sales are not substituted.</p></div>
       :data.state==='empty'?<div className="empty-state"><h3>No curated business activity</h3>
@@ -54,6 +58,11 @@ export function GoldBusinessDashboard({refreshKey=0}:{refreshKey?:number}){
         <section><h3>Recorded campaign conversions</h3>{data.campaigns.length?<ul>{data.campaigns.map(row=>
           <li key={row.campaign_key}>{row.campaign_key}: {row.recorded_conversions}</li>)}</ul>
           :<p className="muted">No campaign conversions exist in the curated Gold view.</p>}</section></div></>}
-      <p className="gold-contract"><small>Warehouse item: {data.source.item_id}<br/>Views: {data.source.views.join(', ')}</small></p></>}
+      <details className="gold-contract"><summary>Data freshness and source</summary>
+        <p className="gold-freshness">Query: {dateLabel(data.freshness.queried_at)}
+          <br/>Gold publication: {data.freshness.published_at?dateLabel(data.freshness.published_at):'No completed publication recorded'}
+          {data.freshness.publication_run_id&&<small>Publication run: {data.freshness.publication_run_id}</small>}</p>
+        <small>Warehouse item: {data.source.item_id}<br/>Views: {data.source.views.join(', ')}</small>
+      </details></>}
   </section>;
 }

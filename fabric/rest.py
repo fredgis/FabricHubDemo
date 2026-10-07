@@ -10,6 +10,7 @@ from urllib.parse import urlparse
 from urllib.request import Request, urlopen
 
 BASE = "https://api.fabric.microsoft.com"
+_TOKEN_CACHE = {}
 
 
 class DeploymentError(RuntimeError):
@@ -54,8 +55,16 @@ def az_json(*args):
 
 
 def token(tenant_id, audience=BASE):
-    return az_json("account", "get-access-token", "--tenant", tenant_id,
-                   "--resource", audience)["accessToken"]
+    key = (tenant_id, audience)
+    cached = _TOKEN_CACHE.get(key)
+    if cached and cached[1] > time.time() + 90:
+        return cached[0]
+    result = az_json("account", "get-access-token", "--tenant", tenant_id,
+                     "--resource", audience)
+    value = result["accessToken"]
+    if result.get("expires_on") is not None:
+        _TOKEN_CACHE[key] = (value, int(result["expires_on"]))
+    return value
 
 
 class FabricClient:

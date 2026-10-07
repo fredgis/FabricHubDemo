@@ -747,3 +747,54 @@ End-user Fabric broker invocation remains genuinely unverified. No native-user
 auth task, browser polling, new volume, 50k run, additional app feature, extra
 agent or additional deployment was started for this final readback. The app
 workstream stops here pending the parent's next explicit authorization.
+
+## Demo tab — bounded native journeys, 2026-10-07
+
+The dedicated **Demo** navigation entry preserves the existing cockpit design.
+It defaults to **10 journeys**, accepts **1–100**, and runs rental, purchase,
+or alternating scenarios for an existing customer using existing territorial
+offers. The default interval is one second between sequential commands.
+Each journey invokes the typed `placeOrder`, `startPlayback`, and
+`recordProgress` functions. Order/session IDs come from the preceding receipt;
+prices, rental rights, actor authorization, and persistence remain server-owned.
+
+Start/resume rechecks the current caller's `capabilities`. A command failure
+stops the chain visibly. Cancel stops unsent commands after the in-flight native
+invocation returns; it does not roll back committed business activity.
+Retry/resume retains the immutable plan, confirmed receipts, and original
+idempotency keys. The page remains mounted across tab changes.
+
+The UI displays actual entity IDs, event IDs, statuses, and retry keys.
+**Generated** counts only confirmed event receipts. **Kafka ACK** uses matching
+outbox `published_at` markers; missing rows in the current outbox window are
+unknown, not acknowledged or assumed pending. The total pending count comes
+from a read-only `health` invocation. **Gold published** shows the existing
+Gold reader's last publication timestamp and matching orders/sessions in its
+current window, never inferring event-level propagation from a timestamp alone.
+
+**Refresh receipts & publication** calls `health` and the cockpit's existing
+operational/Gold refresh callback. It does not start an external publisher,
+execute pipeline jobs, or publish Gold. Persistent publisher integration and
+live end-to-end qualification remain with the parent. This change ran only
+mocked/pure tests, not a live Demo scenario, and awaits the parent's deployment
+to the existing app.
+# Published application update: 2026-10-07
+
+The deployed home restores the licensed Big Buck Bunny cinematic image above
+the real Gold KPIs. Purchase offers with no rental windows no longer reject the
+whole Gold response. The app's native user calls to health, Gold business views
+and the ontology graph succeeded; the current administrator has a time-bounded
+operator grant rather than elevated permissions for every viewer.
+
+Business Graph now renders actual ontology nodes and directional relationships
+with React Flow and a Dagre layout. It supports search, 6/12/24/50-journey views,
+zoom, pan, node selection and a relationship inspector. Returning to the tab
+keeps the existing graph; **Refresh graph** requests fresh source data. The
+default six-journey view is an explicitly labelled subset of the loaded result,
+not a count of the full business.
+
+The Demo tab is deployed with bounded real transaction commands and receipt
+tracking. Its refresh action reads status; it does not itself run the Kafka
+publisher or the Raw/Silver/Gold processing chain. Automatic propagation,
+additional real film imagery and optional native BPS Touch fact relationship
+configuration remain follow-up work.

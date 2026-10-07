@@ -9,6 +9,7 @@ import{OntologyGraph}from'@/components/OntologyGraph';
 import{loadGoldViews}from'@/services/goldViews';
 import type{GoldPages}from'../../rayfin/functions/src/gold-pages';
 import{catalogArt}from'@/assets/catalog-art.generated';
+import { DemoPage } from '@/pages/DemoPage';
 import type { Content, Rental } from '../../rayfin/data/schema';
 import type { Capabilities, CommandResult, Health } from '../../rayfin/functions/src/domain';
 
@@ -18,6 +19,7 @@ const sections = [
   { key: 'orders', name: 'Rentals & Purchases', icon: ShoppingBag },
   { key: 'audiences', name: 'Audiences & Campaigns', icon: UsersThree },
   { key: 'graph', name: 'Business Graph', icon: Graph },
+  { key: 'demo', name: 'Demo', icon: Play },
   { key: 'operations', name: 'Operations', icon: Broadcast },
 ] as const;
 type Section = typeof sections[number]['key'];
@@ -48,7 +50,7 @@ export function Artwork({ film, hero = false }: { film: Content; hero?: boolean 
   return url ? <div className={hero?'hero-art':'film-art'} style={{position:hero?'absolute':'relative'}}>
     <img src={url} alt={art?editorial?`Illustration MSFlix for ${film.title}; not an official film poster`:art.alt:hero?`${film.title} reference artwork`:''}
     loading={hero ? 'eager' : 'lazy'} fetchPriority={hero ? 'high' : 'auto'}
-    onError={() => setFailed(true)} style={{width:'100%',height:'100%',objectFit:'cover'}} />
+    onError={() => setFailed(true)} style={{width:'100%',height:'100%',objectFit:'cover',objectPosition:hero?'center 40%':undefined}} />
     {editorial&&<span className="editorial-credit">Illustration MSFlix · Not official artwork</span>}</div>
     : <div className={hero ? 'hero-art artwork-missing' : 'film-art artwork-missing'}
       role="img" aria-label={`Visuel non disponible : ${film.title}`}>
@@ -59,6 +61,7 @@ export function Artwork({ film, hero = false }: { film: Content; hero?: boolean 
 export function HomePage() {
   const { user, signOut } = useAuth();
   const [section, setSection] = useState<Section>('overview');
+  const [graphVisited, setGraphVisited] = useState(false);
   const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -113,7 +116,7 @@ export function HomePage() {
       <a className="brand" href="/" aria-label="MSFlix home">MS<span>FLIX</span><small>BUSINESS CONTROL</small></a>
       <nav aria-label="Main navigation">{sections.map(({ key, name, icon: Icon }) =>
         <button key={key} aria-current={section === key ? 'page' : undefined}
-          onClick={() => setSection(key)}><Icon size={20} weight={section === key ? 'fill' : 'regular'} aria-hidden="true" />{name}</button>)}</nav>
+          onClick={() => { if(key==='graph')setGraphVisited(true);setSection(key); }}><Icon size={20} weight={section === key ? 'fill' : 'regular'} aria-hidden="true" />{name}</button>)}</nav>
       <div className="sidebar-bottom"><span className="workspace-label">MSFlix workspace</span>
         <strong>{user?.name}</strong><p>{capabilities.can_operate ? 'Operator' : 'Viewer'}</p>
         <button onClick={() => void signOut()}><SignOut aria-hidden="true" /> Sign out</button></div>
@@ -129,6 +132,7 @@ export function HomePage() {
             : section === 'orders' ? 'Persisted demo transactions and time-bound viewing rights. No bank charges.'
               : section === 'audiences' ? 'Fictional customer identities, stored in actual Salesforce CRM records.'
                 : section === 'graph' ? 'Read the actual consolidated business ontology.'
+                  : section === 'demo' ? 'Bounded real rental, purchase, and playback journeys. Delivery and publication are separate.'
                   : section === 'operations' ? 'Real connections, command receipts and delivery acknowledgements.'
                     : 'Sourced film metadata, explicit demo offers and traceable artwork rights.'}</p></div>
           <div className="view-context"><Status value={capabilities.can_operate ? 'operator' : 'viewer'} />
@@ -139,16 +143,19 @@ export function HomePage() {
         {receipt && <div className="receipt" role="status"><strong>Command persisted: {receipt.status}</strong>
           <span>Entity {receipt.entity_key}</span><span>{receipt.event_ids.length} returned event receipts. Broker delivery is separate.</span></div>}
         {error && <ErrorState message={`${snapshot ? 'Refresh failed. The records below are from the last successful read. ' : ''}${error}`} retry={() => void refresh()} />}
-        {section==='overview'&&<GoldBusinessDashboard refreshKey={goldRefresh}/>}
         {['overview','catalog','audiences'].includes(section)&&<>
           {goldLoading?<LoadingState/>:goldError?<ErrorState message={`Gold business read failed: ${goldError} No operational fallback.`} retry={()=>void refresh()}/>
-          :gold&&<><p className="permission-note">Source: MSFlixGold. Published {gold.pages.dashboard.freshness.published_at?dateLabel(gold.pages.dashboard.freshness.published_at):'not yet published'}.
-            Activity window: latest {gold.pages.window.orders} order lines / {gold.pages.window.sessions} sessions.</p>
-            {section==='overview'&&<Overview data={gold.snapshot} navigate={setSection}/>}
+          :gold&&<>{section!=='overview'&&<p className="permission-note">Source: MSFlixGold. Published {gold.pages.dashboard.freshness.published_at?dateLabel(gold.pages.dashboard.freshness.published_at):'not yet published'}.
+            Activity window: latest {gold.pages.window.orders} order lines / {gold.pages.window.sessions} sessions.</p>}
+            {section==='overview'&&<Overview data={gold.snapshot} navigate={setSection}
+              metrics={<GoldBusinessDashboard refreshKey={goldRefresh} dashboard={gold.pages.dashboard} onRefresh={()=>void refresh()}/>}/>}
             {section==='catalog'&&<Catalog data={gold.snapshot} navigate={setSection}/>}
             {section==='audiences'&&<Audiences data={gold.snapshot}/>}
           </>}</>}
-        {section==='graph'&&<OntologyGraph/>}
+        {graphVisited&&<div hidden={section!=='graph'}><OntologyGraph active={section==='graph'}/></div>}
+        <div hidden={section !== 'demo'}><DemoPage snapshot={snapshot} capabilities={capabilities}
+          loading={loading} readError={error} busy={busy} snapshotUpdatedAt={updated}
+          gold={gold?.pages} goldLoading={goldLoading} goldError={goldError} onRefresh={refresh} /></div>
         {['orders','operations'].includes(section)&&(loading&&!snapshot?<LoadingState/>:snapshot&&<>
           {section === 'orders' && <Orders {...context} snapshot={snapshot} />}
           {section === 'operations' && <Operations {...context} snapshot={snapshot} />}
@@ -160,15 +167,18 @@ export function HomePage() {
   </div>;
 }
 
-function Overview({ data, navigate }: { data: Snapshot; navigate: (section: Section) => void }) {
-  const film = data.content.find(f => f.artwork_available !== false && safeUrl(f.image_url)) ?? data.content[0];
+function Overview({ data, navigate, metrics }: { data: Snapshot; navigate: (section: Section) => void; metrics:ReactNode }) {
+  const film = data.content.find(f=>f.content_key==='MSF-FILM-BUNNY')
+    ?? data.content.find(f=>catalogArt.some(art=>art.content_key===f.content_key&&art.kind==='licensed-reference'))
+    ?? data.content[0];
   return <>
     {film ? <section className="cinema-hero" aria-label="Catalog spotlight"><Artwork key={film.content_key} film={film} hero />
       <div className="hero-copy"><p>In the MSFlix catalog</p><h2>{film.title}</h2>
         <p>{film.genre} <span className="separator">/</span> {Math.round(film.duration_seconds / 60)} min</p>
         <button className="primary" onClick={() => navigate('catalog')}>Explore catalog <ArrowRight aria-hidden="true" /></button></div>
       <div className="hero-credit">{film.attribution}</div></section>
-      : <Empty title="Your catalog starts here">Import the licensed catalog into the app-linked database. No sample films or activity are substituted.</Empty>}
+      : <Empty title="Your catalog starts here">Load the sourced catalog into the Gold Warehouse to see the featured film.</Empty>}
+    {metrics}
     <div className="overview-grid"><section><h2>Curated commercial activity</h2><p className="muted">Actual Gold order-line facts. Write commands remain in the operational app ledger.</p><OrderTable data={data} limit={6} />
       {!!data.rentals.length && <button className="text-button" onClick={() => navigate('orders')}>Manage orders <ArrowRight aria-hidden="true" /></button>}</section>
       <section className="activity-panel"><h2>Curated playback activity</h2><p className="muted">Latest Gold playback-session facts.</p>{data.playback.length ? <ul className="event-list">
