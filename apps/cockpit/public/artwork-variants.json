@@ -1,0 +1,1903 @@
+{
+  "schema_version": 1,
+  "items": [
+    {
+      "content_key": "MSF-FILM-SINTEL",
+      "source_path": "/artwork/1456acab0881afeac158-licensed.webp",
+      "source_sha256": "0e2e9df4cbd55a24fc651e8cba069547e2072cdd87a047047a9af5d6e0b60346",
+      "license": "CC BY 3.0",
+      "attribution": "Sintel (2010), Blender Foundation. Licensed CC BY 3.0.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/1456acab0881afeac158-licensed-320-b1737d816281.webp",
+          "width": 320,
+          "height": 180,
+          "bytes": 7916,
+          "sha256": "b1737d8162810fef7d37490340be461efcdb87dcc34121afe4605012dfd8d317"
+        },
+        {
+          "path": "/artwork/optimized/1456acab0881afeac158-licensed-640-da0e422f6dda.webp",
+          "width": 640,
+          "height": 360,
+          "bytes": 23796,
+          "sha256": "da0e422f6ddae3f45b6c909f9ab280130354928693208a2153e8e3cebd06b26d"
+        },
+        {
+          "path": "/artwork/optimized/1456acab0881afeac158-licensed-1200-9ac802c5ee8d.webp",
+          "width": 1200,
+          "height": 675,
+          "bytes": 55566,
+          "sha256": "9ac802c5ee8d3b27ac07783bbd3e608d029a6c907111210bc39d75b08d5f5967"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-FILM-SPRING",
+      "source_path": "/artwork/b6e2108fd47206ed466f-licensed.webp",
+      "source_sha256": "7fa5ebeef3994e9ccffe9c359a00ae4d1cf8d5a83dcaac8ab6a2b6c31d26a3be",
+      "license": "CC BY 4.0",
+      "attribution": "Spring (2019), Blender Foundation / Blender Animation Studio. Licensed CC BY 4.0.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/b6e2108fd47206ed466f-licensed-320-1c7930c6b37c.webp",
+          "width": 320,
+          "height": 180,
+          "bytes": 5928,
+          "sha256": "1c7930c6b37c90d48a79ad672979f5122102d1c5433d530feb15becb6ad04431"
+        },
+        {
+          "path": "/artwork/optimized/b6e2108fd47206ed466f-licensed-640-1887525985be.webp",
+          "width": 640,
+          "height": 360,
+          "bytes": 14938,
+          "sha256": "1887525985be4278b6f74bee82380421085e38632edc3b3807002a8bee63426d"
+        },
+        {
+          "path": "/artwork/optimized/b6e2108fd47206ed466f-licensed-1200-ac3928ea0bcb.webp",
+          "width": 1200,
+          "height": 675,
+          "bytes": 32562,
+          "sha256": "ac3928ea0bcbaad3275eb672dd16433dad48e4e1b75026ca4e1b21fd33f331cb"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-FILM-BUNNY",
+      "source_path": "/artwork/aed2e74568d1160a0c7c-licensed.webp",
+      "source_sha256": "d67a7752c935fdd65fbeeb04a694e85d17265ede562deba535ec4d9a25d44062",
+      "license": "CC BY 3.0",
+      "attribution": "Big Buck Bunny (2008), Blender Foundation. Licensed CC BY 3.0.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/aed2e74568d1160a0c7c-licensed-320-6a02705bd2d2.webp",
+          "width": 320,
+          "height": 180,
+          "bytes": 6028,
+          "sha256": "6a02705bd2d22da7f0a16f401a83cdd898536c137ce1be0801269d87441d388d"
+        },
+        {
+          "path": "/artwork/optimized/aed2e74568d1160a0c7c-licensed-640-d9bfb322f3e1.webp",
+          "width": 640,
+          "height": 360,
+          "bytes": 17060,
+          "sha256": "d9bfb322f3e1dc88485908546a8616cbd2baa12a1f59ae351d00e3f3f57d9eba"
+        },
+        {
+          "path": "/artwork/optimized/aed2e74568d1160a0c7c-licensed-1200-f6399ee99675.webp",
+          "width": 1200,
+          "height": 676,
+          "bytes": 37450,
+          "sha256": "f6399ee996756215c286579c16510b349bc61cbe850bfe8986221a59b76f34c1"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-FILM-STEEL",
+      "source_path": "/artwork/9a880621a8230dd8056e-licensed.webp",
+      "source_sha256": "c99db5e6e2cd80a087c8b5db29bb6935628d8c6befe32a21007187b445fca576",
+      "license": "CC BY 3.0",
+      "attribution": "Tears of Steel (2012), Blender Foundation. Licensed CC BY 3.0.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/9a880621a8230dd8056e-licensed-320-fb886a6f7c74.webp",
+          "width": 320,
+          "height": 180,
+          "bytes": 14358,
+          "sha256": "fb886a6f7c74bdb49f52e142d7b6e81f8f0f94ec4a93b9be2357e19c73ed0855"
+        },
+        {
+          "path": "/artwork/optimized/9a880621a8230dd8056e-licensed-640-1ef4fcb2b706.webp",
+          "width": 640,
+          "height": 360,
+          "bytes": 39940,
+          "sha256": "1ef4fcb2b70653e825d2924650a32ee1f74180378d6d156f6a39642513b16309"
+        },
+        {
+          "path": "/artwork/optimized/9a880621a8230dd8056e-licensed-1200-b9947280cf08.webp",
+          "width": 1200,
+          "height": 675,
+          "bytes": 82408,
+          "sha256": "b9947280cf088ca897b00d0f7bdc02e728b1fe3ada5598667c4d8e5d75a4f3f4"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-FILM-ELEPHANTS",
+      "source_path": "/artwork/1f5f0a6342cfed271a4b-licensed.webp",
+      "source_sha256": "95f6ce8c4c8cbc319c442e528fb784433799d5f3e5148a7fd9b59a05e16168c7",
+      "license": "CC BY 2.5",
+      "attribution": "Elephants Dream (2006), Blender Foundation / Orange Open Movie Project. Licensed CC BY 2.5.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/1f5f0a6342cfed271a4b-licensed-320-d99cd5aaec86.webp",
+          "width": 320,
+          "height": 180,
+          "bytes": 5604,
+          "sha256": "d99cd5aaec86c7e83713740a5a4f5e2365b7d4cb03445f98252a1067f3f50d48"
+        },
+        {
+          "path": "/artwork/optimized/1f5f0a6342cfed271a4b-licensed-640-01c608545cda.webp",
+          "width": 640,
+          "height": 360,
+          "bytes": 15280,
+          "sha256": "01c608545cda053ddd452a58c34319102abd28c0accd4e734e459e3fdb3e53e7"
+        },
+        {
+          "path": "/artwork/optimized/1f5f0a6342cfed271a4b-licensed-1200-930745ecefdf.webp",
+          "width": 1200,
+          "height": 675,
+          "bytes": 34808,
+          "sha256": "930745ecefdf09c61a7c02270ce2e75c77e7a92d5849390c19abc5886d1e7e83"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q11618",
+      "source_path": "/artwork/492417e21372f874b3a1-licensed.jpg",
+      "source_sha256": "c2d41f1d9b7d3d1dc79fe79345f5876656200f8e6b6ebbfb5e61887d7a518218",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q11618, CC0. Artwork: Libra films, Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/492417e21372f874b3a1-licensed-320-3915749f8cc6.webp",
+          "width": 320,
+          "height": 421,
+          "bytes": 22446,
+          "sha256": "3915749f8cc69c42cf00d00b7a24040eecd7f51bfbd3636014cacd03b20e2303"
+        },
+        {
+          "path": "/artwork/optimized/492417e21372f874b3a1-licensed-640-0966b324dea9.webp",
+          "width": 640,
+          "height": 843,
+          "bytes": 87628,
+          "sha256": "0966b324dea91a83735ce86f31a6c9b06fa893d485de5c4adadd146e199ad105"
+        },
+        {
+          "path": "/artwork/optimized/492417e21372f874b3a1-licensed-960-7727dd521489.webp",
+          "width": 960,
+          "height": 1265,
+          "bytes": 215326,
+          "sha256": "7727dd5214893a4dc7b26b2e51ad4e71bfbc31052fbb86106948c75f5ae091f8"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q1365",
+      "source_path": "/artwork/6df87682e79f8f0ab84e-licensed.jpg",
+      "source_sha256": "4bf9211edcdcfcb87bb1a0da04ead371cfe81ac7b4d0b9ff1a4ad2c9c78417cc",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q1365, CC0. Artwork: Ligabo at the Italian Wikipedia project., Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/6df87682e79f8f0ab84e-licensed-320-6cdcaee9f37f.webp",
+          "width": 320,
+          "height": 207,
+          "bytes": 8522,
+          "sha256": "6cdcaee9f37fd7d427499d1771508023ccd054adeaa03f5bdfe8e82a8b36c372"
+        },
+        {
+          "path": "/artwork/optimized/6df87682e79f8f0ab84e-licensed-480-e7d0cf4382e7.webp",
+          "width": 480,
+          "height": 310,
+          "bytes": 14234,
+          "sha256": "e7d0cf4382e73d3f54fdce57331948965340263d0e3101a943d9deb6c9346f65"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q13908",
+      "source_path": "/artwork/938c5945d1762fee25c8-licensed.png",
+      "source_sha256": "ac1d09c8581684c279afdb32d4422d9d4508752c2787231784c203cba3f236c9",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q13908, CC0. Artwork: Unknown authorUnknown author, Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/938c5945d1762fee25c8-licensed-320-b098f1142964.webp",
+          "width": 320,
+          "height": 71,
+          "bytes": 4862,
+          "sha256": "b098f114296423be461d40f3d893ac41f86854f861c18e2c14f63c75924c1cae"
+        },
+        {
+          "path": "/artwork/optimized/938c5945d1762fee25c8-licensed-640-34557d4da3ec.webp",
+          "width": 640,
+          "height": 142,
+          "bytes": 12784,
+          "sha256": "34557d4da3ecad5ca337f829b9f7a114d9e425f4e4c1512dc0d79356c97af2bf"
+        },
+        {
+          "path": "/artwork/optimized/938c5945d1762fee25c8-licensed-960-1fd5daf73f8e.webp",
+          "width": 960,
+          "height": 213,
+          "bytes": 21074,
+          "sha256": "1fd5daf73f8e32dfb9e1691dcec98fb2aff65ef432b5249ed1a0bb93dcc3dfaf"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q16403",
+      "source_path": "/artwork/46ee39c0b66b7665a42b-licensed.jpg",
+      "source_sha256": "7a5c3c8fdff18170f17422f850cfe5c706cc1f37c90c867006b179e18221dc0a",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q16403, CC0. Artwork: Columbia Pictures, Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/46ee39c0b66b7665a42b-licensed-320-4615153de54e.webp",
+          "width": 320,
+          "height": 478,
+          "bytes": 22382,
+          "sha256": "4615153de54e8c3354cec4333953ca8be04f28b66e8800638b033b8602bfed5b"
+        },
+        {
+          "path": "/artwork/optimized/46ee39c0b66b7665a42b-licensed-640-94522ea5fd64.webp",
+          "width": 640,
+          "height": 957,
+          "bytes": 64678,
+          "sha256": "94522ea5fd64e093947b896596602612c411fa640b4d979c4afa51038f2f67fd"
+        },
+        {
+          "path": "/artwork/optimized/46ee39c0b66b7665a42b-licensed-960-5bbb9c330027.webp",
+          "width": 960,
+          "height": 1435,
+          "bytes": 124046,
+          "sha256": "5bbb9c330027d769e0efe51cae8de18b020e310986219eb1aeee36675528df28"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q18395",
+      "source_path": "/artwork/6d9e826c50f82d8707ef-licensed.jpg",
+      "source_sha256": "ea442d230cce61cd7df968d58816aaf6cbfa387e1f8bb162bb6c8290f4329f26",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q18395, CC0. Artwork: Unknown authorUnknown author, Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/6d9e826c50f82d8707ef-licensed-320-bff2decb4024.webp",
+          "width": 320,
+          "height": 365,
+          "bytes": 24980,
+          "sha256": "bff2decb4024eb4c34c3c8ee1791a848900273dadcde6bc85d225425241f6595"
+        },
+        {
+          "path": "/artwork/optimized/6d9e826c50f82d8707ef-licensed-640-54d9ebf9ef15.webp",
+          "width": 640,
+          "height": 731,
+          "bytes": 94408,
+          "sha256": "54d9ebf9ef15754a5a76ab548d064690bcd8ff4586ad672355241c644b3302b1"
+        },
+        {
+          "path": "/artwork/optimized/6d9e826c50f82d8707ef-licensed-960-9be321b767e1.webp",
+          "width": 960,
+          "height": 1097,
+          "bytes": 186632,
+          "sha256": "9be321b767e10204cb62da791a7388843e63fec89a71f62b978b81132f3dfc37"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q18397",
+      "source_path": "/artwork/b5bd1c8a5c4052dfc9b2-licensed.jpg",
+      "source_sha256": "09263484fb1aacebdf9bddc4d2bfefa03caa93b44de8c5fd5964a1c965d15f99",
+      "license": "CC BY-SA 4.0",
+      "attribution": "Film metadata: Wikidata Q18397, CC0. Artwork: Unknown authorUnknown author, CC BY-SA 4.0.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/b5bd1c8a5c4052dfc9b2-licensed-320-b9aa4ebc4875.webp",
+          "width": 320,
+          "height": 233,
+          "bytes": 15272,
+          "sha256": "b9aa4ebc48751dbd74c178099978eb6fed9f7113f0f2b12614ab6279833d93dc"
+        },
+        {
+          "path": "/artwork/optimized/b5bd1c8a5c4052dfc9b2-licensed-640-c3f332e15f00.webp",
+          "width": 640,
+          "height": 467,
+          "bytes": 49650,
+          "sha256": "c3f332e15f00842b66b0b272929a03167b0005570ecbc428ed9b3ee7732deca8"
+        },
+        {
+          "path": "/artwork/optimized/b5bd1c8a5c4052dfc9b2-licensed-960-60e6a427a18c.webp",
+          "width": 960,
+          "height": 701,
+          "bytes": 98034,
+          "sha256": "60e6a427a18c9d7dd98383b8c33e9b8fcff811c0a1a6287b2056420fc49580b2"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q18399",
+      "source_path": "/artwork/8c9c326fd8bdabd6f94e-licensed.jpg",
+      "source_sha256": "a4caabd7e43046dbb911a37bdb272c15d552426c5d8c5d56bdb73016c04292bf",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q18399, CC0. Artwork: Errix, Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/8c9c326fd8bdabd6f94e-licensed-320-2c60db1d4856.webp",
+          "width": 320,
+          "height": 242,
+          "bytes": 16558,
+          "sha256": "2c60db1d485675f1da99d6ff26bba5d1912c64749d229205ed075f778ead24ca"
+        },
+        {
+          "path": "/artwork/optimized/8c9c326fd8bdabd6f94e-licensed-640-4a28d2c9d746.webp",
+          "width": 640,
+          "height": 484,
+          "bytes": 41864,
+          "sha256": "4a28d2c9d7462f0fff2fae491ddcc520ec87c726d386b8b10133fd361bfa3d1b"
+        },
+        {
+          "path": "/artwork/optimized/8c9c326fd8bdabd6f94e-licensed-759-7a259e9b3df1.webp",
+          "width": 759,
+          "height": 574,
+          "bytes": 50124,
+          "sha256": "7a259e9b3df189d2c0c56e645e985533165ebf4daf4384b1efa5a4d59d2b7789"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q18402",
+      "source_path": "/artwork/a5e2c133d985d538343c-licensed.jpg",
+      "source_sha256": "c3ac1131195bb7148bc5274ce895a419afcd1be4285eb65db6f1de2d2a1cdf2e",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q18402, CC0. Artwork: A. Piatti (still photographer), Federico Fellini (director), Ponti-De Laurentiis (production), Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/a5e2c133d985d538343c-licensed-320-8461c0768505.webp",
+          "width": 320,
+          "height": 362,
+          "bytes": 24170,
+          "sha256": "8461c0768505be8c65c791ae1d8dcb7fc08d75f473baed91ab3322c72f1b28ab"
+        },
+        {
+          "path": "/artwork/optimized/a5e2c133d985d538343c-licensed-549-b3078a398715.webp",
+          "width": 549,
+          "height": 621,
+          "bytes": 56396,
+          "sha256": "b3078a3987151e7e42756371f822b511952d5218271fd49fad610e57c7c71cf5"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q18403",
+      "source_path": "/artwork/d56490311cdd1c20d9af-licensed.jpg",
+      "source_sha256": "6838f015647449528cb4664ace81460db57a12dc53097957be55d451efe82bc2",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q18403, CC0. Artwork: Unknown authorUnknown author, Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/d56490311cdd1c20d9af-licensed-320-6991f4a29444.webp",
+          "width": 320,
+          "height": 447,
+          "bytes": 29774,
+          "sha256": "6991f4a294446a2f53c1a06adf613f1fe1aa344489629ba98112d03c42edf4bd"
+        },
+        {
+          "path": "/artwork/optimized/d56490311cdd1c20d9af-licensed-640-f7eae5956a57.webp",
+          "width": 640,
+          "height": 895,
+          "bytes": 108948,
+          "sha256": "f7eae5956a5748501fd0afc9acda09df5facd18dc23e8e2d8f050ef4251b73f8"
+        },
+        {
+          "path": "/artwork/optimized/d56490311cdd1c20d9af-licensed-960-f22f7e856b59.webp",
+          "width": 960,
+          "height": 1343,
+          "bytes": 220034,
+          "sha256": "f22f7e856b59aa1eca661fe1cbe506db712a28d95c9b28294d70cd6e94eec2ec"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q18405",
+      "source_path": "/artwork/cc7a449e3c6d4ffcee0d-licensed.jpg",
+      "source_sha256": "4eb1554cbe9f77497b676b70a9655a453d002fb5fa7aed086fe1c61f13e02e75",
+      "license": "CC BY-SA 4.0",
+      "attribution": "Film metadata: Wikidata Q18405, CC0. Artwork: Unknown authorUnknown author, CC BY-SA 4.0.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/cc7a449e3c6d4ffcee0d-licensed-320-aac739b241ed.webp",
+          "width": 320,
+          "height": 243,
+          "bytes": 9910,
+          "sha256": "aac739b241ed3e82123a34ecea65bab48674a45b4118e7e325cdb7b0ee2daa8f"
+        },
+        {
+          "path": "/artwork/optimized/cc7a449e3c6d4ffcee0d-licensed-640-8e3de3967804.webp",
+          "width": 640,
+          "height": 487,
+          "bytes": 30382,
+          "sha256": "8e3de39678042ba347385ad702826497be13f202b44a73f73192e4973bbc093f"
+        },
+        {
+          "path": "/artwork/optimized/cc7a449e3c6d4ffcee0d-licensed-960-bc178443ea31.webp",
+          "width": 960,
+          "height": 730,
+          "bytes": 59900,
+          "sha256": "bc178443ea3134cd51ac369f5cb0d97dce462caa054a558385c7ea4be2f36e38"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q18407",
+      "source_path": "/artwork/738db40b5b8adcdb1837-licensed.gif",
+      "source_sha256": "7a6ab2927da8f5b9adf622d1d4079e6047a899096d44cc575695a680cd8687cf",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q18407, CC0. Artwork: Possibly Otello Martelli, Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/738db40b5b8adcdb1837-licensed-320-c8caa7e430dc.webp",
+          "width": 320,
+          "height": 204,
+          "bytes": 13722,
+          "sha256": "c8caa7e430dcbef251cc20edac29deaa8401964542e2c4ffc1c501468e40cbff"
+        },
+        {
+          "path": "/artwork/optimized/738db40b5b8adcdb1837-licensed-566-c6a36390cae8.webp",
+          "width": 566,
+          "height": 360,
+          "bytes": 34814,
+          "sha256": "c6a36390cae8b6335530b3afc3efcb604cd109b8107de42f0b1de54c000eda33"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q18409",
+      "source_path": "/artwork/fe22139770cc80cc27f3-licensed.jpg",
+      "source_sha256": "54332e9c590941c04c03ae3050915a6c9347f3d8adb1ec1dde233a43d61d3429",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q18409, CC0. Artwork: Embassy International Pictures, Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/fe22139770cc80cc27f3-licensed-320-7f5598c3ae0d.webp",
+          "width": 320,
+          "height": 251,
+          "bytes": 13830,
+          "sha256": "7f5598c3ae0d20795a47cde1aa8868ac272dd32acee538f07fca2ac243bc150d"
+        },
+        {
+          "path": "/artwork/optimized/fe22139770cc80cc27f3-licensed-640-2141f1e6cf04.webp",
+          "width": 640,
+          "height": 503,
+          "bytes": 53326,
+          "sha256": "2141f1e6cf045abd759af5501954e594a1d28bbe3531c7399efdd8c32f3daa02"
+        },
+        {
+          "path": "/artwork/optimized/fe22139770cc80cc27f3-licensed-960-41ff7548e696.webp",
+          "width": 960,
+          "height": 754,
+          "bytes": 115682,
+          "sha256": "41ff7548e696d19bf9a04e682457c61801d51c13d5af1d86af291c8f8ff29120"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q18411",
+      "source_path": "/artwork/62a7273648f29b284a05-licensed.jpg",
+      "source_sha256": "4f99311db9a56e58729b8f9111a749c59f4563bd4a3feed8260ed8d475bb3bba",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q18411, CC0. Artwork: Sailko at the Italian Wikipedia project., Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/62a7273648f29b284a05-licensed-320-5b0dce16bf7d.webp",
+          "width": 320,
+          "height": 172,
+          "bytes": 5724,
+          "sha256": "5b0dce16bf7d911763182a32710c1a46340a0264bfad109a5c0ad945f9ad33aa"
+        },
+        {
+          "path": "/artwork/optimized/62a7273648f29b284a05-licensed-416-fa85c5dc090c.webp",
+          "width": 416,
+          "height": 224,
+          "bytes": 8006,
+          "sha256": "fa85c5dc090c035f01ba70f3e334d3505644c669d84cb945cf7a0294d6a2731f"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q18415",
+      "source_path": "/artwork/cb6054b231c4dc1e049f-licensed.jpg",
+      "source_sha256": "99f3432bdbbe1791d5196b8fd4fdc5aa532328ef713bfc56894d1bfbba5637ad",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q18415, CC0. Artwork: Federico Fellini, Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/cb6054b231c4dc1e049f-licensed-320-44c8d95a01cf.webp",
+          "width": 320,
+          "height": 175,
+          "bytes": 5162,
+          "sha256": "44c8d95a01cf262c721cdda8d34742cae858a027956fa5b1032f56a178e4fd2c"
+        },
+        {
+          "path": "/artwork/optimized/cb6054b231c4dc1e049f-licensed-480-7e893fbd49a6.webp",
+          "width": 480,
+          "height": 262,
+          "bytes": 7906,
+          "sha256": "7e893fbd49a6f8bd0d735b00bff7ed1ad8682f0a2b730087e78109d8af148024"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q18421",
+      "source_path": "/artwork/e1d4cfdf4900f8f5790f-licensed.jpg",
+      "source_sha256": "70d7e71f8e5d86bf0918b4d400e466618beee8ed1ddbbd61eb7d9155b775b16a",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q18421, CC0. Artwork: Federico Fellini, Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/e1d4cfdf4900f8f5790f-licensed-320-f1d326d67968.webp",
+          "width": 320,
+          "height": 188,
+          "bytes": 3308,
+          "sha256": "f1d326d67968e7cebdccf8e6ef6514594b43cdf6d2649a316a027feb2f1cf3ba"
+        },
+        {
+          "path": "/artwork/optimized/e1d4cfdf4900f8f5790f-licensed-500-f73cac5e6f8d.webp",
+          "width": 500,
+          "height": 294,
+          "bytes": 5516,
+          "sha256": "f73cac5e6f8d557ab3b590c252fbe037e9193ba9b7d4a25a841e0df061063c4c"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q18423",
+      "source_path": "/artwork/6e00302c90a805a7b3b4-licensed.png",
+      "source_sha256": "7438a521ded35d4590cb015d4dd0090a0c49f65c1f85cc173cd74f7e027eb12f",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q18423, CC0. Artwork: Unknown authorUnknown author, Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/6e00302c90a805a7b3b4-licensed-320-ad4c0a4f4d16.webp",
+          "width": 320,
+          "height": 172,
+          "bytes": 2656,
+          "sha256": "ad4c0a4f4d16ef8df33a983b858731553f892a9d224f3bfb9acd525c12db110a"
+        },
+        {
+          "path": "/artwork/optimized/6e00302c90a805a7b3b4-licensed-640-f60e0fc2ae15.webp",
+          "width": 640,
+          "height": 344,
+          "bytes": 5730,
+          "sha256": "f60e0fc2ae159e86e62ed6a70a6f59736428d09ed2b38328dfa7be5bee09acdf"
+        },
+        {
+          "path": "/artwork/optimized/6e00302c90a805a7b3b4-licensed-960-64277a378d11.webp",
+          "width": 960,
+          "height": 516,
+          "bytes": 8892,
+          "sha256": "64277a378d11a8c994b79714335767bbe4a7ddeab7edeeb3b7143b3c6dd455c7"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q18444",
+      "source_path": "/artwork/54cd4cf99e8f4bc6d8a3-licensed.jpg",
+      "source_sha256": "07f640e6add7c341e84f1d78a2095d4727fb26ed841923f54b75cac365d9d779",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q18444, CC0. Artwork: Screenshot catturato e caricato da Tvstream.\n\nThe original uploader was Tvstream at Italian Wikipedia., Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/54cd4cf99e8f4bc6d8a3-licensed-320-03d7d84b0c00.webp",
+          "width": 320,
+          "height": 240,
+          "bytes": 9462,
+          "sha256": "03d7d84b0c0097c7a86eaf486b6f4a0c69a4507f0a3c16f3934d94c85b4a2161"
+        },
+        {
+          "path": "/artwork/optimized/54cd4cf99e8f4bc6d8a3-licensed-640-bda935bea427.webp",
+          "width": 640,
+          "height": 480,
+          "bytes": 18566,
+          "sha256": "bda935bea427fd32719ee47597c20ad8be1524c1b5fc9e5d91e2e35d1c582826"
+        },
+        {
+          "path": "/artwork/optimized/54cd4cf99e8f4bc6d8a3-licensed-704-5956213f3a29.webp",
+          "width": 704,
+          "height": 528,
+          "bytes": 20238,
+          "sha256": "5956213f3a2937fa65aa5cdb1ecfe6d9130c7cba8e0a906595f26db6705e78f7"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q19069",
+      "source_path": "/artwork/5e98277739d1f562cacf-licensed.jpg",
+      "source_sha256": "24227929cffa97c38fa1b1c8538e955ea355bda605b66b4af5da5f1f95d6debf",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q19069, CC0. Artwork: Photographer unknown. Distributed by Fox Film Corporation., Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/5e98277739d1f562cacf-licensed-320-6c0bfa01165f.webp",
+          "width": 320,
+          "height": 219,
+          "bytes": 12246,
+          "sha256": "6c0bfa01165fda37f97ff2944e10c9735aa2eb01270d1d7467dbad052467dc2f"
+        },
+        {
+          "path": "/artwork/optimized/5e98277739d1f562cacf-licensed-640-9aa391c01427.webp",
+          "width": 640,
+          "height": 439,
+          "bytes": 41248,
+          "sha256": "9aa391c014278609888691a7e3401df0ff576e39534be407e88e30a60baae5ae"
+        },
+        {
+          "path": "/artwork/optimized/5e98277739d1f562cacf-licensed-960-a693159f2b38.webp",
+          "width": 960,
+          "height": 658,
+          "bytes": 82054,
+          "sha256": "a693159f2b389f46caf5aee1583bce201f7a35e3bc2585d773ea54ef84b20b5b"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q19352",
+      "source_path": "/artwork/8a978be3e8a5d872536f-licensed.jpg",
+      "source_sha256": "395c3ac0811aa61324638d0f8c963b60bc95a8ece4c5220fb0d7518488bb3ca2",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q19352, CC0. Artwork: Utente1989, Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/8a978be3e8a5d872536f-licensed-320-ee8e761faf45.webp",
+          "width": 320,
+          "height": 115,
+          "bytes": 4630,
+          "sha256": "ee8e761faf451438cd2f40ed8e7bf10155f304365226647781c46d06464f8650"
+        },
+        {
+          "path": "/artwork/optimized/8a978be3e8a5d872536f-licensed-390-46228d389a75.webp",
+          "width": 390,
+          "height": 140,
+          "bytes": 6116,
+          "sha256": "46228d389a7528f79b953bfcb911e35dee40a8fbcdd612dfeed9b67c99f2e671"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q2201",
+      "source_path": "/artwork/5df8ab3f479bdb51ffb5-licensed.png",
+      "source_sha256": "36dacb7e562be9c4637eee16a3897d6b6675625f739ae9e1683f3ece0070f606",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q2201, CC0. Artwork: Diseñadores publicitarios, Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/5df8ab3f479bdb51ffb5-licensed-320-ae6317b8edbc.webp",
+          "width": 320,
+          "height": 368,
+          "bytes": 20374,
+          "sha256": "ae6317b8edbc9848740c78b83018b45997d360391983c1c0036ead9733ab40d3"
+        },
+        {
+          "path": "/artwork/optimized/5df8ab3f479bdb51ffb5-licensed-640-033759778805.webp",
+          "width": 640,
+          "height": 736,
+          "bytes": 42234,
+          "sha256": "03375977880585c261ef16996178330f4cd6bc4f45971ffe332e4421acff0f05"
+        },
+        {
+          "path": "/artwork/optimized/5df8ab3f479bdb51ffb5-licensed-960-1aba24def04c.webp",
+          "width": 960,
+          "height": 1104,
+          "bytes": 36244,
+          "sha256": "1aba24def04cf61f68ada9e4903a4e2668f0798484021fa940c12802d18fb80e"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q2345",
+      "source_path": "/artwork/bd84211d246605332fc7-licensed.jpg",
+      "source_sha256": "f6fe24c5eaf4c2347c25d1b871f4cd667ff16f3f51804651f9f152bbb79bbe8f",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q2345, CC0. Artwork: Illustrator unknown; \"Copyright 1957 United Artists Corp.\", Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/bd84211d246605332fc7-licensed-320-2e4a368e75fa.webp",
+          "width": 320,
+          "height": 489,
+          "bytes": 27504,
+          "sha256": "2e4a368e75fa168dde543a9aaad74f6765039ab636cae4d1468051cca73a9b86"
+        },
+        {
+          "path": "/artwork/optimized/bd84211d246605332fc7-licensed-640-c38bbf29dcfb.webp",
+          "width": 640,
+          "height": 978,
+          "bytes": 93118,
+          "sha256": "c38bbf29dcfbcc9899dc36b8bad9c43dc27ec66e089e994feb3a82cdcdf198e6"
+        },
+        {
+          "path": "/artwork/optimized/bd84211d246605332fc7-licensed-960-3a9f7d8a0573.webp",
+          "width": 960,
+          "height": 1467,
+          "bytes": 204262,
+          "sha256": "3a9f7d8a05731b71cfd9e4b146eba7a7ec3a192e04bd63a16aedb2517c813a51"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q23892",
+      "source_path": "/artwork/795ab4f64c537bdfda55-licensed.jpg",
+      "source_sha256": "d223cdf8f063a4da00db55842a397a31128ac0470d38dd04bd718fa5e5a60a0a",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q23892, CC0. Artwork: , Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/795ab4f64c537bdfda55-licensed-320-9592d780f187.webp",
+          "width": 320,
+          "height": 238,
+          "bytes": 12518,
+          "sha256": "9592d780f1872d7e402265ccf69674cb8abdb9439d19983529ba675a1302c0db"
+        },
+        {
+          "path": "/artwork/optimized/795ab4f64c537bdfda55-licensed-640-48d3b7854902.webp",
+          "width": 640,
+          "height": 477,
+          "bytes": 35226,
+          "sha256": "48d3b78549028b34c41f7a088a12d9c855d151b58faaf6941e53b5bca1ed4e19"
+        },
+        {
+          "path": "/artwork/optimized/795ab4f64c537bdfda55-licensed-960-a76543b5b31a.webp",
+          "width": 960,
+          "height": 715,
+          "bytes": 56710,
+          "sha256": "a76543b5b31a92627ed388de8eefd5abe3aa4c4db07a2b028b87865131cdd577"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q259835",
+      "source_path": "/artwork/5c14161cee3020fb9489-licensed.png",
+      "source_sha256": "171c548157e6850bc40b0b8f03b5e35ed33273d92f665ec669333225b16890a1",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q259835, CC0. Artwork: Giorgio Simonelli, Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/5c14161cee3020fb9489-licensed-320-1e58714b4806.webp",
+          "width": 320,
+          "height": 241,
+          "bytes": 11702,
+          "sha256": "1e58714b480699ad7337c542a40bc75f44eb964bc53187e9cef2cd0238671226"
+        },
+        {
+          "path": "/artwork/optimized/5c14161cee3020fb9489-licensed-640-cf4421444791.webp",
+          "width": 640,
+          "height": 481,
+          "bytes": 28020,
+          "sha256": "cf4421444791411342f024f67d4b7b4cd1ab93409ba54936bbd06bc75a7d7262"
+        },
+        {
+          "path": "/artwork/optimized/5c14161cee3020fb9489-licensed-960-c3cef9e066b6.webp",
+          "width": 960,
+          "height": 722,
+          "bytes": 44244,
+          "sha256": "c3cef9e066b6c07ef5db0622adeb955af9ffe922be00f87c214529e87d15fec1"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q260509",
+      "source_path": "/artwork/bc87e29760d68e77c71a-licensed.png",
+      "source_sha256": "a4446113ca3cb424b5e153e5998b67ff9ec75212d3c12200fb3638034ff8e6f8",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q260509, CC0. Artwork: , Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/bc87e29760d68e77c71a-licensed-320-f863eb357b18.webp",
+          "width": 320,
+          "height": 47,
+          "bytes": 3126,
+          "sha256": "f863eb357b18c4203c7276833c7d2b60e08831f329b10148cf2a00eaa2f239c7"
+        },
+        {
+          "path": "/artwork/optimized/bc87e29760d68e77c71a-licensed-640-06434ef02f1d.webp",
+          "width": 640,
+          "height": 94,
+          "bytes": 5228,
+          "sha256": "06434ef02f1d206e1a07fa8fb13b316646cafe0f2c0cf6fb554e4d484186939f"
+        },
+        {
+          "path": "/artwork/optimized/bc87e29760d68e77c71a-licensed-960-458c2719d36f.webp",
+          "width": 960,
+          "height": 141,
+          "bytes": 7136,
+          "sha256": "458c2719d36f5dd4f46f116b965a33ace8352c3e7ac1e6123ee85d402ed7113a"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q260533",
+      "source_path": "/artwork/1d1b9fdb966b187aacff-licensed.png",
+      "source_sha256": "6c9d02313c2216d8adaa9cf7c14f397da749080afbc160ba63f234c40c12de4f",
+      "license": "CC0",
+      "attribution": "Film metadata: Wikidata Q260533, CC0. Artwork: Machete kills, CC0.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/1d1b9fdb966b187aacff-licensed-320-b307e0464b64.webp",
+          "width": 320,
+          "height": 78,
+          "bytes": 8022,
+          "sha256": "b307e0464b6474925fa50754af1071266b465aa05cbb9eb740446def74a8b9ed"
+        },
+        {
+          "path": "/artwork/optimized/1d1b9fdb966b187aacff-licensed-335-6376406ac9d9.webp",
+          "width": 335,
+          "height": 82,
+          "bytes": 5078,
+          "sha256": "6376406ac9d903ab5b6899bd5be549ef25efff2014a059c575bccc2a8fd5e411"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q260887",
+      "source_path": "/artwork/b65d1eb7b8b0745e66ca-licensed.jpg",
+      "source_sha256": "8062d6c4a59b81b341e6e785d77bd1226a3ee1ab34b6876e9be5c9749d7e5938",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q260887, CC0. Artwork: film screenshot (Astor Pictures), Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/b65d1eb7b8b0745e66ca-licensed-320-c8745fa0d4d4.webp",
+          "width": 320,
+          "height": 313,
+          "bytes": 2942,
+          "sha256": "c8745fa0d4d4163257461a21bf509342cdd82515fc03b58d7663208775a78523"
+        },
+        {
+          "path": "/artwork/optimized/b65d1eb7b8b0745e66ca-licensed-399-f95ca18303c9.webp",
+          "width": 399,
+          "height": 390,
+          "bytes": 3836,
+          "sha256": "f95ca18303c9fc1c8edab2fd2b2395a9533c059a7412d219ff29c665551d0905"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q261817",
+      "source_path": "/artwork/4e73ebccd2ffb621d051-licensed.png",
+      "source_sha256": "766aace59aab142e373c9196a7c8df6905fe9dd04a81fc3924e8feb9eb09d192",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q261817, CC0. Artwork: Jean Vigo, Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/4e73ebccd2ffb621d051-licensed-320-90ffcb58cc96.webp",
+          "width": 320,
+          "height": 228,
+          "bytes": 7120,
+          "sha256": "90ffcb58cc96a483ebf431ea47ffa16d817c93a07d2c30337f0501a0f758f968"
+        },
+        {
+          "path": "/artwork/optimized/4e73ebccd2ffb621d051-licensed-640-f258e33fe3a4.webp",
+          "width": 640,
+          "height": 455,
+          "bytes": 13872,
+          "sha256": "f258e33fe3a4a138dce4066e479feec4c8cc55184d829a5a1d5bfd45be1fbbfc"
+        },
+        {
+          "path": "/artwork/optimized/4e73ebccd2ffb621d051-licensed-960-e73b59fa040b.webp",
+          "width": 960,
+          "height": 683,
+          "bytes": 21796,
+          "sha256": "e73b59fa040b3b4a89712659cd7e5ae4a07ad3d782e75ee8bc2da94b58a2bb0a"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q261854",
+      "source_path": "/artwork/d71d4f886f81ec7eb3be-licensed.jpg",
+      "source_sha256": "5df2967b16e8fffb94c1286e68bc63fee44630fbc6785c93c1fb32b98f37a056",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q261854, CC0. Artwork: unknown (20th Century Fox), Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/d71d4f886f81ec7eb3be-licensed-320-ce6f52aae53f.webp",
+          "width": 320,
+          "height": 234,
+          "bytes": 7680,
+          "sha256": "ce6f52aae53fa604073bee6467a7ce638dd36119dfe306b3f09af27197b5a26b"
+        },
+        {
+          "path": "/artwork/optimized/d71d4f886f81ec7eb3be-licensed-640-c20afd72fb47.webp",
+          "width": 640,
+          "height": 468,
+          "bytes": 18368,
+          "sha256": "c20afd72fb475b35c0ab88db14f390a5dd44226ed34556d675832a53b7eeca7f"
+        },
+        {
+          "path": "/artwork/optimized/d71d4f886f81ec7eb3be-licensed-949-8eeaf3820883.webp",
+          "width": 949,
+          "height": 694,
+          "bytes": 31762,
+          "sha256": "8eeaf3820883eb7603813e0707b9a479c560feb25966b511d9f25dea4ebbe959"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q261951",
+      "source_path": "/artwork/e54f9cc11d940c427453-licensed.png",
+      "source_sha256": "bf1dd3e8365508b0b6b4210b368b76e88cea745d52ff52fec87fab589fe712f2",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q261951, CC0. Artwork: Michael Waszynski (director), Sirena Film (production), Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/e54f9cc11d940c427453-licensed-320-49a4270cfcb5.webp",
+          "width": 320,
+          "height": 240,
+          "bytes": 4234,
+          "sha256": "49a4270cfcb58403d5c35888d8d3bb8599c69263ede700a2151275885256e796"
+        },
+        {
+          "path": "/artwork/optimized/e54f9cc11d940c427453-licensed-640-6b82a534c021.webp",
+          "width": 640,
+          "height": 481,
+          "bytes": 8942,
+          "sha256": "6b82a534c02146dfc335bd7d7b9cc000cb5c01f74026b682e86ca502accaddfa"
+        },
+        {
+          "path": "/artwork/optimized/e54f9cc11d940c427453-licensed-960-509bc90e1b20.webp",
+          "width": 960,
+          "height": 721,
+          "bytes": 14420,
+          "sha256": "509bc90e1b203ff895219152a416a7a498c452ca8a6c61d7a8db36161e764619"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q262793",
+      "source_path": "/artwork/d93384eff315f83b20b6-licensed.jpg",
+      "source_sha256": "aab9ef6ab74680d62c21dcda336a8853ce1478d3a3099df2e7650aba7eeac8f5",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q262793, CC0. Artwork: MGM, Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/d93384eff315f83b20b6-licensed-320-aee8d769faef.webp",
+          "width": 320,
+          "height": 246,
+          "bytes": 9032,
+          "sha256": "aee8d769faeff7d7e12a539970a9467115d1d2716d4c1ac72a36e1412cab45a0"
+        },
+        {
+          "path": "/artwork/optimized/d93384eff315f83b20b6-licensed-640-8b713fcf6246.webp",
+          "width": 640,
+          "height": 492,
+          "bytes": 20684,
+          "sha256": "8b713fcf6246766c053012697aec386e4734e95ef9de3f3b204dccf872dea9f7"
+        },
+        {
+          "path": "/artwork/optimized/d93384eff315f83b20b6-licensed-960-20c5192aeb6d.webp",
+          "width": 960,
+          "height": 738,
+          "bytes": 32516,
+          "sha256": "20c5192aeb6d86ca1d4d060bf15ecce8f287f10ccb5fb0241ad884f941967a08"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q262980",
+      "source_path": "/artwork/8ff7c147c695fb8afd85-licensed.jpg",
+      "source_sha256": "3a5a999796974e26432fb571f2ff08bcb5f568eea1dd82cd73d697578417332c",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q262980, CC0. Artwork: Warner Bros., Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/8ff7c147c695fb8afd85-licensed-320-1ab772a18ea4.webp",
+          "width": 320,
+          "height": 427,
+          "bytes": 14486,
+          "sha256": "1ab772a18ea41d4f2bb9abb9053ab64badf91aa81cb7e71ccda0150f0fec9dc0"
+        },
+        {
+          "path": "/artwork/optimized/8ff7c147c695fb8afd85-licensed-500-bb649c380b35.webp",
+          "width": 500,
+          "height": 667,
+          "bytes": 23974,
+          "sha256": "bb649c380b35ad0b6db1346c05302ccb30278fe5edfffed658c2c9b61b52e5e1"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q2875",
+      "source_path": "/artwork/d5aa4cb364dd2c771028-licensed.jpg",
+      "source_sha256": "f959e99328996b6f619dfdefb4abe065ed6bcdd98ffc1aad0c4d5de61f13f486",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q2875, CC0. Artwork: Selznick International Pictures, Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/d5aa4cb364dd2c771028-licensed-320-83a75d3b8517.webp",
+          "width": 320,
+          "height": 243,
+          "bytes": 7298,
+          "sha256": "83a75d3b8517ce381da27bafa440bbf882df66118bda9eb26e4f1b10d720f7a3"
+        },
+        {
+          "path": "/artwork/optimized/d5aa4cb364dd2c771028-licensed-640-be2c3f9eb3cf.webp",
+          "width": 640,
+          "height": 486,
+          "bytes": 16338,
+          "sha256": "be2c3f9eb3cf461a6aa8e7f3fa8c5f32b322a505a03e94acb5ab25700af60760"
+        },
+        {
+          "path": "/artwork/optimized/d5aa4cb364dd2c771028-licensed-960-a0de0e2c8f31.webp",
+          "width": 960,
+          "height": 729,
+          "bytes": 26662,
+          "sha256": "a0de0e2c8f31e97c34a2c692668bea6843d3e3d67f2a113bcab2036df0634eb0"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q31971",
+      "source_path": "/artwork/74d201c532441dbfe148-licensed.jpg",
+      "source_sha256": "f40905aefd8868375ae66c208cd7257fdd214fa9d2f1f9026fea6969d807a116",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q31971, CC0. Artwork: Trailer screenshot Licencing information : https://web.archive.org/web/20080321033709/http://www.sabucat.com/?pg=copyright and http://www.creativeclearance.com/guidelines.html#D2, Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/74d201c532441dbfe148-licensed-320-898e3c0a041d.webp",
+          "width": 320,
+          "height": 225,
+          "bytes": 7474,
+          "sha256": "898e3c0a041d9a0425fcd54920a6b824140f96a74fbc876d84f185d31d847d0e"
+        },
+        {
+          "path": "/artwork/optimized/74d201c532441dbfe148-licensed-640-c825b984aca9.webp",
+          "width": 640,
+          "height": 450,
+          "bytes": 15894,
+          "sha256": "c825b984aca98aa19b324f59c1909769048edbc30e1b930da75911451cb61904"
+        },
+        {
+          "path": "/artwork/optimized/74d201c532441dbfe148-licensed-733-9660de648d32.webp",
+          "width": 733,
+          "height": 515,
+          "bytes": 18852,
+          "sha256": "9660de648d32ffcd2f28b2dccbf466c234d7b1d9546f64367a49593cd92222f0"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q32011",
+      "source_path": "/artwork/37a340370a23cc6fd6dc-licensed.jpg",
+      "source_sha256": "db20c5e7c2210b1bcf766fd9e647fb52a002b9ff76b0cb0792bb2ad786f0090c",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q32011, CC0. Artwork: \"Copyright 1949 Loew's Incorporated\", Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/37a340370a23cc6fd6dc-licensed-320-7e0d4a3be398.webp",
+          "width": 320,
+          "height": 501,
+          "bytes": 44408,
+          "sha256": "7e0d4a3be39817e494004fb676711194015eb3fbf3f4e3a84fc05797f6d697bd"
+        },
+        {
+          "path": "/artwork/optimized/37a340370a23cc6fd6dc-licensed-640-29d7fffe7702.webp",
+          "width": 640,
+          "height": 1001,
+          "bytes": 133962,
+          "sha256": "29d7fffe7702765939ca7cc18aa8359782ec4b9a6b733e4221cc9a68e3836814"
+        },
+        {
+          "path": "/artwork/optimized/37a340370a23cc6fd6dc-licensed-960-3b1b05b57208.webp",
+          "width": 960,
+          "height": 1502,
+          "bytes": 296090,
+          "sha256": "3b1b05b57208c3012fb77ad159cd8c8a867a44e5878f362177e92560e00068df"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q32228",
+      "source_path": "/artwork/f30968a58d74b4be9eaf-licensed.png",
+      "source_sha256": "57f683726d7eb8155e65e7bd50d2343ceb062367d9a5ac3da731421085a1d608",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q32228, CC0. Artwork: Jerry Lewis, Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/f30968a58d74b4be9eaf-licensed-320-8df0330a50ee.webp",
+          "width": 320,
+          "height": 106,
+          "bytes": 5600,
+          "sha256": "8df0330a50eed9113a23f5790ba924d10c2d711272a4e06b15b32efb39c2fe60"
+        },
+        {
+          "path": "/artwork/optimized/f30968a58d74b4be9eaf-licensed-640-0287ebc74913.webp",
+          "width": 640,
+          "height": 213,
+          "bytes": 11922,
+          "sha256": "0287ebc749135e08560681e533c45d2d7364d14298012d6cc3c8840b93ec31b8"
+        },
+        {
+          "path": "/artwork/optimized/f30968a58d74b4be9eaf-licensed-960-5a89e450c114.webp",
+          "width": 960,
+          "height": 319,
+          "bytes": 18978,
+          "sha256": "5a89e450c114c6de284f0554d3dd306c1066b259308d791d5b079fd771c196b8"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q34414",
+      "source_path": "/artwork/8c22d3b435bd57f6deaa-licensed.jpg",
+      "source_sha256": "dd6594a27a94eb717e66606fe54908354122721752042713ba185bf82018d033",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q34414, CC0. Artwork: Trailer screenshot, Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/8c22d3b435bd57f6deaa-licensed-320-c7be15421b5a.webp",
+          "width": 320,
+          "height": 240,
+          "bytes": 19194,
+          "sha256": "c7be15421b5a4690c58da87e5911ad4d4160d314ad576f15ffec3cf377080a06"
+        },
+        {
+          "path": "/artwork/optimized/8c22d3b435bd57f6deaa-licensed-640-44b107626116.webp",
+          "width": 640,
+          "height": 480,
+          "bytes": 56792,
+          "sha256": "44b107626116dda58b808eb845c0fdfe3a3d2695d841d5243d6ad2fc02e47ce5"
+        },
+        {
+          "path": "/artwork/optimized/8c22d3b435bd57f6deaa-licensed-960-a45ae3e26fdd.webp",
+          "width": 960,
+          "height": 720,
+          "bytes": 95880,
+          "sha256": "a45ae3e26fdd66550d86c438376e1289d770ee6f79fe7d199e0226c4597d4332"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q38815",
+      "source_path": "/artwork/e9a75a8d8584c76b5439-licensed.jpg",
+      "source_sha256": "065f3c548be50b95d6baef1ee746e578751fc851e6412d65d323c351468276a1",
+      "license": "CC BY-SA 4.0",
+      "attribution": "Film metadata: Wikidata Q38815, CC0. Artwork: Manolos84, CC BY-SA 4.0.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/e9a75a8d8584c76b5439-licensed-320-34d03e5b3b5a.webp",
+          "width": 320,
+          "height": 243,
+          "bytes": 10980,
+          "sha256": "34d03e5b3b5aec97f2e42bbff00e17c5449949d24604fea8ae29dfc73c6453f5"
+        },
+        {
+          "path": "/artwork/optimized/e9a75a8d8584c76b5439-licensed-640-14ea1305327e.webp",
+          "width": 640,
+          "height": 487,
+          "bytes": 33910,
+          "sha256": "14ea1305327eb5c1357f7081f4f1fefaf396678ea11855d06f2ebb21189edf55"
+        },
+        {
+          "path": "/artwork/optimized/e9a75a8d8584c76b5439-licensed-960-5c9e43a4866d.webp",
+          "width": 960,
+          "height": 731,
+          "bytes": 60610,
+          "sha256": "5c9e43a4866de319f4df2800cc265aef779a027dfc1b06534251be3d1e12bf5d"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q39005",
+      "source_path": "/artwork/aad9e05da2cca10072fb-licensed.jpg",
+      "source_sha256": "126f0baf4df5aa8a67179ac72a5d84e7738c143e175509cec17c8e005b58e337",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q39005, CC0. Artwork: Alfred Hitchcock, Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/aad9e05da2cca10072fb-licensed-286-0c1e42dcab9c.webp",
+          "width": 286,
+          "height": 218,
+          "bytes": 6274,
+          "sha256": "0c1e42dcab9c2955422885c9d19f2ec319aefc66bb59b27f556f25646746d226"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q39422",
+      "source_path": "/artwork/c4d4f9291d22b5871c23-licensed.jpg",
+      "source_sha256": "eb0036fa325303e4363bcfc9564502c9042aa689525f5d9394855e42d6c55f53",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q39422, CC0. Artwork: Trailer screenshot, Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/c4d4f9291d22b5871c23-licensed-315-c1bf75c8199a.webp",
+          "width": 315,
+          "height": 238,
+          "bytes": 6300,
+          "sha256": "c1bf75c8199a00ed7192905100e88dec20cc496575a9de9c53837048b32742f6"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q39571",
+      "source_path": "/artwork/883f4e30a871bc1d6721-licensed.jpg",
+      "source_sha256": "ca62a5c88e35b741abbf1ebd0fbd3256b50f394ee602ce28a0f12179dda698d3",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q39571, CC0. Artwork: Studio Ghibli, Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/883f4e30a871bc1d6721-licensed-249-db8be051207b.webp",
+          "width": 249,
+          "height": 62,
+          "bytes": 2496,
+          "sha256": "db8be051207b3e29f1af5b87a8600c4cd32845fc30a90a0e29a6d42d85dec50c"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q43228",
+      "source_path": "/artwork/3f1107142db44b841d64-licensed.jpg",
+      "source_sha256": "c42dfe094c004b2ac515c22bf342ae41a960f37ca0dd0762c5c4bda5716cb088",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q43228, CC0. Artwork: The Photoplay Publishing Company; Metro-Goldwyn-Mayer advertisement with no separate copyright notice, Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/3f1107142db44b841d64-licensed-320-1bbf1945b327.webp",
+          "width": 320,
+          "height": 256,
+          "bytes": 10256,
+          "sha256": "1bbf1945b3274177c6b6d34ea9efdfac5ba464de1c6516a6b9757d0b03e11782"
+        },
+        {
+          "path": "/artwork/optimized/3f1107142db44b841d64-licensed-640-cf5f8926b7eb.webp",
+          "width": 640,
+          "height": 512,
+          "bytes": 34302,
+          "sha256": "cf5f8926b7eb4f992f7c1b78ebdc1b568013fe99e29c957b08bad3a550058ef8"
+        },
+        {
+          "path": "/artwork/optimized/3f1107142db44b841d64-licensed-960-88aeb3a7aa5e.webp",
+          "width": 960,
+          "height": 768,
+          "bytes": 61664,
+          "sha256": "88aeb3a7aa5e366c524390ae5b36485ae0da8523000707f45aa56485d1935461"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q43836",
+      "source_path": "/artwork/ee1be776a7cf7bf2063e-licensed.jpg",
+      "source_sha256": "01bb2cbce40e03fdda1bbba92ea11a57342b2fc87d9b17f26e94f0cd64cee93f",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q43836, CC0. Artwork: Siegmund von Suchodolski 1932, Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/ee1be776a7cf7bf2063e-licensed-320-3d58eeb84fb0.webp",
+          "width": 320,
+          "height": 458,
+          "bytes": 26730,
+          "sha256": "3d58eeb84fb081d03a96fc0025b5c5d9fde3d85d7f7e09e0f21c0285616e0631"
+        },
+        {
+          "path": "/artwork/optimized/ee1be776a7cf7bf2063e-licensed-489-1c201653268f.webp",
+          "width": 489,
+          "height": 700,
+          "bytes": 42510,
+          "sha256": "1c201653268f28468c1e0c4fd8609775503442a3477265e1b790808370729487"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q4430",
+      "source_path": "/artwork/a63a8da3a6b82013cc6a-licensed.jpg",
+      "source_sha256": "e348bb95210429303c145507cee7c9e50854be26a1d29461f81ac9e913070069",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q4430, CC0. Artwork: After Howard Terpning, Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/a63a8da3a6b82013cc6a-licensed-320-42133820319c.webp",
+          "width": 320,
+          "height": 488,
+          "bytes": 33040,
+          "sha256": "42133820319ce26d7cc9cfbca75343c66ae85a95b75711145a5cd6df3ac95619"
+        },
+        {
+          "path": "/artwork/optimized/a63a8da3a6b82013cc6a-licensed-640-ac807281fa1f.webp",
+          "width": 640,
+          "height": 977,
+          "bytes": 124710,
+          "sha256": "ac807281fa1fb66cef043358c5463fe45073073dc06d83ac3beaa8cbdfa712c7"
+        },
+        {
+          "path": "/artwork/optimized/a63a8da3a6b82013cc6a-licensed-960-c4e0d7928eeb.webp",
+          "width": 960,
+          "height": 1465,
+          "bytes": 298432,
+          "sha256": "c4e0d7928eeb75d07cc6f9c0d9283ac2f9c01396a3bf8fdc7e77d390fe6aa30b"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q44662",
+      "source_path": "/artwork/69a7d1311b3f37274551-licensed.jpg",
+      "source_sha256": "578ab01f09d563d3504b5c673bf70eff2af6de7b9368e555315ab8ce3857e84a",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q44662, CC0. Artwork: my own screen capture of public domain trailer, Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/69a7d1311b3f37274551-licensed-320-86f1896eb4db.webp",
+          "width": 320,
+          "height": 240,
+          "bytes": 6862,
+          "sha256": "86f1896eb4db90415083298d4b02be44f39746fc0b94f6c8b80e2d31e5478300"
+        },
+        {
+          "path": "/artwork/optimized/69a7d1311b3f37274551-licensed-576-7c88905d2836.webp",
+          "width": 576,
+          "height": 432,
+          "bytes": 13118,
+          "sha256": "7c88905d28361e07186a94d36482d22020810cf40edd8696171567bd692b7c78"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q44686",
+      "source_path": "/artwork/b19662d071937ed163d5-licensed.png",
+      "source_sha256": "f6e1fccddfaa0a915240c23b06c099425611ea54cc35058d0b456c384178f6c1",
+      "license": "CC BY-SA 4.0",
+      "attribution": "Film metadata: Wikidata Q44686, CC0. Artwork: Machete kills, CC BY-SA 4.0.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/b19662d071937ed163d5-licensed-320-b82f20ecd236.webp",
+          "width": 320,
+          "height": 89,
+          "bytes": 7616,
+          "sha256": "b82f20ecd2367fd1bd6c84b8a850f657cf3d7bf580bc8cc71a7093e7bcd8214b"
+        },
+        {
+          "path": "/artwork/optimized/b19662d071937ed163d5-licensed-400-7fbd560b96e2.webp",
+          "width": 400,
+          "height": 111,
+          "bytes": 6784,
+          "sha256": "7fbd560b96e284f45481d987d155f9e51d1bf55ed7fccdbe19cafd3cebd5c95a"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q4471",
+      "source_path": "/artwork/4823ca9be263c5943a1d-licensed.png",
+      "source_sha256": "bdd9e322a9074228905c3372eb0bb90c7095ac9176e0aba361465e065cd80b12",
+      "license": "CC BY-SA 4.0",
+      "attribution": "Film metadata: Wikidata Q4471, CC0. Artwork: Machete kills, CC BY-SA 4.0.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/4823ca9be263c5943a1d-licensed-320-b785235cbc14.webp",
+          "width": 320,
+          "height": 128,
+          "bytes": 14048,
+          "sha256": "b785235cbc14395e534b155e68bcd9aa40b84950cb5e371c4961f69a9c43fc17"
+        },
+        {
+          "path": "/artwork/optimized/4823ca9be263c5943a1d-licensed-640-5ae864c05bed.webp",
+          "width": 640,
+          "height": 255,
+          "bytes": 31010,
+          "sha256": "5ae864c05bed26190ce531bec0196c0571615cbcf73d50da5c32456fb9020842"
+        },
+        {
+          "path": "/artwork/optimized/4823ca9be263c5943a1d-licensed-650-fbe0ff3ae137.webp",
+          "width": 650,
+          "height": 259,
+          "bytes": 20840,
+          "sha256": "fbe0ff3ae1371b3472bb611d76392974dc99b007e121af6931c31575a59ca33c"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q4479",
+      "source_path": "/artwork/f354617231d787a39374-licensed.png",
+      "source_sha256": "0f9cd9d88a920240a8e12f9eac60f3c463dae05e854481e66a872c3d24802faf",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q4479, CC0. Artwork: Ronnoc Entertainment, Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/f354617231d787a39374-licensed-320-8cbccf710ad3.webp",
+          "width": 320,
+          "height": 96,
+          "bytes": 3544,
+          "sha256": "8cbccf710ad38cdbedd5c8b8509c99b34734ba7634f9951d0a1b21c54f538cda"
+        },
+        {
+          "path": "/artwork/optimized/f354617231d787a39374-licensed-612-4e8eda0a5c76.webp",
+          "width": 612,
+          "height": 184,
+          "bytes": 6686,
+          "sha256": "4e8eda0a5c769c1d9ba8b0fdfe6994eb6eeca0d68e66c48b0e50a347f36f21f9"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q45386",
+      "source_path": "/artwork/e751247bec2f3df11a74-licensed.jpg",
+      "source_sha256": "b75d2e3eef22adb1fba6eea99236be1a4b212ef594fe952624378a43870fa9e2",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q45386, CC0. Artwork: Director Don Siegel, Production company Walter Wanger Productions, Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/e751247bec2f3df11a74-licensed-320-253fadede82e.webp",
+          "width": 320,
+          "height": 237,
+          "bytes": 4362,
+          "sha256": "253fadede82e24ae02215ee70ed85ec6afea19af49fd228279510c604d0248cf"
+        },
+        {
+          "path": "/artwork/optimized/e751247bec2f3df11a74-licensed-474-56087f7abddd.webp",
+          "width": 474,
+          "height": 351,
+          "bytes": 6876,
+          "sha256": "56087f7abddd7bde850c6de2d063638454f9ce646532b6da11ff9e9de80f1ebf"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q45388",
+      "source_path": "/artwork/387ee14a03c708ec2d11-licensed.jpg",
+      "source_sha256": "83e50199677eb77543827a44dff9423e29bf7043c66811398be3a525912c5586",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q45388, CC0. Artwork: film trailer screenshot (Universal Pictures), Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/387ee14a03c708ec2d11-licensed-320-74be17aae28b.webp",
+          "width": 320,
+          "height": 244,
+          "bytes": 3938,
+          "sha256": "74be17aae28b57cb40af3a18d6cd26c42470cc9ffdca35da4940cd359ecbbaee"
+        },
+        {
+          "path": "/artwork/optimized/387ee14a03c708ec2d11-licensed-626-2a09feab1ba8.webp",
+          "width": 626,
+          "height": 477,
+          "bytes": 8496,
+          "sha256": "2a09feab1ba83923f1937f6faf0a893b05e9ad156ded934433119fed75daa2f0"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q45394",
+      "source_path": "/artwork/682a12aceecdd8aad8f0-licensed.png",
+      "source_sha256": "79bce25227df2d50f7820bcd6ff1ec532339f1d884fe0f4412a9b03261474754",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q45394, CC0. Artwork: Diseñadores publicitarios, Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/682a12aceecdd8aad8f0-licensed-320-dc100fdfde34.webp",
+          "width": 320,
+          "height": 133,
+          "bytes": 9860,
+          "sha256": "dc100fdfde342d4e64edf4c5e34eb8cfca3027168f744fd439976574733bc061"
+        },
+        {
+          "path": "/artwork/optimized/682a12aceecdd8aad8f0-licensed-640-755029d2729e.webp",
+          "width": 640,
+          "height": 265,
+          "bytes": 21692,
+          "sha256": "755029d2729e36c216b24e8da4bb9a5f6c03e2d246297290e142083ae9e98a6e"
+        },
+        {
+          "path": "/artwork/optimized/682a12aceecdd8aad8f0-licensed-960-2c905a6dab99.webp",
+          "width": 960,
+          "height": 398,
+          "bytes": 20498,
+          "sha256": "2c905a6dab99d6447290d3298b02e34b77f2d1737c3cfddc2ede038a117c7278"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q45602",
+      "source_path": "/artwork/37e632f3b6d3216ed3ae-licensed.jpg",
+      "source_sha256": "e6fa825eeac77cbf8d6c09ca58368ca037ceac53434d74db93b4a4b78194b6b8",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q45602, CC0. Artwork: Unknown authorUnknown author, Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/37e632f3b6d3216ed3ae-licensed-320-c93ee13e8636.webp",
+          "width": 320,
+          "height": 487,
+          "bytes": 29408,
+          "sha256": "c93ee13e863698964e15724a688fa5c30c0fcd3c94b091a4d18be646d0ffd482"
+        },
+        {
+          "path": "/artwork/optimized/37e632f3b6d3216ed3ae-licensed-640-66d41ccb8131.webp",
+          "width": 640,
+          "height": 974,
+          "bytes": 68600,
+          "sha256": "66d41ccb813115c218491d19b681d9784df128e02610858479f4c301787ab922"
+        },
+        {
+          "path": "/artwork/optimized/37e632f3b6d3216ed3ae-licensed-736-ad9680caf80f.webp",
+          "width": 736,
+          "height": 1120,
+          "bytes": 81270,
+          "sha256": "ad9680caf80f65034d317420eb2e64a55aaf6d2604dfe8057529b7de9fe02418"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q46361",
+      "source_path": "/artwork/85a78f5df4aa345aada3-licensed.png",
+      "source_sha256": "fd89422f1883c83f30ce071636b110841c93bd1bcc8301dcb44d851d05a181bf",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q46361, CC0. Artwork: Utente:Vabbè.\n\nThe original uploader was Vabbè at Italian Wikipedia., Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/85a78f5df4aa345aada3-licensed-320-25e6fa7483c7.webp",
+          "width": 320,
+          "height": 173,
+          "bytes": 4114,
+          "sha256": "25e6fa7483c7ce990b1fb0f5b35c2bae0d4f2c1e5ec83a176e50b8c7593f322f"
+        },
+        {
+          "path": "/artwork/optimized/85a78f5df4aa345aada3-licensed-623-5efda902c02e.webp",
+          "width": 623,
+          "height": 337,
+          "bytes": 8420,
+          "sha256": "5efda902c02e2e0f0c053aefc71ab2a6242daab598c0ef5b3940628df1e13cf7"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q46477",
+      "source_path": "/artwork/24be9c56327e0059b3fc-licensed.jpg",
+      "source_sha256": "4fc444c29c02a9f16c7a319fdb2477253bc1e7dc084d8fac7da3842d6164f1a0",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q46477, CC0. Artwork: Alberto Lattuada, Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/24be9c56327e0059b3fc-licensed-320-f428be95b97c.webp",
+          "width": 320,
+          "height": 213,
+          "bytes": 4792,
+          "sha256": "f428be95b97c1d6559911af6df8e11c000c02e296809f26d8ff7d7e02de9bab3"
+        },
+        {
+          "path": "/artwork/optimized/24be9c56327e0059b3fc-licensed-600-387bd1aabd4a.webp",
+          "width": 600,
+          "height": 400,
+          "bytes": 12686,
+          "sha256": "387bd1aabd4ae024ed6d592417f55de4c43ad544f4dfc57f70b7c22060b5ce0a"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q46568",
+      "source_path": "/artwork/84a2e4cc2727f501f0d5-licensed.jpg",
+      "source_sha256": "1a3ef13d34dc985d913d936d0f0d4510a9b59509fe97f486177e33354a676448",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q46568, CC0. Artwork: Alberto Lattuada, Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/84a2e4cc2727f501f0d5-licensed-320-95814159e5de.webp",
+          "width": 320,
+          "height": 420,
+          "bytes": 13826,
+          "sha256": "95814159e5de86f7286542f92045b89714472658f8395600109457fc5b1d30ef"
+        },
+        {
+          "path": "/artwork/optimized/84a2e4cc2727f501f0d5-licensed-457-b7363746b9da.webp",
+          "width": 457,
+          "height": 600,
+          "bytes": 23308,
+          "sha256": "b7363746b9da0d4bebcd2ad73cec4c43e2c8cc5d02397677098736c926da77c1"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q47703",
+      "source_path": "/artwork/fd6d1e62ac88e1d8f8b9-licensed.png",
+      "source_sha256": "69b10fabe78fa6708db06ce52b37ce063066ecdde7179f1716dae381eccc597c",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q47703, CC0. Artwork: Paramount Pictures, Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/fd6d1e62ac88e1d8f8b9-licensed-320-4392961bc714.webp",
+          "width": 320,
+          "height": 237,
+          "bytes": 11404,
+          "sha256": "4392961bc714c7a4a3d6c136a0f188cf440c7aec7e44ef161fd3afed9e453df1"
+        },
+        {
+          "path": "/artwork/optimized/fd6d1e62ac88e1d8f8b9-licensed-640-2d44e32adf12.webp",
+          "width": 640,
+          "height": 475,
+          "bytes": 24450,
+          "sha256": "2d44e32adf1268eb46a6e715acbee24f7a6dcf5d5c7c709cd193afa60161c07b"
+        },
+        {
+          "path": "/artwork/optimized/fd6d1e62ac88e1d8f8b9-licensed-960-3c7f3859e732.webp",
+          "width": 960,
+          "height": 712,
+          "bytes": 25324,
+          "sha256": "3c7f3859e7322f12bde694045039245dc5b9ca615a0026647fd6ef13e7ed0e27"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q49003",
+      "source_path": "/artwork/34fe8e8fe9704ce3badd-licensed.jpg",
+      "source_sha256": "833540fd7fc8c2d668f39e5330bd675fa6b70bc02d7a6101dd73ee393e7a2e4a",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q49003, CC0. Artwork: Paramount Pictures, Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/34fe8e8fe9704ce3badd-licensed-320-787a6ebda824.webp",
+          "width": 320,
+          "height": 180,
+          "bytes": 1782,
+          "sha256": "787a6ebda82436b775a2937cbe77b7dfa0b5b6b1cb0decb721688aaada22826f"
+        },
+        {
+          "path": "/artwork/optimized/34fe8e8fe9704ce3badd-licensed-640-6682ece5cc39.webp",
+          "width": 640,
+          "height": 360,
+          "bytes": 3874,
+          "sha256": "6682ece5cc3914d6a8ff73d5e8a77b1521c1c60bd5bea670ad2e9d32f57d2e42"
+        },
+        {
+          "path": "/artwork/optimized/34fe8e8fe9704ce3badd-licensed-960-80d170b24975.webp",
+          "width": 960,
+          "height": 540,
+          "bytes": 6148,
+          "sha256": "80d170b249754a38530897bc7d45ee68222168621437078f312b73c1b551c83b"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q49396",
+      "source_path": "/artwork/ae28a34823e38ab9190a-licensed.jpg",
+      "source_sha256": "16c1c5282b09f227414c23b3d472309bda520a8e30733b1dfd54e4d5180b8e54",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q49396, CC0. Artwork: trailer screenshot (Universal Pictures), Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/ae28a34823e38ab9190a-licensed-320-84506ba0d945.webp",
+          "width": 320,
+          "height": 240,
+          "bytes": 7344,
+          "sha256": "84506ba0d9457f9a5f51e9002adac2a0824a7f65230894ffce28ba390f1786c4"
+        },
+        {
+          "path": "/artwork/optimized/ae28a34823e38ab9190a-licensed-334-6006da639408.webp",
+          "width": 334,
+          "height": 251,
+          "bytes": 7796,
+          "sha256": "6006da6394085245ecb451d8fb58f629a724e935a610712ecc5af6ac34d6b96e"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q49729",
+      "source_path": "/artwork/080fb5bbcc0296582a4d-licensed.jpg",
+      "source_sha256": "4ea370f0efb66f1930d6b0bf8db3f0e20611dd299884f10fce1dfe046f80d735",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q49729, CC0. Artwork: Kuk Dong, Seki Trading Co., Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/080fb5bbcc0296582a4d-licensed-320-b18ea35ac369.webp",
+          "width": 320,
+          "height": 412,
+          "bytes": 28752,
+          "sha256": "b18ea35ac369125120152ec92cbc58b3060cd3a60ecc31e6a02215c63abc98f1"
+        },
+        {
+          "path": "/artwork/optimized/080fb5bbcc0296582a4d-licensed-640-435943299c39.webp",
+          "width": 640,
+          "height": 825,
+          "bytes": 62856,
+          "sha256": "435943299c395f1a3fb2c751e07ad6d4ee7e4c6b2be7135d1cf4c021efd8ac49"
+        },
+        {
+          "path": "/artwork/optimized/080fb5bbcc0296582a4d-licensed-960-b4ab32b8dfdf.webp",
+          "width": 960,
+          "height": 1237,
+          "bytes": 99792,
+          "sha256": "b4ab32b8dfdfc9e559d69fe2f99b5b5c0bb8dfcea28ff5ff7eb15717696a0dd7"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q50714",
+      "source_path": "/artwork/3068aa5c999ff5394ba1-licensed.jpg",
+      "source_sha256": "10ab7226efefbee329a9532abdf03648e938cc5c511451b9a489805c87f5fa28",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q50714, CC0. Artwork: Screenshot by Wayne77, Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/3068aa5c999ff5394ba1-licensed-320-7bd5178734b8.webp",
+          "width": 320,
+          "height": 240,
+          "bytes": 7438,
+          "sha256": "7bd5178734b8306169aed91b9452f1f85d68880367258a04ef575d0705d61799"
+        },
+        {
+          "path": "/artwork/optimized/3068aa5c999ff5394ba1-licensed-635-6f36606d8863.webp",
+          "width": 635,
+          "height": 477,
+          "bytes": 15240,
+          "sha256": "6f36606d8863dafdf7714ee63d2a3eb363f4058d71f86bab9bd0a1d565ddb719"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q50937",
+      "source_path": "/artwork/482941854dd2269c3fec-licensed.png",
+      "source_sha256": "ced7f6124b8d42b193b79b5d8467e543a46e35933ad8f12f4aab7be8b9c15c04",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q50937, CC0. Artwork: Columbia Pictures, Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/482941854dd2269c3fec-licensed-320-e5db69f4ff75.webp",
+          "width": 320,
+          "height": 245,
+          "bytes": 8066,
+          "sha256": "e5db69f4ff755c9e167d374728eb1c461f44f80a5a04954bbf354b63a69c7afd"
+        },
+        {
+          "path": "/artwork/optimized/482941854dd2269c3fec-licensed-640-b0e11c595ce4.webp",
+          "width": 640,
+          "height": 489,
+          "bytes": 16262,
+          "sha256": "b0e11c595ce4e1c508a0df419ced692dd5a92f6453b230f6bad67824a746d999"
+        },
+        {
+          "path": "/artwork/optimized/482941854dd2269c3fec-licensed-876-f4cd62e19e0f.webp",
+          "width": 876,
+          "height": 670,
+          "bytes": 21888,
+          "sha256": "f4cd62e19e0fff88dc04752710409901f3fac8740fe2fb948bd52212d59a6014"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q51520",
+      "source_path": "/artwork/22bf53b0caee41e1aaf6-licensed.jpg",
+      "source_sha256": "584afac6c15d0bffc824fc24c75c5d21f44e70dda0007e2d52239000d1da436c",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q51520, CC0. Artwork: Unknown. Publisher: New York : Eloquent Press, N. Morgillo, Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/22bf53b0caee41e1aaf6-licensed-300-ec4ba461bbd2.webp",
+          "width": 300,
+          "height": 467,
+          "bytes": 43646,
+          "sha256": "ec4ba461bbd23e64b85918a134bcf7f13f4f50feee998ff002f9e9bf10f96e63"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q54968",
+      "source_path": "/artwork/6de93f5c2424f9ae5304-licensed.png",
+      "source_sha256": "40866ad78eccbf636c79c260565a31ea952bbe0016a03ef68217dc635991dcd7",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q54968, CC0. Artwork: Studio Filmowe Kadr, Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/6de93f5c2424f9ae5304-licensed-320-a8450d3736b4.webp",
+          "width": 320,
+          "height": 478,
+          "bytes": 31418,
+          "sha256": "a8450d3736b4a6a23e1ec61b0b46debe1a952ad2ee0f77bd49e7831fd6a835ff"
+        },
+        {
+          "path": "/artwork/optimized/6de93f5c2424f9ae5304-licensed-454-b33051034351.webp",
+          "width": 454,
+          "height": 678,
+          "bytes": 56150,
+          "sha256": "b330510343515d6fc674b1bb3a4e5f334da3a0c025213e2b402852ebceeae8f0"
+        }
+      ]
+    },
+    {
+      "content_key": "MSF-WD-Q54970",
+      "source_path": "/artwork/5fefdca4c95da3aba78f-licensed.jpg",
+      "source_sha256": "eb7a00e15343585d73e302797d9b8aa7ad55680440cdf43546b9da5ac2d4c96a",
+      "license": "Public domain",
+      "attribution": "Film metadata: Wikidata Q54970, CC0. Artwork: Photographer Jerzy Troszczyński, Public domain.",
+      "modifications": "Display derivatives: resized without cropping, auto-oriented and WebP encoded at quality 76. Originals retained unchanged.",
+      "variants": [
+        {
+          "path": "/artwork/optimized/5fefdca4c95da3aba78f-licensed-320-0fc38fcf797c.webp",
+          "width": 320,
+          "height": 245,
+          "bytes": 10958,
+          "sha256": "0fc38fcf797c16fbce0f90ab39a09dae7ed62bbf167f44194370f24c6ce9b77f"
+        },
+        {
+          "path": "/artwork/optimized/5fefdca4c95da3aba78f-licensed-640-ec77438fc815.webp",
+          "width": 640,
+          "height": 490,
+          "bytes": 35404,
+          "sha256": "ec77438fc8159547d5444257d8276357101bd76d048d3bc9f59127a5d63c7f9f"
+        },
+        {
+          "path": "/artwork/optimized/5fefdca4c95da3aba78f-licensed-960-1afd24257110.webp",
+          "width": 960,
+          "height": 735,
+          "bytes": 70552,
+          "sha256": "1afd24257110e50f185ec3effea9b63ab4d43ff8bc9175dc417aa8897a88d3e4"
+        }
+      ]
+    }
+  ]
+}

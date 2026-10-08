@@ -13,10 +13,12 @@ from pathlib import Path
 
 from fabric.rest import DeploymentError, safe_error_message
 from services.publisher.access import check_access, validate_authorization
+from services.publisher.publish import TransientSqlConnectionError
 from services.publisher.runtime import Runtime, latest_targets, timestamp
 
 ACTIVE = ("NotStarted", "InProgress", "Running")
 FAILED = ("Failed", "Cancelled", "Canceled", "Deduped")
+CONNECT_RETRY_DELAYS = (30, 60, 120, 240, 900)
 
 
 def validate_config(cfg):
@@ -127,6 +129,67 @@ class Worker:
         self.state["phase"] = phase
         self.state["stage_started_at"] = self.clock()
         self.state.pop("error", None)
+        self.state.pop("failures", None)
+        self.save()
+
+    def run_pass(self):
+        """One bounded pass; only failed connection establishment may retry."""
+        if self.state["phase"] == "blocked":
+            return
+        now = self.clock()
+        retry = self.state.get("retry")
+        if retry and now < retry["next_attempt_at"]:
+            return
+        if retry and retry["phase"] == self.state["phase"] and self.state["phase"] != "idle":
+            # SQL unavailability stopped all stage work. Exclude precisely that
+            # downtime, not healthy OneLake/job wait time, from its deadline.
+            self.state["stage_started_at"] += max(0, now - retry["suspended_at"])
+            retry["suspended_at"] = now
+            self.save()
+        attempted_at = now
+        try:
+            self.state["publisher"] = self.runtime.publish(self.store.receipt)
+            self.tick()
+        except TransientSqlConnectionError as exc:
+            previous = self.state.get("retry", {})
+            attempt = previous.get("attempt", 0) % len(CONNECT_RETRY_DELAYS) + 1
+            failed_at = self.clock()
+            self.state["retry"] = {
+                "kind": "sql_connect_timeout", "sqlstate": exc.sqlstate,
+                "phase": self.state["phase"], "attempt": attempt,
+                "total_failures": previous.get("total_failures", 0) + 1,
+                "first_failure_at": previous.get("first_failure_at", attempted_at),
+                "last_failure_at": failed_at,
+                "suspended_at": previous.get("suspended_at", attempted_at),
+                "next_attempt_at": failed_at + CONNECT_RETRY_DELAYS[attempt - 1],
+                "cooldown": attempt == len(CONNECT_RETRY_DELAYS),
+            }
+            self.state["error"] = str(exc)
+            self.state["error_kind"] = "transient_sql_connect"
+            self.save()
+            print(json.dumps({"phase": self.state["phase"], "error": self.state["error"],
+                              "retry": self.state["retry"]}), flush=True)
+            return
+        except Exception as exc:
+            # Permission/config/data faults, failed jobs, and statement/commit
+            # timeouts are not safe connection retries. Preserve their exact
+            # stage and any submission intent; no automatic write resubmission.
+            self.state["error"] = safe_error_message(str(exc))
+            self.state["error_kind"] = "nonretryable"
+            self.state["blocked_phase"] = self.state["phase"]
+            self.state["phase"] = "blocked"
+            self.state.pop("retry", None)
+            self.save()
+            print(json.dumps({"phase": "blocked", "error": self.state["error"]}), flush=True)
+            return
+        recovered = self.state.pop("retry", None)
+        if recovered:
+            self.state["last_recovery"] = {
+                "kind": recovered["kind"], "first_failure_at": recovered["first_failure_at"],
+                "recovered_at": self.clock(), "total_failures": recovered["total_failures"],
+            }
+        self.state.pop("error", None)
+        self.state.pop("error_kind", None)
         self.state.pop("failures", None)
         self.save()
 
@@ -274,22 +337,7 @@ def main():
             worker.state["paused"] = (args.state / "PAUSED").exists()
             worker.save()
             if not worker.state["paused"]:
-                try:
-                    summary = runtime.publish(store.receipt)
-                    worker.state["publisher"] = summary
-                    worker.tick()
-                    worker.state.pop("failures", None)
-                    worker.save()
-                except Exception as exc:
-                    # No raw credential-library/ODBC traceback in journald.
-                    worker.state["error"] = safe_error_message(str(exc))
-                    worker.state["failures"] = worker.state.get("failures", 0) + 1
-                    terminal_job = "no automatic resubmission" in str(exc)
-                    if terminal_job or worker.state["failures"] >= 5:
-                        worker.state["blocked_phase"] = worker.state["phase"]
-                        worker.state["phase"] = "blocked"
-                    worker.save()
-                    print(json.dumps({"phase": worker.state["phase"], "error": worker.state["error"]}), flush=True)
+                worker.run_pass()
             if args.once:
                 break
             for _ in range(cfg.get("poll_seconds", 30)):

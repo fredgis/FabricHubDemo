@@ -1,7 +1,7 @@
 import type{Content}from'../../rayfin/data/schema';
 import{getRayfinClient}from'./rayfinClient';
 import type{Snapshot}from'./business';
-import type{GoldPages}from'../../rayfin/functions/src/gold-pages';
+import type{GoldPages,GoldView}from'../../rayfin/functions/src/gold-pages';
 export function goldSnapshot(pages:GoldPages):Snapshot{
   const text=(value:string|null|undefined)=>value??'';
   const integer=(value:string|null|undefined)=>{
@@ -32,7 +32,8 @@ export function goldSnapshot(pages:GoldPages):Snapshot{
       type:text(row.channel),status:'Gold reference'})),members:[],outbox:[],commands:[],links:[],
   };
 }
-export async function loadGoldViews():Promise<{pages:GoldPages;snapshot:Snapshot}>{
-  const pages=await getRayfinClient().functions.businessViews.invoke();
+export async function loadGoldViews(view?:GoldView):Promise<{pages:GoldPages;snapshot:Snapshot}>{
+  const pages=view?await getRayfinClient().functions.businessPage.invoke({view})
+    :await getRayfinClient().functions.businessViews.invoke();
   return{pages,snapshot:goldSnapshot(pages)};
 }

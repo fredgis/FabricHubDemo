@@ -12,6 +12,14 @@ from datetime import datetime, timezone
 from typing import Any
 
 
+class TransientSqlConnectionError(RuntimeError):
+    """A failed connection establishment; no SQL statement was submitted."""
+
+    def __init__(self, sqlstate):
+        self.sqlstate = sqlstate
+        super().__init__(f"SQLDriverConnect timed out [{sqlstate}]; no statement submitted")
+
+
 def canonical_payload(value: str | dict[str, Any]) -> tuple[dict[str, Any], str]:
     payload = json.loads(value) if isinstance(value, str) else value
     if not isinstance(payload, dict):
@@ -119,11 +127,19 @@ def sql_connect(server, database, credential, *, autocommit=False):
         raise ValueError("Invalid operational database name.")
     sql_token = credential.get_token("https://database.windows.net/.default").token.encode("utf-16-le")
     token_bytes = struct.pack("<I", len(sql_token)) + sql_token
-    connection = pyodbc.connect(
-        f"Driver={{ODBC Driver 18 for SQL Server}};Server=tcp:{server},1433;"
-        f"Database={database};Encrypt=yes;TrustServerCertificate=no;",
-        attrs_before={1256: token_bytes}, autocommit=autocommit, timeout=30,
-    )
+    try:
+        connection = pyodbc.connect(
+            f"Driver={{ODBC Driver 18 for SQL Server}};Server=tcp:{server},1433;"
+            f"Database={database};Encrypt=yes;TrustServerCertificate=no;",
+            attrs_before={1256: token_bytes}, autocommit=autocommit, timeout=30,
+        )
+    except pyodbc.Error as exc:
+        # Classify only at the connect boundary. The same HYT00 raised by
+        # execute/commit can be an ambiguous write and must NOT be replayed.
+        state = exc.args[0] if exc.args else ""
+        if state in ("HYT00", "HYT01"):
+            raise TransientSqlConnectionError(state) from exc
+        raise
     connection.timeout = 300
     return connection
 

@@ -169,9 +169,21 @@ IDs. `resume` follows repair of a blocked stage; it does not discard job intent.
   before submitting. It stores submission intent before POST and the returned
   job ID immediately afterwards. A crash/lost response is reconciled against
   job history; it never blindly submits the same job again.
-- Each stage has a 30-minute deadline. Terminal failed Spark jobs stop further
-  propagation. Repeated transport/data errors enter `blocked`, with the phase
-  and job preserved. Publishing may continue, but no caught-up claim is made.
+- Each stage has a 30-minute deadline. SQL **connection-establishment** timeouts
+  (`HYT00`/`HYT01` from `SQLDriverConnect`, before any statement is submitted)
+  keep the same cycle/phase and persist their error plus next retry time.
+  Retry delays are 30, 60, 120, and 240 seconds; after the fifth failed
+  connection the worker waits 900 seconds before another bounded burst.
+  No attempts occur during the persisted backoff, including after restart.
+  Only time when SQL is unavailable is excluded from the stage deadline;
+  ordinary OneLake/job waits still have their original bound.
+- Permission, configuration, invalid data, terminal failed Spark jobs, and
+  statement/commit timeouts enter `blocked` immediately with the original
+  phase, error and job intent preserved. Publishing and propagation stop until
+  explicit repair/resume. A query/write timeout is **not** reclassified as a
+  login timeout, and an uncertain job POST is never blindly resubmitted.
+  A successful connection-retry pass records `last_recovery`; none of these
+  states claim that downstream data has caught up.
 - A Gold load can be retried because it is an atomic snapshot reconciliation;
   its fresh marker is checked first to recognize a commit after a lost response.
 - Keep `/var/lib/msflix-demo`; deleting it forces historical reconciliation.

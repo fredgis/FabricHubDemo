@@ -49,7 +49,9 @@ export function GraphCanvas({ scene, onSelect }: { scene: GraphScene; onSelect: 
   </div>;
 }
 
-export function OntologyGraph({ active = true }: { active?: boolean }) {
+export function OntologyGraph({ active = true, refreshKey = 0, prefetch = false, renderCanvas = true }: {
+  active?: boolean; refreshKey?: number; prefetch?: boolean; renderCanvas?: boolean;
+}) {
   const [data, setData] = useState<Result>();
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
@@ -57,18 +59,25 @@ export function OntologyGraph({ active = true }: { active?: boolean }) {
   const [limit, setLimit] = useState(6);
   const [selectedId, setSelectedId] = useState<string>();
   const loaded = useRef(false);
+  const refreshed = useRef(refreshKey);
   const inFlight = useRef(false);
   const load = useCallback(async () => {
     if (inFlight.current) return;
     inFlight.current = true;
     setLoading(true); setError('');
     try {
-      const result = await getRayfinClient().functions.businessGraph.invoke();
+      const result = await getRayfinClient().functions.businessGraphSlice.invoke({ journeyLimit: limit });
       setData(result); loaded.current = true;
     } catch (err) { setError(safeError(err)); }
     finally { setLoading(false); inFlight.current = false; }
-  }, []);
-  useEffect(() => { if (active && !loaded.current) void load(); }, [active, load]);
+  }, [limit]);
+  useEffect(() => {
+    if ((!active && !prefetch) || loading) return;
+    if (refreshed.current!==refreshKey || (!error && (!loaded.current || (data?.limit ?? 0) < limit))) {
+      refreshed.current=refreshKey;
+      void load();
+    }
+  }, [active, prefetch, load, data?.limit, limit, loading, error, refreshKey]);
   const scene = useMemo(() => {
     if (data?.state !== 'ready') return undefined;
     try { return { value: createGraphScene(data, search, limit) }; }
@@ -96,7 +105,7 @@ export function OntologyGraph({ active = true }: { active?: boolean }) {
           <input id="graph-search" type="search" value={search} onChange={event => {
             setSearch(event.target.value); setSelectedId(undefined);
           }} placeholder="Name, film, territory or order…" /></label>
-        <label htmlFor="graph-limit">Journeys on the canvas
+        <label htmlFor="graph-limit">Journeys to load
           <select id="graph-limit" value={limit} onChange={event => {
             setLimit(Number(event.target.value)); setSelectedId(undefined);
           }}>{[6, 12, 24, 50].map(value => <option key={value} value={value}>{value} journeys</option>)}</select>
@@ -108,9 +117,9 @@ export function OntologyGraph({ active = true }: { active?: boolean }) {
           {Object.entries(kindLabels).map(([kind, label]) => <span key={kind} className={`ontology-legend-${kind}`}>{label}</span>)}
           <span className="ontology-scope">{scene.value.nodes.length} nodes / {scene.value.edges.length} relationships</span>
         </div>
-        {scene.value.nodes.length ? <GraphCanvas key={`${data.queried_at}:${search}:${limit}`}
+        {scene.value.nodes.length ? renderCanvas&&<GraphCanvas key={`${data.queried_at}:${search}:${limit}`}
           scene={scene.value} onSelect={setSelectedId} />
-          : <div className="empty-state"><h3>No matching journeys</h3><p>Try another customer or film from the loaded graph.</p></div>}
+          : <div className="empty-state"><h3>No matching journeys</h3><p>Load more journeys or search another customer or film in this sample.</p></div>}
         <p className="ontology-hint">Drag the canvas to explore. Scroll to zoom. Select a node for its connections.
           <span>{scene.value.shownJourneys} of {scene.value.matchingJourneys} matching loaded journeys shown.</span></p>
       </>}

@@ -34,22 +34,24 @@ export function dashboardFromRows(source:{workspace_id:string;item_id:string;nam
     commercial:publication?commercial:[],playback:publication?playback:[],campaigns:publication?campaigns:[],
     dimensions:{customers:integer(rows.counts[0]?.customers??'0','customers'),content:integer(rows.counts[0]?.content??'0','content')}};
 }
-export async function readGoldDashboard(binding:AnalyticsBinding,token:string):Promise<GoldDashboard>{
+export function goldPool(binding:AnalyticsBinding,token:string):sql.ConnectionPool{
   if(!binding.verified || binding.binding_key!=='business-gold' || binding.name!=='MSFlixGold' ||
       !binding.sql_server.endsWith('.datawarehouse.fabric.microsoft.com') ||
       binding.sql_database!==binding.item_id || !/^[a-f0-9-]{36}$/i.test(binding.item_id))
     throw new Error('Gold Warehouse binding is not verified. Operational SQL will not substitute for Gold.');
-  const pool=new sql.ConnectionPool({server:binding.sql_server,database:binding.sql_database,
+  return new sql.ConnectionPool({server:binding.sql_server,database:binding.sql_database,
     options:{encrypt:true,trustServerCertificate:false},
     authentication:{type:'azure-active-directory-access-token',options:{token}},
     connectionTimeout:15000,requestTimeout:30000,pool:{min:0,max:1,idleTimeoutMillis:1000}});
-  try{
-    for(let attempt=0;;attempt++){
+}
+export async function connectGoldPool(pool:sql.ConnectionPool):Promise<void>{
+  for(let attempt=0;;attempt++){
       try{await pool.connect();break;}
       catch(error){if(attempt>=2||!['ETIMEOUT','ESOCKET','ECONNRESET'].includes((error as {code?:string}).code??''))throw error;
         await new Promise(resolve=>setTimeout(resolve,250*2**attempt));}
-    }
-    const result=await pool.request().query(`
+  }
+}
+export const GOLD_DASHBOARD_QUERY=`
       SELECT currency,transaction_type,CONVERT(varchar(40),current_order_lines) AS current_order_lines,
         CONVERT(varchar(40),booked_amount_minor) AS booked_amount_minor,
         CONVERT(varchar(64),booked_amount_decimal) AS booked_amount_decimal
@@ -62,12 +64,19 @@ export async function readGoldDashboard(binding:AnalyticsBinding,token:string):P
       SELECT CONVERT(varchar(40),(SELECT COUNT_BIG(*) FROM gold.dim_customer)) AS customers,
         CONVERT(varchar(40),(SELECT COUNT_BIG(*) FROM gold.dim_content)) AS content;
       SELECT TOP (1) run_id,completed_at,CONVERT(varchar(40),order_lines) AS order_lines
-      FROM gold.publication ORDER BY completed_at DESC,run_id;`);
-    const sets=result.recordsets as sql.IRecordSet<unknown>[];
-    return dashboardFromRows({name:binding.name,workspace_id:binding.workspace_id,item_id:binding.item_id},{
+      FROM gold.publication ORDER BY completed_at DESC,run_id;`;
+export function dashboardFromRecordsets(binding:AnalyticsBinding,sets:sql.IRecordSet<unknown>[]):GoldDashboard{
+  return dashboardFromRows({name:binding.name,workspace_id:binding.workspace_id,item_id:binding.item_id},{
       commercial:sets[0] as unknown as GoldRows['commercial'],playback:sets[1] as unknown as GoldRows['playback'],
       campaigns:sets[2] as unknown as GoldRows['campaigns'],counts:sets[3] as unknown as GoldRows['counts'],
       publication:sets[4] as unknown as GoldRows['publication']},new Date());
+}
+export async function readGoldDashboard(binding:AnalyticsBinding,token:string):Promise<GoldDashboard>{
+  const pool=goldPool(binding,token);
+  try{
+    await connectGoldPool(pool);
+    const result=await pool.request().query(GOLD_DASHBOARD_QUERY);
+    return dashboardFromRecordsets(binding,result.recordsets as sql.IRecordSet<unknown>[]);
   }catch(error){
     const failure=error as{code?:string;number?:number;originalError?:{info?:{number?:number}}};
     const code=failure.code??'GOLD_QUERY_FAILED';

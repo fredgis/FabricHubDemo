@@ -835,3 +835,68 @@ focus/escape, clear, retry and stop-waiting, and displays explicit service error
 Named caller authorization prevents viewers from inheriting the app owner's
 external-resource permissions. See [Flixy](FLIXY.md) for the complete source,
 runtime and deployment contract.
+
+## Interactive read and image performance
+
+Gold metrics and page details share **one SQL connection and one query batch**.
+The home page requests only its six latest orders/sessions and their related
+reference rows. Catalogue, audiences and Demo use their own bounded read scopes;
+the existing full `businessViews` API remains available to authoring tools.
+Audience metrics reuse the same response rather than making a second query.
+
+Operational collections load only for Orders, Demo and Operations. Their
+paginated reads use batches of 5,000 rows instead of 500; the outbox remains a
+bounded 1,000-event recency window. Page results live only in the mounted user's
+session. A page revisit within 30 seconds reuses its last read, and **Refresh**
+always requests that page again. Duplicate concurrent refreshes are coalesced.
+Successful data and artwork stay visible during refresh or a read failure,
+with an explicit refreshing/error notice and the original source timestamp.
+
+Business Graph initially requests **six actual source paths**, not 50 paths
+that are then hidden. Selecting 12, 24 or 50 loads the larger source sample;
+reducing the display count reuses the loaded sample. Search is limited to that
+sample. After the first successful Gold page read, the six-path graph is
+prefetched once in the background without mounting its canvas. Opening the
+graph tab reuses that actual result instead of waiting for a cold native query;
+there is no polling or fabricated graph. An immediate visit before the prefetch
+finishes can still wait for Fabric. Explicit refresh performs a fresh GQL query.
+
+Interactive graph reads use the administrator-qualified `OntologyBinding` row;
+the native function requires its actual `verified=true` flag and the approved
+workspace before issuing a bounded, permission-checked GQL request. The browser
+cannot supply or modify that binding. A full definition export is not part of
+an interactive read. Rebinding the ontology or GraphModel requires requalifying
+this managed binding, as with the Warehouse binding.
+
+Standalone callers without a qualified binding still check the full definition.
+Only their successful definition qualification is cached for **two minutes**,
+in a bounded cache keyed by all coordinates and a hash of the exact access
+token. Failures and actual graph answers are never cached.
+
+Licensed source images and their original hashes remain unchanged. The browser
+uses generated, content-hashed WebP display derivatives at up to **320, 640 and
+1,200 pixels**, with responsive `srcset`, asynchronous decoding and lazy-loaded
+cards. The hero image is preloaded before the Gold read finishes. The 68 licensed
+primary images total **11,126,764 bytes** as originals versus **851,418 bytes**
+for the small-card derivatives, a **92.3% reduction**. This is a byte-size result,
+not a promise about every user's network latency. Editorial SVGs remain intact.
+
+Run `npm run artwork:optimize` from `apps\cockpit` after updating licensed image
+sources. The normal `tools\artwork.mjs` generator also rebuilds these derivatives.
+`public\artwork-variants.json` preserves each original hash, license, attribution
+and the declared resize/re-encoding modification.
+
+Evening native read measurements: the Gold/home refresh went from **18.3 seconds
+to 7.7 seconds**; the operational snapshot from **6.5 to 4.7 seconds**, and it is
+no longer needed for the initial home view. These are observed samples, not an
+SLA. A cold Fabric graph invocation can still take about **nine seconds**;
+the bounded background prefetch removes that wait when its result is ready
+before the user opens the graph tab.
+
+The Demo worker's evening SQL connection-timeout incident was repaired without
+creating transactions or replaying Kafka. Its original blocked cycle processed
+19 existing events; the propagated checkpoint now contains **13,477 IDs**.
+Gold and operational SQL agree on **1,008 orders and 1,007 playback sessions**.
+The graph includes the five affected orders, and a subsequent idle cycle
+completed with zero unpublished events. See the recovery details in
+[Demo automation](DEMO-AUTOMATION.md).

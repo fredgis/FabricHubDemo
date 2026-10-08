@@ -3,12 +3,13 @@ import { ArrowRight, ArrowsClockwise, Broadcast, ChartBar, FilmSlate, Graph, Hou
   Play, ShoppingBag, SignOut, UsersThree } from '@phosphor-icons/react';
 import { useAuth } from '@/hooks/AuthContext';
 import { getRayfinClient } from '@/services/rayfinClient';
-import { dateLabel, loadSnapshot, money, safeError, safeUrl, type Snapshot } from '@/services/business';
+import { dateLabel, money, safeError, safeUrl, type Snapshot } from '@/services/business';
 import {GoldBusinessDashboard}from'@/components/GoldBusinessDashboard';
 import{OntologyGraph}from'@/components/OntologyGraph';
-import{loadGoldViews}from'@/services/goldViews';
+import { useCockpitReads } from '@/hooks/useCockpitReads';
 import type{GoldPages}from'../../rayfin/functions/src/gold-pages';
 import{catalogArt}from'@/assets/catalog-art.generated';
+import { catalogArtVariants } from '@/assets/catalog-art-variants.generated';
 import { DemoPage } from '@/pages/DemoPage';
 import { FlixyAssistant } from '@/components/FlixyAssistant';
 import { askFlixy } from '@/services/flixy';
@@ -47,10 +48,16 @@ function Status({ value }: { value: string }) {
 export function Artwork({ film, hero = false }: { film: Content; hero?: boolean }) {
   const [failed, setFailed] = useState(false);
   const art=catalogArt.find(item=>item.content_key===film.content_key);
-  const url=art?(failed?art.fallback_path:art.imagepath):safeUrl(film.image_url);
+  const optimized=catalogArtVariants.find(item=>item.content_key===film.content_key);
+  const variants=optimized?.variants;
+  const display=hero?variants?.at(-1):variants?.[0];
+  const url=art?(failed?art.fallback_path:display?.path??art.imagepath):safeUrl(film.image_url);
   const editorial=art&&(failed||art.kind==='original-editorial');
   return url ? <div className={hero?'hero-art':'film-art'} style={{position:hero?'absolute':'relative'}}>
     <img src={url} alt={art?editorial?`Illustration MSFlix for ${film.title}; not an official film poster`:art.alt:hero?`${film.title} reference artwork`:''}
+    srcSet={!failed?variants?.map(item=>`${item.path} ${item.width}w`).join(', '):undefined}
+    sizes={hero?'(max-width: 760px) 100vw, 75vw':'(max-width: 600px) 90vw, (max-width: 1000px) 45vw, 320px'}
+    width={display?.width} height={display?.height} decoding="async"
     loading={hero ? 'eager' : 'lazy'} fetchPriority={hero ? 'high' : 'auto'}
     onError={() => setFailed(true)} style={{width:'100%',height:'100%',objectFit:'cover',objectPosition:hero?'center 40%':undefined}} />
     {editorial&&<span className="editorial-credit">Illustration MSFlix · Not official artwork</span>}</div>
@@ -64,30 +71,16 @@ export function HomePage() {
   const { user, signOut } = useAuth();
   const [section, setSection] = useState<Section>('overview');
   const [graphVisited, setGraphVisited] = useState(false);
-  const [snapshot, setSnapshot] = useState<Snapshot | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
-  const [updated, setUpdated] = useState<Date>();
+  const [graphRefreshKey, setGraphRefreshKey] = useState(0);
+  const { snapshot, loading, error, updated, refresh, gold, goldLoading, goldError, hasReadGold } = useCockpitReads(section);
   const [capabilities, setCapabilities] = useState<Capabilities>({ can_operate: false, reason: 'Checking command permissions…' });
   const [permissionError, setPermissionError] = useState('');
   const [busy, setBusy] = useState(false);
   const [commandError, setCommandError] = useState('');
   const [receipt, setReceipt] = useState<CommandResult>();
-  const[goldRefresh,setGoldRefresh]=useState(0);
-  const[gold,setGold]=useState<{pages:GoldPages;snapshot:Snapshot}>();
-  const[goldError,setGoldError]=useState('');const[goldLoading,setGoldLoading]=useState(true);
   const commandKeys = useRef(new Map<string, string>());
   const inFlight = useRef(false);
-  const refresh = useCallback(async () => {
-    setLoading(true); setError('');setGoldRefresh(value=>value+1);
-    setGoldLoading(true);setGoldError('');setGold(undefined);
-    await Promise.all([
-      loadSnapshot().then(value=>{setSnapshot(value);setUpdated(new Date());}).catch(err=>setError(safeError(err))).finally(()=>setLoading(false)),
-      loadGoldViews().then(setGold).catch(err=>setGoldError(safeError(err))).finally(()=>setGoldLoading(false)),
-    ]);
-  }, []);
   useEffect(() => {
-    void refresh();
     let active = true;
     getRayfinClient().functions.capabilities.invoke().then(result => {
       if (active) setCapabilities(result);
@@ -95,7 +88,7 @@ export function HomePage() {
       if (active) { setPermissionError(safeError(err)); setCapabilities({ can_operate: false, reason: 'Permissions could not be verified.' }); }
     });
     return () => { active = false; };
-  }, [refresh]);
+  }, []);
 
   const command = async (identity: string, action: Command) => {
     if (inFlight.current || !capabilities.can_operate) return;
@@ -112,7 +105,12 @@ export function HomePage() {
   const canOperate = capabilities.can_operate && !busy && !loading && !error;
   const context = { snapshot, canOperate, busy, command };
   const selected = sections.find(s => s.key === section)!;
+  const readAt = gold?.pages.dashboard.freshness.queried_at ?? updated;
+  const heroVariants=catalogArtVariants.find(item=>item.content_key==='MSF-FILM-BUNNY')?.variants;
   return <div className="app-shell">
+    {heroVariants&&<link rel="preload" as="image" href={heroVariants.at(-1)?.path}
+      imageSrcSet={heroVariants.map(item=>`${item.path} ${item.width}w`).join(', ')}
+      imageSizes="(max-width: 760px) 100vw, 75vw" fetchPriority="high"/>}
     <a className="skip-link" href="#main">Skip to business content</a>
     <aside className="sidebar">
       <a className="brand" href="/" aria-label="MSFlix home">MS<span>FLIX</span><small>BUSINESS CONTROL</small></a>
@@ -125,8 +123,8 @@ export function HomePage() {
     </aside>
     <div className="workspace">
       <header className="topbar"><span>MSFlix <span className="muted">/ {selected.name}</span></span>
-        <button onClick={() => void refresh()} disabled={loading || busy}>
-          <ArrowsClockwise aria-hidden="true" />{loading ? 'Refreshing…' : 'Refresh data'}</button></header>
+        <button onClick={() => section==='graph'?setGraphRefreshKey(value=>value+1):void refresh()} disabled={loading || goldLoading || busy}>
+          <ArrowsClockwise aria-hidden="true" />{loading || goldLoading ? 'Refreshing…' : section==='graph'?'Refresh graph':'Refresh data'}</button></header>
       <main id="main" tabIndex={-1}>
         <div className="page-heading"><div><p className="eyebrow">ENTERTAINMENT BUSINESS</p>
           <h1>{section === 'overview' ? 'The business behind the stories.' : selected.name}</h1>
@@ -138,7 +136,7 @@ export function HomePage() {
                   : section === 'operations' ? 'Real connections, command receipts and delivery acknowledgements.'
                     : 'Sourced film metadata, explicit demo offers and traceable artwork rights.'}</p></div>
           <div className="view-context"><Status value={capabilities.can_operate ? 'operator' : 'viewer'} />
-            <small>{updated ? `Read ${dateLabel(updated)}` : 'No data read yet'}</small></div></div>
+            <small>{readAt ? `Read ${dateLabel(readAt)}` : 'No data read yet'}</small></div></div>
         {permissionError && <p role="alert" className="notice">Permission check failed: {permissionError}</p>}
         {!capabilities.can_operate && <p className="permission-note">{capabilities.reason}</p>}
         {commandError && <p className="notice" role="alert">{commandError} Retrying the same command reuses its idempotency key.</p>}
@@ -146,15 +144,18 @@ export function HomePage() {
           <span>Entity {receipt.entity_key}</span><span>{receipt.event_ids.length} returned event receipts. Broker delivery is separate.</span></div>}
         {error && <ErrorState message={`${snapshot ? 'Refresh failed. The records below are from the last successful read. ' : ''}${error}`} retry={() => void refresh()} />}
         {['overview','catalog','audiences'].includes(section)&&<>
-          {goldLoading?<LoadingState/>:goldError?<ErrorState message={`Gold business read failed: ${goldError} No operational fallback.`} retry={()=>void refresh()}/>
-          :gold&&<>{section!=='overview'&&<p className="permission-note">Source: MSFlixGold. Published {gold.pages.dashboard.freshness.published_at?dateLabel(gold.pages.dashboard.freshness.published_at):'not yet published'}.
-            Activity window: latest {gold.pages.window.orders} order lines / {gold.pages.window.sessions} sessions.</p>}
+          {goldLoading&&!gold&&<LoadingState/>}
+          {goldError&&<ErrorState message={`Gold business read failed: ${goldError} ${gold?'The last successful Gold read remains visible.':'No operational fallback.'}`} retry={()=>void refresh()}/>}
+          {goldLoading&&gold&&<p className="permission-note" role="status">Refreshing Gold. The last successful read remains visible.</p>}
+          {gold&&<>{section!=='overview'&&<p className="permission-note">Source: MSFlixGold. Published {gold.pages.dashboard.freshness.published_at?dateLabel(gold.pages.dashboard.freshness.published_at):'not yet published'}.
+            {section==='audiences'&&` Activity window: latest ${gold.pages.window.orders} order lines.`}</p>}
             {section==='overview'&&<Overview data={gold.snapshot} navigate={setSection}
-              metrics={<GoldBusinessDashboard refreshKey={goldRefresh} dashboard={gold.pages.dashboard} onRefresh={()=>void refresh()}/>}/>}
+              metrics={<GoldBusinessDashboard dashboard={gold.pages.dashboard} onRefresh={()=>void refresh()}/>}/>}
             {section==='catalog'&&<Catalog data={gold.snapshot} navigate={setSection}/>}
-            {section==='audiences'&&<Audiences data={gold.snapshot}/>}
+            {section==='audiences'&&<Audiences data={gold.snapshot} dashboard={gold.pages.dashboard}/>}
           </>}</>}
-        {graphVisited&&<div hidden={section!=='graph'}><OntologyGraph active={section==='graph'}/></div>}
+        {(graphVisited||hasReadGold)&&<div hidden={section!=='graph'}><OntologyGraph active={section==='graph'}
+          prefetch={hasReadGold} renderCanvas={graphVisited} refreshKey={graphRefreshKey}/></div>}
         <div hidden={section !== 'demo'}><DemoPage snapshot={snapshot} capabilities={capabilities}
           loading={loading} readError={error} busy={busy} snapshotUpdatedAt={updated}
           gold={gold?.pages} goldLoading={goldLoading} goldError={goldError} onRefresh={refresh} /></div>
@@ -209,6 +210,8 @@ function Catalog({ data, navigate }: { data: Snapshot; navigate: (section: Secti
             {catalogArt.find(item=>item.content_key===film.content_key)&&<p>
               Presentation: {catalogArt.find(item=>item.content_key===film.content_key)?.attribution}
               <br/>{catalogArt.find(item=>item.content_key===film.content_key)?.license}</p>}
+            {catalogArtVariants.find(item=>item.content_key===film.content_key)&&<p>
+              {catalogArtVariants.find(item=>item.content_key===film.content_key)?.modifications}</p>}
             <p>Metadata: {film.metadata_license ?? film.license}</p>
             {film.metadata_date_precision === 'source-not-qualified' && <p>Release-date precision is not qualified. Only the source-reported year is displayed.</p>}
             <p>{film.artwork_available === false || film.image_url === '/catalog-unavailable.svg'
@@ -290,9 +293,9 @@ function OrderTable({ data, limit, renderAction }: { data: Snapshot; limit?: num
     })}</tbody></table></div>;
 }
 
-function Audiences({ data }: { data: Snapshot }) {
+function Audiences({ data, dashboard }: { data: Snapshot; dashboard: GoldPages['dashboard'] }) {
   const territories = [...new Set(data.customers.map(c => c.territory))].sort();
-  return <><GoldBusinessDashboard/><p className="muted">Audience directory and campaigns below are read from Gold dimensions and facts.</p><div className="audience-grid">{territories.map(territory => {
+  return <><GoldBusinessDashboard dashboard={dashboard}/><p className="muted">Audience directory and campaigns below are read from Gold dimensions and facts.</p><div className="audience-grid">{territories.map(territory => {
     const customers = data.customers.filter(c => c.territory === territory);
     const keys = new Set(customers.map(c => c.customer_key));
     return <section className="audience-segment" key={territory}><UsersThree size={25} aria-hidden="true" /><h2>{territory}</h2>

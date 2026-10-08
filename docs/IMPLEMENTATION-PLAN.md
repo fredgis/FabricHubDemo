@@ -126,12 +126,12 @@ prices, expiry and availability. Respect reduced motion and keyboard navigation.
 | Oracle gateway | <oracle-gateway-name> registered in tenant-default centralus; recognized by Fabric; other environment's gateway untouched |
 | Oracle mirror | Five tables replicated into the mirror and Raw; insert, update and delete CDC validated |
 | Salesforce/BPS | Native processed Silver provides 700 customers, 6 campaigns, 700 consents and 600 touches; all are loaded into MSFlix Gold. Optional BPS-native Touch Gold fact needs dataset relationships |
-| RTI | 13,458 propagated event IDs; the three-event automatic acceptance reached KQL, native OneLake and deduplicated Raw; all active Eventstream nodes Running |
+| RTI | 13,477 propagated event IDs after evening recovery; all 19 accumulated events verified in native OneLake and deduplicated Raw |
 | Raw/Silver | Native Eventhouse Delta ingestion and all seven native reference inputs processed successfully |
-| Gold | 1,003 order lines and native Oracle/BPS references published; automatic acceptance order and playback reconciled |
+| Gold | 1,008 order lines and 1,007 playback sessions match operational SQL after evening recovery |
 | Ontology v2 | Gold bindings and 10-entity/12-relationship physical graph published; real GQL paths verified |
 | Rayfin cockpit | Cinematic home, Gold business views, interactive graph and bounded Demo tab deployed; recovered licensed images and current-event ordering published |
 | Film imagery | All 82 known licensed files cached; 47 films have a genuine still or poster. Other image categories are explicitly labelled; full film-specific coverage requires more rights-cleared assets |
-| Demo propagation | Managed-identity worker active, enabled and unpaused; real Kafka ACKs, Raw/Silver/Gold publication and target graph path proved; subsequent idle cycle ran without another Spark job |
+| Demo propagation | Managed-identity worker active, enabled and unpaused; transient connection timeouts now recover with bounded durable backoff. The blocked cycle resumed without new orders/replay, 19 existing events propagated, then an idle cycle completed |
 | Flixy | Native agent and global cockpit bubble deployed; authenticated answers match independent Gold counts and return real graph relationships; dedicated folder and 9-task/12-connector/47-assignment Task Flow persisted |
 | GPU | No accelerated queries observed; Microsoft limited-preview enablement remains an external gate |
