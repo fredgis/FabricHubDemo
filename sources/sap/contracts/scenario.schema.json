@@ -1,0 +1,46 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "scenario_id", "source_system", "company_code", "company_name", "period_start", "currency", "territory", "plan_id", "plan_name", "monthly_net", "vat_rate", "credit_net", "fixed_content_cost", "content_revenue_share", "supplier_id", "supplier_name", "contract_id", "customers", "content_keys"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "scenario_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9-]{0,63}$"},
+    "source_system": {"type": "string", "pattern": "^[A-Z][A-Z0-9]{2}$"},
+    "company_code": {"type": "string", "pattern": "^[A-Z0-9]{4}$"},
+    "company_name": {"type": "string", "minLength": 1, "maxLength": 80},
+    "period_start": {"type": "string", "format": "date"},
+    "currency": {"const": "EUR"},
+    "territory": {"const": "FR"},
+    "plan_id": {"$ref": "#/$defs/key", "maxLength": 40},
+    "plan_name": {"type": "string", "minLength": 1, "maxLength": 80},
+    "monthly_net": {"$ref": "#/$defs/money"},
+    "vat_rate": {"const": "0.20"},
+    "credit_net": {"$ref": "#/$defs/money"},
+    "fixed_content_cost": {"$ref": "#/$defs/money"},
+    "content_revenue_share": {"type": "string", "pattern": "^0\\.[0-9]{2}$"},
+    "supplier_id": {"type": "string", "pattern": "^[0-9]{10}$"},
+    "supplier_name": {"type": "string", "minLength": 1, "maxLength": 80},
+    "contract_id": {"$ref": "#/$defs/key"},
+    "customers": {
+      "type": "array", "minItems": 3, "maxItems": 3,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["customer_key", "sap_customer", "role"],
+        "properties": {
+          "customer_key": {"$ref": "#/$defs/key"},
+          "sap_customer": {"type": "string", "pattern": "^[0-9]{10}$"},
+          "role": {"enum": ["paid", "paid_with_credit", "unpaid"]}
+        }
+      }
+    },
+    "content_keys": {
+      "type": "array", "minItems": 1, "maxItems": 100, "uniqueItems": true,
+      "items": {"$ref": "#/$defs/key"}
+    }
+  },
+  "$defs": {
+    "key": {"type": "string", "pattern": "^[A-Z0-9][A-Z0-9_-]{0,79}$"},
+    "money": {"type": "string", "pattern": "^(0|[1-9][0-9]{0,5})\\.[0-9]{2}$"}
+  }
+}
