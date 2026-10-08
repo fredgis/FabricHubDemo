@@ -1,0 +1,26 @@
+{
+  "schema_version": 1,
+  "scenario_id": "msflix-sap-november-2026-v1",
+  "source_system": "S4M",
+  "company_code": "1710",
+  "company_name": "MSFlix Europe (fictional)",
+  "period_start": "2026-11-01",
+  "currency": "EUR",
+  "territory": "FR",
+  "plan_id": "MSF-SVOD-FR",
+  "plan_name": "MSFlix Essentiel FR",
+  "monthly_net": "10.00",
+  "vat_rate": "0.20",
+  "credit_net": "2.00",
+  "fixed_content_cost": "8.00",
+  "content_revenue_share": "0.20",
+  "supplier_id": "0020000001",
+  "supplier_name": "MSFlix Demo Content Partner (fictional)",
+  "contract_id": "MSF-RIGHTS-DEMO-001",
+  "customers": [
+    {"customer_key": "MSF-C0001", "sap_customer": "0010000001", "role": "paid"},
+    {"customer_key": "MSF-C0005", "sap_customer": "0010000005", "role": "paid_with_credit"},
+    {"customer_key": "MSF-C0009", "sap_customer": "0010000009", "role": "unpaid"}
+  ],
+  "content_keys": ["MSF-FILM-BUNNY", "MSF-FILM-SINTEL", "MSF-FILM-SPRING"]
+}
