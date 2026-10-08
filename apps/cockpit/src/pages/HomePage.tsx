@@ -10,6 +10,8 @@ import{loadGoldViews}from'@/services/goldViews';
 import type{GoldPages}from'../../rayfin/functions/src/gold-pages';
 import{catalogArt}from'@/assets/catalog-art.generated';
 import { DemoPage } from '@/pages/DemoPage';
+import { FlixyAssistant } from '@/components/FlixyAssistant';
+import { askFlixy } from '@/services/flixy';
 import type { Content, Rental } from '../../rayfin/data/schema';
 import type { Capabilities, CommandResult, Health } from '../../rayfin/functions/src/domain';
 
@@ -164,6 +166,7 @@ export function HomePage() {
       <footer>MSFlix business demonstration. Sourced film metadata and licensed reference artwork; fictional CRM identities.
         <span>Commercial amounts are recorded sales, not bank payments or invoices.</span></footer>
     </div>
+    {user && <FlixyAssistant ask={askFlixy} userKey={user.id} />}
   </div>;
 }
 
