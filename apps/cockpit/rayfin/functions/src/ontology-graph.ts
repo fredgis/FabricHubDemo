@@ -1,19 +1,27 @@
-export type OntologyConfig={workspace_id:string;ontology_id:string;graph_model_id:string;gold_item_id:string};
+export type OntologyConfig={workspace_id:string;ontology_id:string;graph_model_id:string;gold_item_id:string;verified?:boolean};
 export type OntologyGraph={source:OntologyConfig;state:'ready'|'empty'|'pending'|'binding-mismatch';
   queried_at:string;generation:number;message:string;nodes:{key:string;type:string;label:string}[];
   edges:{from:string;to:string;type:string}[];limit:number};
 const uuid=/^[a-f0-9]{8}(?:-[a-f0-9]{4}){3}-[a-f0-9]{12}$/i;
+const qualifiedDefinitions=new Map<string,number>();
+const METADATA_TTL_MS=120000;
 async function api(url:string,token:string,body?:unknown):Promise<Response>{
   return fetch(url,{method:body?'POST':'GET',headers:{Authorization:`Bearer ${token}`,
     'Content-Type':'application/json',Accept:'application/json','x-ms-fabric-skill':'fabriciq-ontology-cli'},
     body:body?JSON.stringify(body):undefined,signal:AbortSignal.timeout(30000)});
 }
-export async function readOntologyGraph(config:OntologyConfig,token:string):Promise<OntologyGraph>{
+export async function readOntologyGraph(config:OntologyConfig,token:string,limit=50):Promise<OntologyGraph>{
   const source={workspace_id:config.workspace_id,ontology_id:config.ontology_id,
     graph_model_id:config.graph_model_id,gold_item_id:config.gold_item_id};
   if(Object.values(source).some(value=>!uuid.test(value)))throw new Error('Ontology graph binding is invalid.');
+  if(![6,12,24,50].includes(limit))throw new Error('Graph journey limit must be 6, 12, 24 or 50.');
   const base='https://api.fabric.microsoft.com/v1';
-  const empty={source,queried_at:new Date().toISOString(),generation:2,nodes:[],edges:[],limit:50};
+  const empty={source,queried_at:new Date().toISOString(),generation:2,nodes:[],edges:[],limit};
+  const metadataKey=createHash('sha256').update(JSON.stringify(source)).update(token).digest('hex');
+  for(const[key,expires]of qualifiedDefinitions)if(expires<=Date.now())qualifiedDefinitions.delete(key);
+  // Native UDFs obtain this flag from the read-only, administrator-qualified binding.
+  // Standalone/unqualified callers still validate the full definition before querying.
+  if(config.verified!==true&&!qualifiedDefinitions.has(metadataKey)){
   let definition=await api(`${base}/workspaces/${config.workspace_id}/items/${config.ontology_id}/getDefinition`,token,{});
   if(definition.status===202){
     const operation=definition.headers.get('x-ms-operation-id');
@@ -36,7 +44,10 @@ export async function readOntologyGraph(config:OntologyConfig,token:string):Prom
     throw new Error('Ontology generation-two entity/relationship definition is not available.');
   if(!expression.includes(config.gold_item_id))
     return{...empty,state:'binding-mismatch',message:'Ontology v2 is not yet bound to the consolidated Gold Warehouse. No operational graph substitution.'};
-  const query='MATCH (c:customer)-[:customer_order]->(r:rental)-[:order_offer]->(o:offer)-[:offer_content]->(f:content) RETURN c.customer_key AS customer_key, c.name AS customer_name, r.order_id AS order_id, o.offer_key AS offer_key, f.content_key AS content_key, f.title AS title LIMIT 50';
+  if(qualifiedDefinitions.size>=16)qualifiedDefinitions.delete(qualifiedDefinitions.keys().next().value!);
+  qualifiedDefinitions.set(metadataKey,Date.now()+METADATA_TTL_MS);
+  }
+  const query=`MATCH (c:customer)-[:customer_order]->(r:rental)-[:order_offer]->(o:offer)-[:offer_content]->(f:content) RETURN c.customer_key AS customer_key, c.name AS customer_name, r.order_id AS order_id, o.offer_key AS offer_key, f.content_key AS content_key, f.title AS title LIMIT ${limit}`;
   let continuation:string|undefined;let body:{status?:{code:string;description?:string};result?:{data?:Record<string,unknown>[];nextPage?:string}}|undefined;
   for(let i=0;i<8;i++){
     const suffix=continuation?`&continuationToken=${encodeURIComponent(continuation)}`:'';
@@ -67,3 +78,4 @@ export async function readOntologyGraph(config:OntologyConfig,token:string):Prom
   return{...empty,state:rows.length?'ready':'empty',message:rows.length?'Actual GraphModel query instances':'The real graph query returned no relationship instances.',
     nodes:[...nodes.values()],edges:[...edges.values()]};
 }
+import { createHash } from 'node:crypto';

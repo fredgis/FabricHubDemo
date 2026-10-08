@@ -69,14 +69,14 @@ Clients, campaigns, consents and marketing touches reach Gold through native BPS
 Recorded conversions remain **0**: none are invented.
 
 **Verified backbone:** actual Task Flow **9 tasks / 12 connectors / 47
-assignments**, Gold **1,003 demonstration orders**, and a live Gold-backed
+assignments**, Gold **1,008 demonstration orders**, and a live Gold-backed
 Ontology graph. The cockpit combines a cinematic film-led home, business views
 and an interactive graph with visible relationships, zoom and node selection.
 
 The **Demo tab** generates bounded, real business transactions through the same
 application commands. A persistent cloud worker publishes their events to Kafka,
 then refreshes Raw, Silver, Gold and the ontology graph. Its accepted checkpoint
-contains **13,458 propagated events**. Analytics refresh is asynchronous, not an
+contains **13,477 propagated events**. Analytics refresh is asynchronous, not an
 instantaneous consequence of clicking a command.
 
 **Flixy** is available from its floating bubble on every cockpit tab, connected

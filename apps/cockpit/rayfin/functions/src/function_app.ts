@@ -5,7 +5,7 @@ import { assertOperator, epoch, type Capabilities, type CommandResult, type Cont
 import { atomic, poolFor, type Store } from './storage.js';
 import * as commands from './commands.js';
 import {readGoldDashboard,type GoldDashboard} from './gold-dashboard.js';
-import{readGoldPages,type GoldPages}from'./gold-pages.js';
+import{goldView,readGoldPages,type GoldPages}from'./gold-pages.js';
 import{readOntologyGraph,type OntologyGraph}from'./ontology-graph.js';
 import { askNativeFlixy, assertFlixyIdentity, flixyAgentId, type FlixyAnswer } from './flixy.js';
 
@@ -44,31 +44,40 @@ udf.func('health', async (ctx: RayfinContext<AppSchema, AudienceType.Sql>): Prom
       outbox_pending: count.recordset[0].pending, broker: 'Delivery is acknowledged by the external producer, not by this app.' };
   } finally { await pool.close(); }
 }, []);
-udf.func('businessDashboard',async(ctx:RayfinContext<AppSchema,AudienceType.Sql>):Promise<GoldDashboard>=>{
-  const operational=await binding(ctx);
-  const configured=await ctx.getDataClient().AnalyticsBinding.select(['id','binding_key','name','sql_server',
+async function analytics(ctx:RayfinContext<AppSchema>){
+  const[operational,configured]=await Promise.all([binding(ctx),ctx.getDataClient().AnalyticsBinding.select(['id','binding_key','name','sql_server',
     'sql_database','item_id','workspace_id','capacity_id','verified'])
-    .where({binding_key:{eq:'business-gold'}}).execute();
+    .where({binding_key:{eq:'business-gold'}}).execute()]);
   if(configured.length!==1 || configured[0].workspace_id!==operational.workspace_id ||
     configured[0].capacity_id!==operational.capacity_id)
     throw new Error('Verified Gold binding in the app workspace is missing. No operational fallback.');
-  return readGoldDashboard(configured[0],ctx.Tokens.Sql);
+  return configured[0];
+}
+udf.func('businessDashboard',async(ctx:RayfinContext<AppSchema,AudienceType.Sql>):Promise<GoldDashboard>=>{
+  return readGoldDashboard(await analytics(ctx),ctx.Tokens.Sql);
 },[]);
 udf.func('businessViews',async(ctx:RayfinContext<AppSchema,AudienceType.Sql>):Promise<GoldPages>=>{
-  const operational=await binding(ctx);
-  const configured=await ctx.getDataClient().AnalyticsBinding.select(['id','binding_key','name','sql_server',
-    'sql_database','item_id','workspace_id','capacity_id','verified']).where({binding_key:{eq:'business-gold'}}).execute();
-  if(configured.length!==1||configured[0].workspace_id!==operational.workspace_id||configured[0].capacity_id!==operational.capacity_id)
-    throw new Error('Verified Gold binding missing. No operational fallback.');
-  return readGoldPages(configured[0],ctx.Tokens.Sql);
+  return readGoldPages(await analytics(ctx),ctx.Tokens.Sql);
 },[]);
-udf.func('businessGraph',async(ctx:RayfinContext<AppSchema,AudienceType.Fabric>):Promise<OntologyGraph>=>{
-  const operational=await binding(ctx);
-  const configured=await ctx.getDataClient().OntologyBinding.select(['id','binding_key','workspace_id','ontology_id',
-    'graph_model_id','gold_item_id','verified']).where({binding_key:{eq:'business-ontology-v2'}}).execute();
-  if(configured.length!==1||!configured[0].verified||configured[0].workspace_id!==operational.workspace_id)
+udf.func('businessPage',async(view:string,ctx:RayfinContext<AppSchema,AudienceType.Sql>):Promise<GoldPages>=>{
+  const scope=goldView(view);
+  return readGoldPages(await analytics(ctx),ctx.Tokens.Sql,scope);
+},[]);
+async function ontologyBinding(ctx:RayfinContext<AppSchema>){
+  const[operational,configured,gold]=await Promise.all([binding(ctx),ctx.getDataClient().OntologyBinding.select(['id','binding_key','workspace_id','ontology_id',
+    'graph_model_id','gold_item_id','verified']).where({binding_key:{eq:'business-ontology-v2'}}).execute(),
+    ctx.getDataClient().AnalyticsBinding.select(['item_id','workspace_id','verified']).where({binding_key:{eq:'business-gold'}}).execute()]);
+  if(configured.length!==1||!configured[0].verified||configured[0].workspace_id!==operational.workspace_id
+    ||gold.length!==1||!gold[0].verified||gold[0].workspace_id!==operational.workspace_id
+    ||configured[0].gold_item_id!==gold[0].item_id)
     throw new Error('Verified ontology v2 binding missing. No operational graph fallback.');
-  return readOntologyGraph(configured[0],ctx.Tokens.Fabric);
+  return configured[0];
+}
+udf.func('businessGraph',async(ctx:RayfinContext<AppSchema,AudienceType.Fabric>):Promise<OntologyGraph>=>{
+  return readOntologyGraph(await ontologyBinding(ctx),ctx.Tokens.Fabric);
+},[]);
+udf.func('businessGraphSlice',async(journeyLimit:number,ctx:RayfinContext<AppSchema,AudienceType.Fabric>):Promise<OntologyGraph>=>{
+  return readOntologyGraph(await ontologyBinding(ctx),ctx.Tokens.Fabric,journeyLimit);
 },[]);
 udf.func('flixyAsk', async (question: string, historyJson: string,
   ctx: RayfinContext<AppSchema, AudienceType.Fabric>): Promise<FlixyAnswer> => {

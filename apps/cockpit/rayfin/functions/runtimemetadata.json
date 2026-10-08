@@ -64,6 +64,30 @@
       ]
     },
     {
+      "functionName": "businessPage",
+      "delegateParameters": [
+        {
+          "name": "view",
+          "type": "string",
+          "optional": false,
+          "hasDefault": false,
+          "position": 0,
+          "isFabricParameter": false
+        },
+        {
+          "name": "ctx",
+          "type": "RayfinContext<AppSchema,AudienceType.Sql>",
+          "optional": false,
+          "hasDefault": false,
+          "position": 1,
+          "isFabricParameter": false
+        }
+      ],
+      "contextAudiences": [
+        "Sql"
+      ]
+    },
+    {
       "functionName": "businessGraph",
       "delegateParameters": [
         {
@@ -72,6 +96,30 @@
           "optional": false,
           "hasDefault": false,
           "position": 0,
+          "isFabricParameter": false
+        }
+      ],
+      "contextAudiences": [
+        "Fabric"
+      ]
+    },
+    {
+      "functionName": "businessGraphSlice",
+      "delegateParameters": [
+        {
+          "name": "journeyLimit",
+          "type": "number",
+          "optional": false,
+          "hasDefault": false,
+          "position": 0,
+          "isFabricParameter": false
+        },
+        {
+          "name": "ctx",
+          "type": "RayfinContext<AppSchema,AudienceType.Fabric>",
+          "optional": false,
+          "hasDefault": false,
+          "position": 1,
           "isFabricParameter": false
         }
       ],

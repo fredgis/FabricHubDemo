@@ -1,5 +1,5 @@
 import{describe,expect,it}from'vitest';
-import{readFileSync,existsSync}from'node:fs';
+import{readFileSync,existsSync,statSync}from'node:fs';
 import{resolve}from'node:path';
 import{createHash}from'node:crypto';
 import{catalogArt}from'../../apps/cockpit/src/assets/catalog-art.generated';
@@ -51,5 +51,28 @@ describe('honest complete local film presentation',()=>{
     const hero=catalogArt.find(row=>row.content_key==='MSF-FILM-BUNNY')!;
     expect(hero.imagepath).toBe('/artwork/aed2e74568d1160a0c7c-licensed.webp');
     expect(hero.asset_sha256).toBe('d67a7752c935fdd65fbeeb04a694e85d17265ede562deba535ec4d9a25d44062');
+  });
+  it('serves smaller verified WebP derivatives without replacing licensed originals',()=>{
+    const optimized=JSON.parse(readFileSync(resolve('public/artwork-variants.json'),'utf8'));
+    const licensed=catalogArt.filter(row=>row.kind==='licensed-reference');
+    expect(optimized.items).toHaveLength(licensed.length);
+    let originalBytes=0;let cardBytes=0;
+    for(const item of optimized.items){
+      const source=licensed.find(row=>row.content_key===item.content_key)!;
+      expect(item.source_path).toBe(source.imagepath);
+      expect(item.source_sha256).toBe(source.asset_sha256);
+      expect(item.license).toBe(source.license);
+      expect(item.modifications).toContain('Originals retained unchanged');
+      originalBytes+=statSync(resolve('public',source.imagepath.slice(1))).size;
+      cardBytes+=item.variants[0].bytes;
+      for(const variant of item.variants){
+        expect(variant.width).toBeLessThanOrEqual(1200);
+        const bytes=readFileSync(resolve('public',variant.path.slice(1)));
+        expect(bytes.length).toBe(variant.bytes);
+        expect(bytes.toString('ascii',8,12)).toBe('WEBP');
+        expect(createHash('sha256').update(bytes).digest('hex')).toBe(variant.sha256);
+      }
+    }
+    expect(cardBytes).toBeLessThan(originalBytes/2);
   });
 });

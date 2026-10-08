@@ -3,6 +3,7 @@ import{readFile,mkdir,writeFile,stat,rename}from'node:fs/promises';
 import{createHash}from'node:crypto';
 import{parseArgs}from'node:util';
 import{resolve}from'node:path';
+import{optimizeArtwork}from'./artwork-optimize.mjs';
 import{
   createArtworkClient,commonsImageInfo,normalizedFileTitle,permittedImageLicense,publicSourceUrl,
 }from'./artwork-recovery.mjs';
@@ -242,6 +243,7 @@ await saveInventory();
 await atomicWrite('public/artwork-manifest.json',JSON.stringify({schema_version:1,generated_at:new Date().toISOString(),items:manifest},null,2));
 await atomicWrite('src/assets/catalog-art.generated.ts',
   `// Generated owned presentation manifest. No canonical metadata or rights are changed.\nexport const catalogArt = ${JSON.stringify(manifest)} as const;\n`);
+await optimizeArtwork();
 console.log(JSON.stringify({film_presentations:305,unique_original_fallbacks:305,licensed_local_images:downloaded+reused,
   reused_licensed_images:reused,downloaded_licensed_images:downloaded,
   original_primary:305-downloaded-reused,failed_licensed_cache:failures,manifest:'public/artwork-manifest.json',
