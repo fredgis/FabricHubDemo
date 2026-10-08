@@ -1,0 +1,3 @@
+pyarrow>=19,<23
+jsonschema>=4.23,<5
+tzdata>=2025.1; sys_platform == "win32"

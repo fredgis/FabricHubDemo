@@ -100,6 +100,11 @@ stage against the approved environment, never reset existing source data.
 [Workspace Task Flow and folders](docs/TASK-FLOW.md) · [Cockpit](docs/COCKPIT.md) ·
 [Automatic Demo propagation](docs/DEMO-AUTOMATION.md) · [Flixy](docs/FLIXY.md)
 
+[SAP local data contract](docs/IMPLEMENTATION-PLAN.md#sap-pr-1-local-data-contract):
+the separately developed, synthetic subscription/billing/content-contract scenario
+runs locally only. It does not deploy SAP mirroring, BPS or Finance into this
+workspace, and does not change the existing cockpit's data.
+
 Customer identities are fictional. No real bank charge or commercial
 film-distribution right is claimed. Sourced imagery retains its individual
 license; original editorial imagery is never presented as an official poster.
