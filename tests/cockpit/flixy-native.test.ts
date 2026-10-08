@@ -21,10 +21,10 @@ const source = (itemId: string, type: string) => ({
 describe('Flixy native authorization and source boundary', () => {
   it('permits only the caller identity mapped to the trusted platform resource token', () => {
     expect(() => assertFlixyIdentity(grant, token(owner))).not.toThrow();
-    expect(() => assertFlixyIdentity(grant, token(config.data_agent_id))).toThrow(/proprietaire/);
-    expect(() => assertFlixyIdentity(grant, token(owner, config.workspace_id))).toThrow(/proprietaire/);
-    expect(() => assertFlixyIdentity({ ...grant, enabled: false }, token(owner))).toThrow(/nominatif/);
-    expect(() => assertFlixyIdentity(grant, 'malformed')).toThrow(/indisponible/);
+    expect(() => assertFlixyIdentity(grant, token(config.data_agent_id))).toThrow(/owner/);
+    expect(() => assertFlixyIdentity(grant, token(owner, config.workspace_id))).toThrow(/owner/);
+    expect(() => assertFlixyIdentity({ ...grant, enabled: false }, token(owner))).toThrow(/Named user/);
+    expect(() => assertFlixyIdentity(grant, 'malformed')).toThrow(/unavailable/);
   });
   it('rejects endpoint injection and links to another workspace', () => {
     const path = `/groups/${config.workspace_id}/aiskills/${config.data_agent_id}`;

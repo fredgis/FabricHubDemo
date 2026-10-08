@@ -46,7 +46,8 @@ counts, compared with an independent native Gold read, and a real graph path.
 
 The maintained instructions are in
 [`agents/flixy/instructions.md`](../agents/flixy/instructions.md). They require
-French by default, current source queries, explicit publication freshness,
+English by default with French-language conversations supported, current source
+queries, explicit publication freshness,
 stable business keys, exact amounts separated by currency, distinct TVOD/EST
 semantics, and recorded conversions rather than inferred campaign causality.
 They prohibit invented SAP financials, margins, forecasts, rights, actions or
@@ -89,6 +90,12 @@ changing identity or unmounting discards the local history and ignores stale
 responses. **Stop waiting** stops the UI wait; it does not claim cancellation of
 an already-running native query. The backend uses a bounded 180-second deadline.
 Clearing the cockpit history is not a promise to delete service-side retention.
+
+The panel's controls, suggestions and status messages are in English. Assistant
+answers render safe GitHub-flavored Markdown, including real tables, lists,
+emphasis and code blocks; user messages remain literal text. Tables scroll
+horizontally within the responsive panel. Raw HTML and embedded images are
+disabled, and links require an absolute HTTPS URL without credentials.
 
 The user enabled Azure OpenAI and the two required cross-region processing and
 conversation-storage tenant settings for the Singapore capacity. Their enabled
