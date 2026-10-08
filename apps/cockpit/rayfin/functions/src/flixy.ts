@@ -19,44 +19,44 @@ function record(value: unknown): value is Record<string, unknown> {
 
 export function assertFlixyIdentity(grant: AccessGrant, resourceToken: string): void {
   if (!grant.enabled || !uuid.test(grant.entra_object_id) || !uuid.test(grant.tenant_id))
-    throw new Error('Acces nominatif a Flixy requis.');
+    throw new Error('Named user access to Flixy is required.');
   let claims: unknown;
   try {
     claims = JSON.parse(Buffer.from(resourceToken.split('.')[1] ?? '', 'base64url').toString('utf8'));
   } catch {
-    throw new Error('Identite externe Flixy indisponible.');
+    throw new Error('The external Flixy identity is unavailable.');
   }
   // Rayfin 1.36 supplies the app owner's resource identity. Never lend it to another caller.
   if (!record(claims) || claims.oid !== grant.entra_object_id || claims.tid !== grant.tenant_id)
-    throw new Error('Flixy ne peut pas emprunter les droits du proprietaire pour un autre utilisateur.');
+    throw new Error("Flixy cannot use the owner's permissions for another user.");
 }
 
 export function flixyAgentId(url: string, workspaceId: string): string {
   let parsed: URL;
-  try { parsed = new URL(url); } catch { throw new Error('Lien Flixy invalide.'); }
+  try { parsed = new URL(url); } catch { throw new Error('Invalid Flixy link.'); }
   const match = /^\/groups\/([^/]+)\/aiskills\/([^/]+)\/?$/.exec(parsed.pathname);
   if (parsed.origin !== 'https://app.fabric.microsoft.com' || parsed.username || parsed.password
     || !match || match[1] !== workspaceId || !uuid.test(match[2]))
-    throw new Error('Le Data Agent Flixy doit appartenir au workspace du cockpit.');
+    throw new Error('The Flixy Data Agent must belong to the cockpit workspace.');
   return match[2];
 }
 
 export function flixyQuestion(question: string, historyJson: string): string {
   if (typeof question !== 'string' || !question.trim() || question.length > 2000)
-    throw new Error('La question Flixy doit contenir entre 1 et 2000 caracteres.');
+    throw new Error('Flixy questions must contain between 1 and 2,000 characters.');
   if (typeof historyJson !== 'string' || historyJson.length > 80000)
-    throw new Error('Historique Flixy trop volumineux.');
+    throw new Error('The Flixy conversation history is too large.');
   let history: unknown;
-  try { history = JSON.parse(historyJson); } catch { throw new Error('Historique Flixy invalide.'); }
+  try { history = JSON.parse(historyJson); } catch { throw new Error('Invalid Flixy conversation history.'); }
   if (!Array.isArray(history) || history.length > 12)
-    throw new Error('Historique Flixy limite a 12 messages.');
+    throw new Error('Flixy context is limited to 12 messages.');
   let length = 0;
   const messages: HistoryMessage[] = history.map((message: unknown) => {
     if (!record(message) || (message.role !== 'user' && message.role !== 'assistant')
       || typeof message.text !== 'string' || !message.text.trim())
-      throw new Error('Message Flixy invalide.');
+      throw new Error('Invalid Flixy message.');
     length += message.text.length;
-    if (length > 12000) throw new Error('Historique Flixy limite a 12000 caracteres.');
+    if (length > 12000) throw new Error('Flixy context is limited to 12,000 characters.');
     return { role: message.role, text: message.text };
   });
   if (!messages.length) return question.trim();
@@ -68,25 +68,25 @@ export function flixyQuestion(question: string, historyJson: string): string {
 export function validateFlixySources(value: unknown, config: FlixyConfig): void {
   if (!record(value) || !Array.isArray(value.value) || value.value.length !== 2
     || value.continuationToken || value.continuationUri)
-    throw new Error('Les sources publiees de Flixy ne correspondent pas au perimetre autorise.');
+    throw new Error("Flixy's published sources do not match the authorized scope.");
   const found = new Set<string>();
   for (const source of value.value) {
     if (!record(source) || !record(source.itemReference)
       || source.itemReference.referenceType !== 'ById'
       || source.itemReference.workspaceId !== config.workspace_id
       || source.selectionState !== 'Selected')
-      throw new Error('Une source Flixy est indisponible ou hors du workspace autorise.');
+      throw new Error('A Flixy source is unavailable or outside the authorized workspace.');
     const id = source.itemReference.itemId;
     const expected = id === config.warehouse_id ? 'Warehouse' : id === config.graph_id ? 'GraphModel' : null;
     if (!expected || source.fabricItemType !== expected || source.type !== 'FabricItem' || typeof id !== 'string')
-      throw new Error("Source Flixy non autorisee. Aucune question n'a ete transmise.");
+      throw new Error('Unauthorized Flixy source. No question was sent.');
     found.add(id);
   }
-  if (found.size !== 2) throw new Error('Une source Flixy manque ou est dupliquee.');
+  if (found.size !== 2) throw new Error('A Flixy source is missing or duplicated.');
 }
 
 function safeMessage(error: unknown): string {
-  const text = error instanceof Error ? error.message : 'Le service natif Flixy a echoue.';
+  const text = error instanceof Error ? error.message : 'The native Flixy service failed.';
   return text.replace(/Bearer\s+\S+/gi, '[redacted]')
     .replace(/eyJ[\w-]+\.[\w-]+\.[\w-]+/g, '[redacted]')
     .replace(/(password|token|secret|sig)=([^;&\s]+)/gi, '$1=[redacted]').slice(0, 600);
@@ -94,16 +94,16 @@ function safeMessage(error: unknown): string {
 
 export function flixyAnswerText(answer: unknown): string {
   if (!record(answer) || !Array.isArray(answer.content))
-    throw new Error('Format de reponse native Flixy invalide.');
+    throw new Error('Invalid native Flixy response format.');
   const parts: string[] = [];
   for (const block of answer.content as unknown[]) {
     if (!record(block) || block.type !== 'text' || typeof block.text !== 'string')
-      throw new Error('Format de contenu natif Flixy non pris en charge.');
+      throw new Error('Unsupported native Flixy content format.');
     parts.push(block.text);
   }
   const text = parts.join('\n').trim();
-  if (answer.isError) throw new Error(text || 'La requete native Flixy a echoue.');
-  if (!text || text.length > 64000) throw new Error('Reponse native Flixy vide ou trop volumineuse.');
+  if (answer.isError) throw new Error(text || 'The native Flixy request failed.');
+  if (!text || text.length > 64000) throw new Error('The native Flixy response is empty or too large.');
   return text;
 }
 
@@ -111,7 +111,7 @@ export async function askNativeFlixy(
   config: FlixyConfig, token: string, question: string, historyJson: string,
 ): Promise<FlixyAnswer> {
   if (Object.values(config).some(value => typeof value !== 'string' || !uuid.test(value)))
-    throw new Error('Configuration native Flixy invalide.');
+    throw new Error('Invalid native Flixy configuration.');
   const prompt = flixyQuestion(question, historyJson);
   const base = `https://api.fabric.microsoft.com/v1/workspaces/${config.workspace_id}/dataAgents/${config.data_agent_id}`;
   const headers = { Authorization: `Bearer ${token}`, 'x-ms-fabric-skill': 'spark-cli' };
@@ -119,7 +119,7 @@ export async function askNativeFlixy(
   const metadata = await fetch(base + '/datasources', {
     headers, signal: AbortSignal.any([signal, AbortSignal.timeout(20000)]),
   });
-  if (!metadata.ok) throw new Error(`Sources Flixy non accessibles (${metadata.status}).`);
+  if (!metadata.ok) throw new Error(`Flixy sources are not accessible (${metadata.status}).`);
   validateFlixySources(await metadata.json(), config);
 
   const client = new Client({ name: 'MSFlix-Flixy', version: '1.0.0' });
@@ -135,13 +135,13 @@ export async function askNativeFlixy(
     const tool = tools.tools[0];
     if (tools.tools.length !== 1 || !tool || tool.annotations?.readOnlyHint !== true
       || tool.inputSchema.required?.length !== 1 || tool.inputSchema.required[0] !== 'userQuestion')
-      throw new Error('Le contrat du service natif Flixy a change.');
+      throw new Error('The native Flixy service contract has changed.');
     const answer = await client.callTool({
       name: tool.name, arguments: { userQuestion: prompt },
     }, undefined, { timeout: 170000, signal });
     const text = flixyAnswerText(answer);
     return { text, sources: [{
-      label: 'Data Agent Flixy (Fabric)',
+      label: 'Flixy Data Agent (Fabric)',
       url: `https://app.fabric.microsoft.com/groups/${config.workspace_id}/aiskills/${config.data_agent_id}?ctid=${config.tenant_id}`,
     }] };
   } catch (error) {

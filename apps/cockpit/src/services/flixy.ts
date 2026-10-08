@@ -2,9 +2,9 @@ import type { FlixyAsk } from '@/domain/flixy-chat';
 import { getRayfinClient } from './rayfinClient';
 
 export const askFlixy: FlixyAsk = (question, history, signal) => {
-  if (signal.aborted) return Promise.reject(new DOMException('Attente arretee.', 'AbortError'));
+  if (signal.aborted) return Promise.reject(new DOMException('Stopped waiting.', 'AbortError'));
   return new Promise((resolve, reject) => {
-    const abort = () => reject(new DOMException('Attente arretee.', 'AbortError'));
+    const abort = () => reject(new DOMException('Stopped waiting.', 'AbortError'));
     signal.addEventListener('abort', abort, { once: true });
     getRayfinClient().functions.flixyAsk.invoke({
       question, historyJson: JSON.stringify(history),

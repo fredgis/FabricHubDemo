@@ -1,5 +1,7 @@
 import { useCallback, useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import Markdown from 'react-markdown';
+import remarkGfm from 'remark-gfm';
 import { ArrowCounterClockwise, ArrowUpRight, ChatCircleDots, PaperPlaneRight, Stop, Trash, X } from '@phosphor-icons/react';
 import {
   boundFlixyHistory,
@@ -24,25 +26,46 @@ type Attempt = { question: string } & (
 type ActiveRequest = { controller: AbortController; question: string };
 
 const SUGGESTIONS = [
-  'Quels films génèrent le plus de revenus ?',
-  'Comment évoluent les locations et les achats ?',
-  'Quels films ont le meilleur taux de complétion ?',
+  'Which films have the most rentals?',
+  'Show recorded sales by currency.',
+  'Show a real customer-to-film journey.',
 ];
 
 function TranscriptItem({ role, text, sources = [] }: TranscriptMessage) {
   return <li className={`flixy-assistant__message flixy-assistant__message--${role}`}>
-    <span className="flixy-assistant__speaker">{role === 'user' ? 'Vous' : 'Flixy'}</span>
-    <p className="flixy-assistant__message-text">{text}</p>
+    <span className="flixy-assistant__speaker">{role === 'user' ? 'You' : 'Flixy'}</span>
+    {role === 'user' ? <p className="flixy-assistant__message-text">{text}</p>
+      : <div className="flixy-assistant__markdown">
+        <Markdown remarkPlugins={[remarkGfm]} skipHtml
+          allowedElements={['p', 'br', 'strong', 'em', 'del', 'ul', 'ol', 'li', 'blockquote',
+            'pre', 'code', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'table', 'thead', 'tbody',
+            'tr', 'th', 'td', 'a', 'hr']}
+          urlTransform={url => safeFlixySourceUrl(url) ?? ''}
+          components={{
+            a: ({ href, children }) => href
+              ? <a href={href} target="_blank" rel="noopener noreferrer">{children}
+                <span className="flixy-assistant__sr-only"> (opens in a new tab)</span></a>
+              : <span>{children}</span>,
+            h1: ({ children }) => <h3>{children}</h3>,
+            h2: ({ children }) => <h3>{children}</h3>,
+            h3: ({ children }) => <h3>{children}</h3>,
+            h4: ({ children }) => <h4>{children}</h4>,
+            h5: ({ children }) => <h4>{children}</h4>,
+            h6: ({ children }) => <h4>{children}</h4>,
+            table: ({ children }) => <div className="flixy-assistant__table-scroll"
+              role="region" aria-label="Response table" tabIndex={0}><table>{children}</table></div>,
+          }}>{text}</Markdown>
+      </div>}
     {sources.length > 0 && <div className="flixy-assistant__sources">
       <p>Sources</p>
-      <ul aria-label="Sources de la réponse">
+      <ul aria-label="Answer sources">
         {sources.map((source, index) => {
           const href = safeFlixySourceUrl(source.url);
           const label = source.label.trim() || `Source ${index + 1}`;
           return <li key={index}>{href
             ? <a href={href} target="_blank" rel="noopener noreferrer">
               {label}<ArrowUpRight size={14} aria-hidden="true" />
-              <span className="flixy-assistant__sr-only"> (nouvel onglet)</span>
+              <span className="flixy-assistant__sr-only"> (opens in a new tab)</span>
             </a>
             : <span>{label}</span>}</li>;
         })}
@@ -73,11 +96,11 @@ function FlixySession({ ask }: Pick<FlixyAssistantProps, 'ask'>) {
   const tooLong = draft.length > MAX_QUESTION_CHARACTERS;
   const empty = !draft.trim();
   const status = pending
-    ? 'Lecture des données MSFlix… Vous pouvez continuer à utiliser le cockpit.'
+    ? 'Reading MSFlix data… You can keep using the cockpit.'
     : announcement;
   const sendHint = tooLong
-    ? 'La question est limitée à 2 000 caractères.'
-    : empty ? 'Saisissez une question pour envoyer.' : 'Vérifiez les réponses et leurs sources.';
+    ? 'Questions are limited to 2,000 characters.'
+    : empty ? 'Enter a question to send.' : 'Review answers and their sources.';
 
   const close = useCallback(() => {
     setOpen(false);
@@ -117,7 +140,7 @@ function FlixySession({ ask }: Pick<FlixyAssistantProps, 'ask'>) {
     setMessages([]);
     setAttempt(null);
     setDraft('');
-    setAnnouncement('Conversation effacée.');
+    setAnnouncement('Conversation cleared.');
     inputRef.current?.focus({ preventScroll: true });
   }
 
@@ -128,7 +151,7 @@ function FlixySession({ ask }: Pick<FlixyAssistantProps, 'ask'>) {
     request.controller.abort();
     setAttempt({ question: request.question, status: 'stopped' });
     setDraft(request.question);
-    setAnnouncement('Attente arrêtée dans le cockpit. Le service peut continuer à traiter la question.');
+    setAnnouncement('Stopped waiting in the cockpit. The service may still be processing your question.');
     inputRef.current?.focus({ preventScroll: true });
   }
 
@@ -153,7 +176,7 @@ function FlixySession({ ask }: Pick<FlixyAssistantProps, 'ask'>) {
       ]);
       setDraft('');
       setAttempt(null);
-      setAnnouncement('Réponse reçue.');
+      setAnnouncement('Answer received.');
     } catch (failure) {
       if (activeRequest.current !== request || request.controller.signal.aborted) return;
       const detail = failure instanceof Error ? failure.message : typeof failure === 'string' ? failure : '';
@@ -161,20 +184,20 @@ function FlixySession({ ask }: Pick<FlixyAssistantProps, 'ask'>) {
         question,
         status: 'error',
         message: detail.trim()
-          ? `Flixy n’a pas pu répondre : ${detail}`
-          : 'Flixy n’a pas pu répondre. Réessayez ou vérifiez votre connexion.',
+          ? `Flixy could not answer: ${detail}`
+          : 'Flixy could not answer. Try again or check your connection.',
       });
     } finally {
       if (activeRequest.current === request) activeRequest.current = null;
     }
   }
 
-  return createPortal(<div className="flixy-assistant" lang="fr">
+  return createPortal(<div className="flixy-assistant" lang="en">
     <button
       ref={triggerRef}
       type="button"
       className="flixy-assistant__trigger"
-      aria-label={open ? 'Fermer Flixy' : 'Ouvrir Flixy'}
+      aria-label={open ? 'Close Flixy' : 'Open Flixy'}
       aria-expanded={open}
       aria-controls={`${id}-panel`}
       aria-haspopup="dialog"
@@ -196,23 +219,23 @@ function FlixySession({ ask }: Pick<FlixyAssistantProps, 'ask'>) {
         <div className="flixy-assistant__identity">
           <span className="flixy-assistant__eyebrow">MSFLIX</span>
           <h2 id={`${id}-title`}>Flixy</h2>
-          <p id={`${id}-description`}>Lecture seule · aucune transaction</p>
+          <p id={`${id}-description`}>Read-only · no transactions</p>
         </div>
-        <button type="button" className="flixy-assistant__close" aria-label="Fermer le panneau Flixy" onClick={close}>
+        <button type="button" className="flixy-assistant__close" aria-label="Close Flixy panel" onClick={close}>
           <X size={20} aria-hidden="true" />
         </button>
       </div>
       <div className="flixy-assistant__toolbar">
         <button type="button" onClick={clearConversation}>
-          <Trash size={16} aria-hidden="true" />Effacer la conversation
+          <Trash size={16} aria-hidden="true" />Clear conversation
         </button>
       </div>
 
       <div className="flixy-assistant__thread" ref={threadRef}>
         {messages.length === 0 && !attempt && <div className="flixy-assistant__empty">
-          <h3>Une question sur MSFlix ?</h3>
-          <p>Explorez le catalogue, les revenus et les usages. Choisissez une question ou écrivez la vôtre.</p>
-          <ul className="flixy-assistant__suggestions" aria-label="Questions suggérées">
+          <h3>What would you like to know?</h3>
+          <p>Explore the catalogue, sales and customer activity. Ask in English or French.</p>
+          <ul className="flixy-assistant__suggestions" aria-label="Suggested questions">
             {SUGGESTIONS.map(question => <li key={question}>
               <button type="button" onClick={() => {
                 setDraft(question);
@@ -221,7 +244,7 @@ function FlixySession({ ask }: Pick<FlixyAssistantProps, 'ask'>) {
             </li>)}
           </ul>
         </div>}
-        <div role="log" aria-label="Conversation avec Flixy" aria-live="polite" aria-relevant="additions" aria-busy={pending}>
+        <div role="log" aria-label="Conversation with Flixy" aria-live="polite" aria-relevant="additions" aria-busy={pending}>
           <ol className="flixy-assistant__messages">
             {messages.map((message, index) => <TranscriptItem key={index} {...message} />)}
             {attempt && <TranscriptItem role="user" text={attempt.question} />}
@@ -242,12 +265,12 @@ function FlixySession({ ask }: Pick<FlixyAssistantProps, 'ask'>) {
               void send(attempt.question);
               inputRef.current?.focus({ preventScroll: true });
             }}>
-            <ArrowCounterClockwise size={16} aria-hidden="true" />Réessayer
+            <ArrowCounterClockwise size={16} aria-hidden="true" />Try again
           </button>
         </div>}
         <div className="flixy-assistant__field-heading">
-          <label htmlFor={`${id}-question`}>Votre question</label>
-          <span id={`${id}-count`}>{draft.length} / 2 000 caractères</span>
+          <label htmlFor={`${id}-question`}>Your question</label>
+          <span id={`${id}-count`}>{draft.length} / 2,000 characters</span>
         </div>
         <textarea
           id={`${id}-question`}
@@ -259,7 +282,7 @@ function FlixySession({ ask }: Pick<FlixyAssistantProps, 'ask'>) {
           readOnly={pending}
           aria-invalid={tooLong || undefined}
           aria-describedby={`${id}-hint ${id}-count ${pending ? `${id}-status` : `${id}-send-hint`}${error ? ` ${id}-error` : ''}`}
-          placeholder="Interroger les données MSFlix…"
+          placeholder="Ask about MSFlix data…"
           onChange={event => setDraft(event.target.value)}
           onKeyDown={event => {
             if (event.key !== 'Enter' || event.shiftKey || event.nativeEvent.isComposing
@@ -268,16 +291,16 @@ function FlixySession({ ask }: Pick<FlixyAssistantProps, 'ask'>) {
             if (!event.repeat) void send(draft);
           }}
         />
-        <p id={`${id}-hint`} className="flixy-assistant__hint">Entrée pour envoyer · Maj+Entrée pour une nouvelle ligne.</p>
+        <p id={`${id}-hint`} className="flixy-assistant__hint">Enter to send · Shift+Enter for a new line.</p>
         <div className="flixy-assistant__actions">
           {pending
             ? <button type="button" onClick={stopWaiting}>
-              <Stop size={16} aria-hidden="true" />Arrêter l’attente
+              <Stop size={16} aria-hidden="true" />Stop waiting
             </button>
             : <p id={`${id}-send-hint`} className="flixy-assistant__hint">{sendHint}</p>}
           <button type="submit" className="flixy-assistant__send" disabled={pending || empty || tooLong}
             aria-describedby={pending ? `${id}-status` : `${id}-send-hint`}>
-            Envoyer<PaperPlaneRight size={16} aria-hidden="true" />
+            Send<PaperPlaneRight size={16} aria-hidden="true" />
           </button>
         </div>
       </form>

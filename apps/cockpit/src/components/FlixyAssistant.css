@@ -26,7 +26,7 @@
   flex-shrink: 0;
 }
 
-.flixy-assistant :is(button, a, textarea):focus-visible {
+.flixy-assistant :is(button, a, textarea, [tabindex]):focus-visible {
   outline: 2px solid #f3f0ec;
   outline-offset: 3px;
 }
@@ -57,7 +57,7 @@
   position: absolute;
   right: calc(var(--flixy-edge) + env(safe-area-inset-right, 0px));
   bottom: calc(var(--flixy-edge) + env(safe-area-inset-bottom, 0px) + 64px);
-  width: 420px;
+  width: 560px;
   max-width: calc(100vw - var(--flixy-edge) - var(--flixy-edge) - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px));
   height: min(680px, calc(100dvh - var(--flixy-edge) - var(--flixy-edge) - 64px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)));
   display: flex;
@@ -216,6 +216,139 @@
   overflow-wrap: anywhere;
   font-size: 13px;
   line-height: 1.7;
+}
+
+.flixy-assistant__markdown {
+  min-width: 0;
+  font-size: 13px;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+
+.flixy-assistant__markdown > :first-child {
+  margin-top: 0;
+}
+
+.flixy-assistant__markdown > :last-child {
+  margin-bottom: 0;
+}
+
+.flixy-assistant__markdown :is(p, ul, ol, blockquote, pre) {
+  margin: 0 0 12px;
+}
+
+.flixy-assistant__markdown p {
+  text-wrap: pretty;
+}
+
+.flixy-assistant__markdown :is(h3, h4) {
+  margin: 18px 0 8px;
+  font-size: 15px;
+  line-height: 1.4;
+  text-wrap: balance;
+}
+
+.flixy-assistant__markdown :is(ul, ol) {
+  padding-left: 22px;
+}
+
+.flixy-assistant__markdown ul {
+  list-style: disc;
+}
+
+.flixy-assistant__markdown ol {
+  list-style: decimal;
+}
+
+.flixy-assistant__markdown li + li {
+  margin-top: 5px;
+}
+
+.flixy-assistant__markdown li > p {
+  margin-bottom: 6px;
+}
+
+.flixy-assistant__markdown strong {
+  color: #f3f0ec;
+  font-weight: 700;
+}
+
+.flixy-assistant__markdown a {
+  color: #f39489;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.flixy-assistant__markdown blockquote {
+  padding-left: 12px;
+  border-left: 3px solid #ed6757;
+  color: #c8c4c3;
+}
+
+.flixy-assistant__markdown code {
+  padding: 2px 5px;
+  border-radius: 4px;
+  background: #121315;
+  font-family: Consolas, monospace;
+  font-size: .9em;
+}
+
+.flixy-assistant__markdown pre {
+  max-width: 100%;
+  overflow-x: auto;
+  padding: 12px;
+  border: 1px solid #34353a;
+  border-radius: 6px;
+  background: #121315;
+  white-space: pre;
+  overflow-wrap: normal;
+}
+
+.flixy-assistant__markdown pre code {
+  padding: 0;
+  background: transparent;
+}
+
+.flixy-assistant__table-scroll {
+  max-width: 100%;
+  margin: 12px 0;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;
+  border: 1px solid #505158;
+  border-radius: 6px;
+}
+
+.flixy-assistant__table-scroll table {
+  width: 100%;
+  min-width: 320px;
+  border-collapse: collapse;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: normal;
+}
+
+.flixy-assistant__table-scroll :is(th, td) {
+  padding: 9px 12px;
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid #34353a;
+}
+
+.flixy-assistant__table-scroll th {
+  background: #121315;
+  color: #f3f0ec;
+  white-space: nowrap;
+  font-weight: 650;
+}
+
+.flixy-assistant__table-scroll tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+.flixy-assistant__markdown hr {
+  margin: 16px 0;
+  border: 0;
+  border-top: 1px solid #34353a;
 }
 
 .flixy-assistant__sources {

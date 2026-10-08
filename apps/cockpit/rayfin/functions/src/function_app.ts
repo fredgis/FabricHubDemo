@@ -74,7 +74,7 @@ udf.func('flixyAsk', async (question: string, historyJson: string,
   ctx: RayfinContext<AppSchema, AudienceType.Fabric>): Promise<FlixyAnswer> => {
   const grants = await ctx.getDataClient().FlixyAccessGrant
     .select(['enabled', 'entra_object_id', 'tenant_id']).execute();
-  if (grants.length !== 1) throw new Error('Acces nominatif a Flixy requis. Les droits du proprietaire ne sont pas partages.');
+  if (grants.length !== 1) throw new Error("Named user access to Flixy is required. The owner's permissions are not shared.");
   assertFlixyIdentity(grants[0], ctx.Tokens.Fabric);
   const operational = await binding(ctx);
   const [links, gold, ontology] = await Promise.all([
@@ -87,7 +87,7 @@ udf.func('flixyAsk', async (question: string, historyJson: string,
   if (links.length !== 1 || links[0].type !== 'DataAgent' || gold.length !== 1 || ontology.length !== 1
     || !gold[0].verified || !ontology[0].verified || gold[0].workspace_id !== operational.workspace_id
     || ontology[0].workspace_id !== operational.workspace_id || ontology[0].gold_item_id !== gold[0].item_id)
-    throw new Error('Les sources Flixy du cockpit ne sont pas qualifiees.');
+    throw new Error("The cockpit's Flixy source bindings are not verified.");
   return askNativeFlixy({
     tenant_id: grants[0].tenant_id,
     workspace_id: operational.workspace_id,
