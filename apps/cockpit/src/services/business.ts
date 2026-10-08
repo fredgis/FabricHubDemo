@@ -43,7 +43,7 @@ export async function loadSnapshot(): Promise<Snapshot> {
         'position_seconds', 'status']).orderBy({ session_id: 'asc' }).first(500), c)),
       data.Outbox.select(['id', 'event_id', 'event_type', 'entity_key', 'source_sequence',
         'occurred_at', 'produced_at', 'run_id', 'correlation_id', 'schema_version', 'published_at'])
-        .orderBy({ source_sequence: 'desc' }).first(1000).execute(),
+        .orderBy({ occurred_at: 'desc' }).first(1000).execute(),
       allPages(c => paged(data.ControlCommand.select(['id', 'idempotency_key', 'type', 'status', 'parameters', 'requested_at',
         'completed_at', 'error']).orderBy({ requested_at: 'desc' }).first(500), c)),
       allPages(c => paged(data.Campaign.select(['id', 'campaign_key', 'name', 'status', 'type', 'start_date',

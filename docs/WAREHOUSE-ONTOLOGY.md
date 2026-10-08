@@ -4,18 +4,19 @@ MSFlix's consolidation model is organized by **catalogue, offers, audiences,
 sales, playback and marketing**. These are business responsibilities, not Azure
 resource metrics.
 
-**Current checkpoint, 7 October 2026:** Gold publication
-`<CONNECTED_EVENTS_RUN_ID>` **succeeded with 1,002 order lines**. These are
-Warehouse publication results, not substituted operational-SQL KPIs.
-Physical Raw contains **13,455 rows and 13,455 distinct event IDs**, exactly
-matching KQL. Strict date normalization and SQL seven-digit timestamp handling
+**Current checkpoint, 8 October 2026, 06:19 UTC:** automatic publication
+**succeeded with 1,003 order lines** and the acceptance order's playback.
+These are Warehouse results, not substituted operational-SQL KPIs.
+The worker checkpoint contains **13,458 propagated event IDs**, with the three
+latest events observed in KQL, native OneLake and physical Raw.
+Strict date normalization and SQL seven-digit timestamp handling
 have been corrected/persisted; no entity-sequence conflicts were found.
 Generation-2 Ontology is now Gold-backed. Its 10-entity/12-relationship
 projection was accepted through the public GraphModel API, and native
-Gold-backed graph queries succeeded. The cockpit's native graph path still
-returns **HTTP 500** and is being fixed; app integration is not declared complete.
+Gold-backed graph queries succeeded. The cockpit's native graph path is now
+working and its interactive view renders real nodes and relationships.
 
-The newest masters are staged from **live Oracle: 305 films, 2,440 canonical
+The published masters come from **live Oracle: 305 films, 2,440 canonical
 offers, 1 distributor**, and **actual native BPS: 700 MSFlix Contacts**.
 Source provenance remains explicit; these source counts are not substituted
 for independent Warehouse dimension-count readback.
@@ -23,8 +24,9 @@ After user registration, native marketing Silver job
 `<CRM_MARKETING_SILVER_JOB_ID>` completed with **6 campaigns, 700 consents
 and 600 touches**. Handoff files now come from actual Silver `dbo` tables, with
 `processed_silver=true`; they are no longer the earlier Bronze fallback.
-Native BPS Gold dimensions/facts continue sequentially. Recorded campaign
-conversions remain **0**; no conversion is inferred or manufactured.
+All four CRM entity sets are loaded into MSFlix Gold. Optional BPS-native Touch
+Gold still requires dataset relationships; it is not a prerequisite for this
+Warehouse. Recorded campaign conversions remain **0**; none are inferred.
 
 ## Actual serving and business-context items
 
@@ -112,8 +114,9 @@ business relationships**, with stable lineage and junction-backed joins.
 The delivery chain is **Raw → Silver → Gold business areas → Ontology and
 cockpit**. The earlier Silver backing has been replaced by Gold. The
 10-entity/12-relationship projection was accepted and native Gold-backed graph
-queries succeeded. The remaining app HTTP 500 is an integration defect, not a
-claim that the native Gold binding is still absent.
+queries succeeded. The former app HTTP 500 was fixed by validating only the
+actual source coordinates, not ORM metadata alongside those coordinates.
+The native user's app graph invocation also succeeded.
 
 Completing the chain requires the Warehouse load, generation-two definition
 readback against Gold and demonstrable entity/relationship instances. Creating
@@ -126,19 +129,20 @@ The deployed app is hosted at
 [MSFlix Business Control](https://<app-host>).
 Full cockpit deployment **succeeded** at the same hosting, with
 `excludedServices=[]`, `skippedConnectors=[]`, `warnings=[]`.
-It includes Gold business views, real GraphQL business-graph integration and
-**305 local film presentations: 57 licensed cached images and 248 clearly
-labelled original editorial images**, with original fallbacks for every film.
-Local **49 tests and build passed**. Native Gold-backed graph queries succeeded,
-but the app's native graph view currently returns **HTTP 500** and remains under
-repair. Deployment and local checks do not prove all runtime paths are healthy.
+It includes Gold business views, native GQL business-graph integration and
+**305 local film presentations**. All **82 known licensed files** are cached;
+primary images comprise **37 film stills, 10 posters, 4 labelled publicity
+photos, 17 labelled title graphics and 237 editorial fallbacks**. Another 14
+unsuitable source references are archived rather than displayed as film images.
+The Big Buck Bunny cinematic hero is preserved. Native user calls to health,
+Gold business views and the graph succeeded after the full app publication.
 
 - Trusted commands persist orders, rights, playback and outbox state in the
   app-linked SQL database.
 - Analytics reads the real Gold Warehouse. An empty or unavailable Gold result
   must remain an honest empty/error state, not an operational-SQL KPI fallback.
-- Business Graph is wired to the real native service. Its app HTTP 500 remains
-  unresolved even though native Gold-backed query tests succeeded.
+- Business Graph is wired to the real native service. Its default six-journey
+  view is a labelled subset, not a total for the whole ontology.
 - End-user operator/viewer invocation and graph-instance acceptance are
   separate from deployment readiness.
 
@@ -146,11 +150,10 @@ See [COCKPIT.md](COCKPIT.md) for the version-locked app implementation.
 
 ## Promotion boundaries and bounded operation
 
-Historical events are physically materialized in Raw, their exact ID set matches
-KQL, and the first connected-events Gold publication succeeded. Gold-backed
-Ontology queries also succeeded. Remaining native BPS Gold refresh and the
-app's graph-integration fix are tracked separately. Existing staged entry
-points are:
+Historical and newly acknowledged events are physically materialized in Raw.
+Gold and the native ontology graph have been refreshed by the persistent worker.
+The optional BPS-native Touch Gold relationship gate is separate from this
+working serving path. Manual staged entry points are:
 
 ```powershell
 py -3 -m fabric.deploy --config <ignored-local-config> --stage process
@@ -158,9 +161,12 @@ py -3 -m fabric.deploy --config <ignored-local-config> --stage reconcile
 py -3 -m fabric.deploy --config <ignored-local-config> --stage gold
 ```
 
-These are real jobs/loads, not a documentation refresh. Do not run another writer
-while the parent is completing the publication. GPU acceleration remains
-unqualified until actual execution evidence reports `is_accelerated = 1`.
+These are real jobs/loads, not a documentation refresh. Pause the automatic
+worker and wait for its current cycle before running another writer. When
+master snapshot paths change, follow the
+[automation runbook](DEMO-AUTOMATION.md) before resuming the worker.
+GPU acceleration remains unqualified until actual execution evidence reports
+`is_accelerated = 1`.
 
 ## Implementation and references
 

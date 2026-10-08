@@ -3,7 +3,8 @@
 The publisher sends **only persisted business events** from the app-linked
 operational `dbo.Outboxes`; it never creates fake rental messages to make a chart
 look populated. It authenticates to SQL and the Event Hubs Kafka endpoint with
-Azure CLI's cached Entra credential.
+an explicitly selected Entra credential: Azure CLI's cache for a bounded
+operator run, or VM managed identity for deployed automation.
 
 The deploying user needs Event Hubs Data Sender scoped to `msflix-events` and
 read/update access to this application's actual operational database.
@@ -27,3 +28,12 @@ acknowledged batch. Any failed or missing ACK leaves the whole batch unpublished
 in SQL; already acknowledged events can replay and are deduplicated downstream.
 `--max-messages` is bounded at 20,000 per run; duration remains bounded at
 600 seconds plus the current batch's acknowledgement wait.
+
+Use `--auth managed-identity` on an Azure VM (optional
+`--managed-identity-client-id` for a user-assigned identity).
+`--exit-when-empty` ends a bounded pass as soon as the outbox is drained.
+It never falls back to Azure CLI when managed identity is selected.
+
+The persistent systemd worker and exact-ID Raw → Silver → Gold → graph gates
+are documented in [DEMO-AUTOMATION.md](../../docs/DEMO-AUTOMATION.md). This service
+uses the existing VM/capacity, not a detached workstation process.

@@ -7,6 +7,7 @@ import json
 import re
 import struct
 import time
+from contextlib import closing, contextmanager
 from datetime import datetime, timezone
 from typing import Any
 
@@ -53,14 +54,18 @@ def envelope(row: dict[str, Any]) -> dict[str, Any]:
     }
 
 
-def publish_batch(rows, producer, topic, cursor, database, clock=time.monotonic):
+def publish_batch(rows, producer, topic, cursor, database, clock=time.monotonic, receipt=None):
     bodies = [envelope(row) for row in rows]
     if len({body["event_id"] for body in bodies}) != len(bodies):
         raise ValueError("Duplicate event_id in the persisted outbox batch.")
     delivered: dict[str, str | None] = {}
+    acknowledgements = {}
     for body in bodies:
         def on_delivery(error: Any, _message: Any, event_id=body["event_id"]) -> None:
             delivered[event_id] = str(error) if error is not None else None
+            if error is None and _message is not None:
+                acknowledgements[event_id] = {
+                    "topic": _message.topic(), "partition": _message.partition(), "offset": _message.offset()}
 
         producer.produce(
             topic, key=body["entity_key"],
@@ -83,12 +88,87 @@ def publish_batch(rows, producer, topic, cursor, database, clock=time.monotonic)
         database.rollback()
         raise RuntimeError("Outbox batch changed after broker ACK; events may replay, not silently discarded.")
     database.commit()
+    if receipt:
+        # No payloads or credentials in receipts. ACK + SQL commit is not a
+        # claim that RTI, OneLake, Gold or the graph have caught up.
+        receipt({"event_ids": [body["event_id"] for body in bodies],
+                 "broker_acknowledged": len(bodies), "sql_committed": True,
+                 "broker_receipts": acknowledgements,
+                 "acknowledged_at": datetime.now(timezone.utc).isoformat()})
     return len(rows)
 
 
-def run(args: argparse.Namespace) -> dict[str, Any]:
+def make_credential(args):
+    from azure.identity import AzureCliCredential, ManagedIdentityCredential
+
+    mode = getattr(args, "auth", "azure-cli")
+    if mode == "managed-identity":
+        client_id = getattr(args, "managed_identity_client_id", None)
+        return ManagedIdentityCredential(**({"client_id": client_id} if client_id else {}))
+    if mode == "azure-cli":
+        return AzureCliCredential(tenant_id=args.tenant)
+    raise ValueError("auth must explicitly select azure-cli or managed-identity.")
+
+
+def sql_connect(server, database, credential, *, autocommit=False):
     import pyodbc
-    from azure.identity import AzureCliCredential
+
+    if not re.fullmatch(r"[A-Za-z0-9.-]+", server):
+        raise ValueError("Invalid SQL server hostname.")
+    if not re.fullmatch(r"[A-Za-z0-9 _.-]+", database):
+        raise ValueError("Invalid operational database name.")
+    sql_token = credential.get_token("https://database.windows.net/.default").token.encode("utf-16-le")
+    token_bytes = struct.pack("<I", len(sql_token)) + sql_token
+    connection = pyodbc.connect(
+        f"Driver={{ODBC Driver 18 for SQL Server}};Server=tcp:{server},1433;"
+        f"Database={database};Encrypt=yes;TrustServerCertificate=no;",
+        attrs_before={1256: token_bytes}, autocommit=autocommit, timeout=30,
+    )
+    connection.timeout = 300
+    return connection
+
+
+def lock_result(cursor):
+    while cursor.description is None:
+        if not cursor.nextset():
+            raise RuntimeError("SQL publisher lock did not return a result.")
+    return cursor.fetchone()[0]
+
+
+@contextmanager
+def outbox_lock(database):
+    """Release the session lock before ODBC can return the session to its pool."""
+    cursor = database.cursor()
+    acquired = False
+    try:
+        cursor.execute(
+            "DECLARE @result int; EXEC @result = sys.sp_getapplock "
+            "@Resource=N'MSFlix-OutboxPublisher',@LockMode=N'Exclusive',"
+            "@LockOwner=N'Session',@LockTimeout=0; SELECT @result;"
+        )
+        if lock_result(cursor) < 0:
+            raise RuntimeError("Another MSFlix publisher owns the operational outbox.")
+        acquired = True
+        database.commit()
+        yield cursor
+    finally:
+        try:
+            # Any batch with a committed broker ACK is already committed by
+            # publish_batch. Roll back a failed/read-only transaction first.
+            database.rollback()
+            if acquired:
+                cursor.execute(
+                    "DECLARE @result int; EXEC @result=sys.sp_releaseapplock "
+                    "@Resource=N'MSFlix-OutboxPublisher',@LockOwner=N'Session'; SELECT @result;"
+                )
+                if lock_result(cursor) < 0:
+                    raise RuntimeError("Publisher session-lock release failed.")
+                database.commit()
+        finally:
+            cursor.close()
+
+
+def run(args: argparse.Namespace, *, credential=None, receipt=None) -> dict[str, Any]:
     from confluent_kafka import Producer
 
     if not re.fullmatch(r"[A-Za-z0-9.-]+", args.server):
@@ -101,13 +181,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
         raise ValueError("Publisher duration/messages must be explicitly bounded.")
     if args.batch_size < 1 or args.batch_size > 512:
         raise ValueError("Publisher batch size must be between 1 and 512.")
-    credential = AzureCliCredential(tenant_id=args.tenant)
-    sql_token = credential.get_token("https://database.windows.net/.default").token.encode("utf-16-le")
-    token_bytes = struct.pack("<I", len(sql_token)) + sql_token
-    connection_string = (
-        f"Driver={{ODBC Driver 18 for SQL Server}};Server=tcp:{args.server},1433;"
-        f"Database={args.database};Encrypt=yes;TrustServerCertificate=no;"
-    )
+    credential = credential or make_credential(args)
 
     def oauth(_: str) -> tuple[str, float]:
         token = credential.get_token(f"https://{args.namespace}.servicebus.windows.net/.default")
@@ -127,20 +201,7 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
     batches = 0
     started = time.monotonic()
     deadline = started + args.duration
-    with pyodbc.connect(connection_string, attrs_before={1256: token_bytes}, autocommit=False) as database:
-        cursor = database.cursor()
-        cursor.execute(
-            "DECLARE @result int; EXEC @result = sys.sp_getapplock "
-            "@Resource=N'MSFlix-OutboxPublisher',@LockMode=N'Exclusive',"
-            "@LockOwner=N'Session',@LockTimeout=0; SELECT @result;"
-        )
-        while cursor.description is None:
-            if not cursor.nextset():
-                raise RuntimeError("SQL publisher lock did not return a result.")
-        lock_result = cursor.fetchone()[0]
-        if lock_result < 0:
-            raise RuntimeError("Another MSFlix publisher owns the operational outbox.")
-        database.commit()
+    with closing(sql_connect(args.server, args.database, credential)) as database, outbox_lock(database) as cursor:
         while time.monotonic() < deadline and sent < args.max_messages:
             cursor.execute(
                 "SELECT TOP (?) event_id,event_type,schema_version,entity_key,source_sequence,"
@@ -152,11 +213,13 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
             if not records:
                 database.commit()
                 producer.poll(0)
+                if getattr(args, "exit_when_empty", False):
+                    break
                 time.sleep(1)
                 continue
             columns = [column[0] for column in cursor.description]
             rows = [dict(zip(columns, record)) for record in records]
-            sent += publish_batch(rows, producer, args.topic, cursor, database)
+            sent += publish_batch(rows, producer, args.topic, cursor, database, receipt=receipt)
             batches += 1
         remaining = producer.flush(65)
         if remaining:
@@ -168,6 +231,8 @@ def run(args: argparse.Namespace) -> dict[str, Any]:
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--tenant", required=True)
+    parser.add_argument("--auth", choices=("azure-cli", "managed-identity"), default="azure-cli")
+    parser.add_argument("--managed-identity-client-id")
     parser.add_argument("--server", required=True)
     parser.add_argument("--database", required=True)
     parser.add_argument("--namespace", required=True)
@@ -175,6 +240,7 @@ def main() -> None:
     parser.add_argument("--duration", type=int, default=120)
     parser.add_argument("--max-messages", type=int, default=1000)
     parser.add_argument("--batch-size", type=int, default=128)
+    parser.add_argument("--exit-when-empty", action="store_true")
     args = parser.parse_args()
     print(json.dumps(run(args), separators=(",", ":")))
 

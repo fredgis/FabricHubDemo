@@ -1,0 +1,30 @@
+[Unit]
+Description=MSFlix existing Demo outbox and analytics propagation
+Wants=network-online.target
+After=network-online.target
+StartLimitIntervalSec=0
+
+[Service]
+Type=simple
+User=msflix-demo
+Group=msflix-demo
+WorkingDirectory=/opt/msflix-demo/current
+ExecStart=/opt/msflix-demo/venv/bin/python -m services.publisher.worker --config /etc/msflix-demo/config.json --state /var/lib/msflix-demo
+Restart=always
+RestartSec=60
+TimeoutStopSec=90
+KillSignal=SIGTERM
+UMask=0077
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectHome=true
+ProtectSystem=strict
+ReadWritePaths=/var/lib/msflix-demo
+Environment=PYTHONUNBUFFERED=1
+Environment=AZURE_CORE_LOG_LEVEL=ERROR
+MemoryMax=1500M
+CPUQuota=100%
+TasksMax=128
+
+[Install]
+WantedBy=multi-user.target

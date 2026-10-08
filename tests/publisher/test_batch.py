@@ -81,5 +81,40 @@ class BatchTests(unittest.TestCase):
         cursor.execute.assert_not_called()
 
 
+class SessionLockTests(unittest.TestCase):
+    def connection(self):
+        database = Mock()
+        cursor = database.cursor.return_value
+        cursor.description = (("result",),)
+        cursor.fetchone.return_value = (0,)
+        return database, cursor
+
+    def test_empty_pass_releases_session_lock_before_pooling(self):
+        database, cursor = self.connection()
+        with publisher.outbox_lock(database):
+            pass
+        self.assertIn("sp_getapplock", cursor.execute.call_args_list[0].args[0])
+        self.assertIn("sp_releaseapplock", cursor.execute.call_args_list[1].args[0])
+        cursor.close.assert_called_once()
+
+    def test_failed_batch_also_releases_its_session_lock(self):
+        database, cursor = self.connection()
+        with self.assertRaisesRegex(RuntimeError, "batch failed"):
+            with publisher.outbox_lock(database):
+                raise RuntimeError("batch failed")
+        self.assertIn("sp_releaseapplock", cursor.execute.call_args_list[-1].args[0])
+        database.rollback.assert_called_once()
+        cursor.close.assert_called_once()
+
+    def test_rejected_contender_cannot_release_another_publishers_lock(self):
+        database, cursor = self.connection()
+        cursor.fetchone.return_value = (-1,)
+        with self.assertRaisesRegex(RuntimeError, "Another MSFlix"):
+            with publisher.outbox_lock(database):
+                self.fail("The contender must not enter its publishing body")
+        cursor.execute.assert_called_once()
+        cursor.close.assert_called_once()
+
+
 if __name__ == "__main__":
     unittest.main()
