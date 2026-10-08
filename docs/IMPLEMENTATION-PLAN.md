@@ -16,8 +16,15 @@ real customer identities; SAP remains excluded.
 Budget: reasonable demo-sized SKUs, bounded producers, no unapproved capacity
 increase. Reuse existing Azure and Salesforce authentication caches.
 
-SAP, SAP mirroring, Datasphere, simulated SAP invoices/contracts, financial
-Planning and a standalone Data Agent are excluded from this delivery.
+SAP, SAP mirroring, Datasphere, simulated SAP invoices/contracts and financial
+Planning are excluded from this implementation. SAP and Planning remain part of
+the overall business architecture shown in the README.
+
+On 2026-10-08, the user authorized Flixy: a native Fabric Data Agent sourced from
+the consolidated Gold Warehouse and business ontology, with a conversational
+bubble available across the cockpit. Finish the existing deployment before
+implementing Flixy. Give the agent its own folder and Task Flow task, preserving
+the existing tasks and item assignments.
 
 ## Materialized deliverables
 
@@ -33,6 +40,7 @@ Planning and a standalone Data Agent are excluded from this delivery.
 | GPU | Eligibility check, enablement and benchmark | `queryinsights.exec_requests_history.is_accelerated = 1` |
 | Ontology | v2 business model and supported bindings | Correct version, persisted entities/relations and instances |
 | Cockpit | Premium authenticated Rayfin control/visualization app | Real data, real commands, no synthetic KPI counters |
+| Flixy | Native Data Agent and global cockpit conversation panel | Actual source-grounded answers, authenticated access, source attribution and explicit errors |
 | Operations | Deployment scripts, tests, evidence and start/stop runbook | Restart/replay preserves state and permissions |
 
 ## Business behavior
@@ -96,6 +104,14 @@ prices, expiry and availability. Respect reduced motion and keyboard navigation.
   CLI exports are bootstrap snapshots only, never a substitute for BPS onboarding.
 - If no private-VM SKU is allowed in the target region, report the subscription
   availability constraint instead of silently changing the capacity region.
+- Flixy on the Singapore capacity requires Azure OpenAI cross-region processing
+  and conversation storage. Both tenant switches are currently disabled.
+  Approval was requested for an MSFlix-only security group; no approval was
+  received and neither switch was changed.
+- Microsoft currently documents an issue adding new-experience ontologies to
+  Data Agents ([known issue 1987](https://support.fabric.microsoft.com/known-issues/?active=true&fixed=true&sort=published&issueId=1987)).
+  Verify the native attachment before claiming that Flixy uses the ontology;
+  a Warehouse-only agent is not equivalent to the requested two-source setup.
 
 ## Current state
 
@@ -106,13 +122,16 @@ prices, expiry and availability. Respect reduced motion and keyboard navigation.
 | Salesforce authentication/API | Authorized and verified |
 | Fabric capacity/workspace | F16 msflixf16sea and workspace MSFlix deployed in Southeast Asia |
 | Private networking | Approved Fabric PE and private API/OneLake/Oracle connectivity proved from the dedicated gateway VM; public workspace access still Allow |
-| Oracle source | 305 contents and 2,440 price rules loaded; private source TCP reachable |
+| Oracle source | 305 contents and 2,440 price rules loaded; Unicode titles repaired and propagated through the mirror, Gold and graph |
 | Oracle gateway | MSFlix Oracle Gateway Fabric registered in tenant-default centralus; recognized by Fabric; other environment's gateway untouched |
-| Oracle mirror | Dedicated connection/mirror deployment in progress; no snapshot or CDC success claimed yet |
-| Salesforce/BPS | 700 customers, 6 campaigns, 700 consents and 600 touches exist; bootstrap exports staged; mandatory BPS ingestion not yet onboarded |
-| RTI | 170 Kafka ACKs; workspace-identity reader connection created; Eventstream validation/deployment unfinished |
-| Raw/Silver | Expanded reference-processing notebook jobs completed |
-| Gold | Warehouse publication exists; 0 order lines until real RTI ingestion |
-| Ontology v2 | Generation-two definition deployed/read back; graph instances not yet qualified |
-| Rayfin cockpit | Final app deployment complete, Gold reader bound; 1,002 persisted orders and 13,455 outbox rows; native end-user invocation unverified |
-| GPU | Access not yet verified |
+| Oracle mirror | Five tables replicated into the mirror and Raw; insert, update and delete CDC validated |
+| Salesforce/BPS | Native processed Silver provides 700 customers, 6 campaigns, 700 consents and 600 touches; all are loaded into MSFlix Gold. Optional BPS-native Touch Gold fact needs dataset relationships |
+| RTI | 13,458 propagated event IDs; the three-event automatic acceptance reached KQL, native OneLake and deduplicated Raw; all active Eventstream nodes Running |
+| Raw/Silver | Native Eventhouse Delta ingestion and all seven native reference inputs processed successfully |
+| Gold | 1,003 order lines and native Oracle/BPS references published; automatic acceptance order and playback reconciled |
+| Ontology v2 | Gold bindings and 10-entity/12-relationship physical graph published; real GQL paths verified |
+| Rayfin cockpit | Cinematic home, Gold business views, interactive graph and bounded Demo tab deployed; recovered licensed images and current-event ordering published |
+| Film imagery | All 82 known licensed files cached; 47 films have a genuine still or poster. Other image categories are explicitly labelled; full film-specific coverage requires more rights-cleared assets |
+| Demo propagation | Managed-identity worker active, enabled and unpaused; real Kafka ACKs, Raw/Silver/Gold publication and target graph path proved; subsequent idle cycle ran without another Spark job |
+| Flixy | Native agent and conversation integration not deployed; cross-region AI processing/storage approval is required before activation |
+| GPU | No accelerated queries observed; Microsoft limited-preview enablement remains an external gate |

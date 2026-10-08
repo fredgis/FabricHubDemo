@@ -798,3 +798,32 @@ tracking. Its refresh action reads status; it does not itself run the Kafka
 publisher or the Raw/Silver/Gold processing chain. Automatic propagation,
 additional real film imagery and optional native BPS Touch fact relationship
 configuration remain follow-up work.
+
+## Published application and automatic propagation: 2026-10-08
+
+The full cockpit update is published at the existing URL. All 82 known licensed
+artwork files are cached, including 25 recovered files, and the Big Buck Bunny
+hero is unchanged. This is not 82 official posters: primary presentations use
+37 film stills, 10 posters, 4 labelled publicity photos, 17 labelled title
+graphics and 237 honest editorial fallbacks. Fourteen unsuitable source
+references remain archived. Full film-specific still/poster coverage requires
+additional rights-cleared assets.
+
+Oracle title corrections have reached Gold and the graph. The operational
+outbox window now sorts by `occurred_at`, not by unrelated per-entity sequence
+numbers, so recent Demo events are not hidden behind older high-sequence rows.
+The published app's native user health, Gold and graph calls succeeded.
+
+The Demo controls still execute only the authorized business commands.
+Automatic propagation is supplied by the persistent managed-identity worker,
+not by the browser's refresh button: committed outbox -> Kafka -> KQL/native
+OneLake -> Raw/Silver/Gold -> ontology graph. At 06:19 UTC, all three existing
+acceptance events had propagated, Gold contained 1,003 order lines, and actual
+GQL returned the target order and playback. The worker is active, enabled and
+unpaused; an idle cycle did not launch another Spark job. See
+[Demo automation](DEMO-AUTOMATION.md) for operation and recovery.
+
+Flixy is authorized but is not deployed. Its required Azure OpenAI cross-region
+processing and conversation-storage switches are disabled; the request to
+enable them for an MSFlix-only group has not received approval. No tenant
+policy was changed and no placeholder assistant is presented as a live agent.

@@ -1,19 +1,20 @@
 # RTI: committed transactions, exact event IDs
 
-**Checkpoint: 7 October 2026; RTI is complete. Exact event-ID sets match between
-KQL and physical Raw, all 13,455 IDs are present, and every remaining Eventstream
-node is Running.** Silver/Gold publication is a separate parent workstream.
+**Checkpoint: 8 October 2026, 06:19 UTC.** The persistent cloud worker has
+propagated **13,458 event IDs**. Its three-event acceptance reached Kafka, KQL,
+native OneLake, deduplicated Raw, Gold and the ontology graph. Every remaining
+Eventstream node is Running.
 
 ## The supported path being delivered
 
 ```text
 Trusted command → operational SQL + transactional outbox
-  → bounded Kafka publisher → Event Hubs
+  → persistent bounded Kafka publisher → Event Hubs
   → MSFlixIngress Eventstream relay
   → MSFlixEvents.RawEvents in MSFlixEventhouse
   → native OneLake availability
   → physical MSFlixRaw.raw.events_ingress
-  → Silver current state → Gold Warehouse
+  → Silver current state → Gold Warehouse → Ontology graph
 ```
 
 **Eventstream is still required.** Direct Kafka-to-Eventhouse ingestion has not
@@ -39,13 +40,15 @@ connection. The Eventstream and Eventhouse family are organized in
 
 | Boundary | Latest supplied result |
 |---|---|
-| Operational persistence | 1,002 orders, 1,001 playbacks, 13,455 outbox events. |
-| Publisher | All 13,455 actual outbox events have Kafka broker acknowledgements. |
-| Eventstream → KQL | All remaining stream nodes Running; exact reconciliation includes all 13,455 acknowledged IDs. |
-| KQL → native OneLake | Enabled with a five-minute target. Only 3,285 late events were initially available; retained-event replay addressed the missing history, with resulting coverage now proved at the physical Raw SQL boundary. |
-| Physical Raw | SQL confirms **13,455 actual rows = 13,455 distinct event IDs** in `raw.events_ingress`; the exact ID set equals KQL. |
+| Operational persistence | 13,458 committed events in the propagated checkpoint; pending outbox count 0. No extra orders were generated for the three-event acceptance. |
+| Publisher | Persistent service active, enabled and unpaused. Latest Kafka ACKs: partition/offset `3/3554`, `3/3555`, `0/3433`. |
+| Eventstream → KQL | All remaining stream nodes Running; all three newly acknowledged acceptance IDs observed in KQL. |
+| KQL → native OneLake | Enabled with a five-minute target; all three acceptance IDs observed in the native Delta output before analytics processing. |
+| Physical Raw | The worker's exact-ID gate found all three acceptance events in deduplicated physical Raw; propagated checkpoint 13,458 IDs. |
 | Silver normalization | The 305 release-date mismatch and SQL seven-digit timestamp handling were corrected/persisted. No entity-sequence conflicts were found. |
-| Gold publication | `msflix-connected-events-20261007` succeeded with **1,002 order lines**. Native master refresh and Gold-backed Ontology qualification continue separately. |
+| Gold publication | **1,003 order lines**; target order `973d963b-52dc-4b55-bf07-6a75e335f9d9` and its playback retain their exact latest event IDs/sequences. |
+| Ontology graph | Refresh `783d0926-bed9-477d-bb90-aa60857167d3` completed; actual GQL returned the target order/customer/content path and playback. |
+| Idle behavior | A subsequent service cycle completed without another Spark run. |
 
 These counts are checkpoints, not immutable promises about later replay runs.
 Replaying retained events can add physical duplicates while preserving the
@@ -63,11 +66,11 @@ KQL-destination pause/resume surface with
 **CustomTime `2026-10-07T16:25:00Z`**, replaying retained, identical event IDs
 through the enabled native OneLake path. **No KQL data was deleted.**
 
-The parent has now materialized KQL's native Delta output into the physical
-Raw ingress table idempotently. SQL confirms 13,455 physical rows and 13,455
+At the 7 October recovery checkpoint, KQL's native Delta output was materialized
+into physical Raw idempotently. SQL confirmed 13,455 physical rows and 13,455
 distinct event IDs. This is actual Raw coverage, not merely a configured policy
 or nonempty shortcut. The first connected-events Silver/Gold publication has
-also succeeded; subsequent native master refresh is a separate run.
+also succeeded; native master refresh completed in a later run.
 The failed direct Raw sink and its SQL operator have now been removed, with all
 remaining Eventstream nodes Running. KQL and Raw contain the exact same 13,455
 event IDs; RTI acceptance is complete.
@@ -83,9 +86,9 @@ SQL seven-digit timestamp handling have now been corrected/persisted, without
 relaxing the contract or accepting arbitrary timestamps.
 
 The other **13,150 events were valid**, with **zero entity-sequence conflicts**.
-Publication `msflix-connected-events-20261007` now reports success and
-**1,002 Gold order lines**. The newly staged Oracle/BPS master data will be
-processed in a separate downstream rerun.
+The first publication, `msflix-connected-events-20261007`, succeeded with
+**1,002 Gold order lines**. The subsequent Oracle/BPS native-master refresh and
+the automatic three-event acceptance have also completed.
 
 ## Why replay does not create another sale
 
@@ -107,7 +110,15 @@ unlimited-volume incremental engine.
 
 ## Bounded operation
 
-The producer is independently rerunnable with cached Entra authentication:
+The default path is `msflix-demo-worker.service` on the dedicated Oracle VM.
+It checks the committed outbox every 30 seconds, publishes bounded batches and
+waits for exact native OneLake coverage before refreshing Raw/Silver/Gold and
+the graph. It uses managed identity and persists its checkpoint outside the
+workstation. Pause/resume, recovery and full-master refresh procedures are in
+the [automation runbook](DEMO-AUTOMATION.md).
+
+For a deliberate manual recovery, the producer is independently rerunnable with
+cached Entra authentication:
 
 ```powershell
 py -3 services\publisher\publish.py --tenant <tenant> --server <app-sql-server> `

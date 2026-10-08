@@ -5,9 +5,9 @@ $root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
 $catalog = Get-Content -Raw -LiteralPath (Join-Path $root 'data\catalog.json') | ConvertFrom-Json
 $directory = Join-Path $PSScriptRoot 'migrations'
 New-Item -ItemType Directory -Path $directory -Force | Out-Null
+. (Join-Path $PSScriptRoot 'Oracle-Literals.ps1')
 function Sql-Literal([string]$Value) {
-    $value = [regex]::Replace($Value, '[\r\n]+', ' ')
-    return "'" + $value.Replace("'","''") + "'"
+    return ConvertTo-OracleTextLiteral $Value
 }
 $sql = [Collections.Generic.List[string]]::new()
 $sql.Add(@'

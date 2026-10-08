@@ -3,6 +3,7 @@
 **Deployment:** MSFlix workspace `d9c835a9-16d2-4997-9969-16cc4389a7c7`,
 active F16 `msflixf16sea`, Southeast Asia / Singapore.
 Extended live inventory and folder readback: **2026-10-07 20:01 UTC**.
+Automatic propagation acceptance: **2026-10-08 06:19 UTC**.
 The workspace description is blank.
 
 MSFlix separates three responsibilities: sources describe the business,
@@ -21,30 +22,31 @@ engine; its actual deployment proof is documented in
 ```mermaid
 flowchart LR
   Oracle["Private Oracle Free<br/>References"] --> Mirror["MSFlix_OracleMirror<br/>Gateway + CDC"]
-  Salesforce["Salesforce"] --> BPS["Native MSFlix BPS<br/>Contact extraction"]
+  Salesforce["Salesforce"] --> BPS["Native MSFlix BPS<br/>Customers · campaigns · consents · touches"]
   Mirror -->|"Five Raw shortcuts"| Raw["MSFlixRaw"]
-  BPS -->|"MSFlix-keyed CRM handoff gate"| Raw
+  BPS -->|"Processed native Silver snapshots"| Raw
 
   App["MSFlix Business Control<br/>Rayfin cockpit"] --> Functions["Trusted functions"]
   Functions --> SQL["App-linked SQL<br/>Orders · rights · outbox"]
-  SQL -->|"Committed events + broker ACK"| Kafka["Event Hubs<br/>Kafka endpoint"]
+  SQL --> Worker["Persistent managed-identity worker"]
+  Worker -->|"Committed events + broker ACK"| Kafka["Event Hubs<br/>Kafka endpoint"]
   Kafka --> Stream["MSFlixIngress<br/>Eventstream relay"]
   Stream --> KQL["MSFlixEventhouse / MSFlixEvents<br/>RawEvents"]
   KQL --> Availability["Native OneLake availability<br/>Five-minute target"]
-  Availability -->|"13,455 physical rows / distinct IDs"| Raw
+  Availability -->|"Deduplicated physical events"| Raw
 
   Raw -->|"Strict validation + normalized dates/times"| Silver["MSFlixSilver<br/>Conformance + quarantine"]
   Silver -->|"Publication-gated load"| Gold["MSFlixGold<br/>Six business areas"]
-  Gold -->|"Gold facts + relationship junctions<br/>Binding qualification gate"| Ontology["MSFlixBusiness<br/>Ontology v2 + native graph"]
+  Gold -->|"Gold facts + relationship junctions"| Ontology["MSFlixBusiness<br/>Ontology v2 + native graph"]
   Gold -->|"Real SQL analytics"| App
-  Ontology -->|"Graph instances gate"| App
+  Ontology -->|"Actual GQL relationships"| App
 
   SAP["SAP<br/>Subscriptions · billing<br/>Distributor contracts · financial data"] -->|"Source contracts"| Raw
   Gold --> Planning["Fabric Planning<br/>Forecasts and scenarios"]
   Planning -->|"Governed plan versions"| Gold
 
   classDef stage fill:#1B1C1F,stroke:#ED6757,color:#F3F0EC;
-  class Oracle,Mirror,Salesforce,BPS,App,Functions,SQL,Kafka,Stream,KQL,Availability,Raw,Silver,Gold,Ontology,SAP,Planning stage;
+  class Oracle,Mirror,Salesforce,BPS,App,Functions,SQL,Worker,Kafka,Stream,KQL,Availability,Raw,Silver,Gold,Ontology,SAP,Planning stage;
 ```
 
 The Eventstream remains the required relay. There is **no qualified direct
@@ -56,13 +58,13 @@ and no deployed standalone semantic model in the discovered inventory.
 | Stage | Physical responsibility | Current qualification |
 |---|---|---|
 | Oracle references | The private source mirrors five reference tables; Raw exposes them through native shortcuts. | Mirror/Raw counts agree; committed insert, update and delete were observed. |
-| Salesforce BPS CRM | The activated native dataset `MSFlixCRM`, source `MSFlixSF`, owns its Bronze/Silver/Gold pipeline family. | 700 processed native Contacts qualified. Native marketing Silver completed with 6 campaigns, 700 consents and 600 touches; source/FK validation passed. Native BPS Gold continues sequentially. |
-| RTI transactions | Committed SQL outbox → bounded publisher → Event Hubs → Eventstream → KQL `RawEvents` → native OneLake. | Complete: exact 13,455-ID sets agree between KQL and physical Raw; failed direct Raw branch removed, all remaining stream nodes Running. |
-| Raw | Source trace, reference visibility, quarantine and physical `raw.events_ingress`. | Reference jobs completed; SQL confirms 13,455 event rows and 13,455 distinct IDs. |
+| Salesforce BPS CRM | The activated native dataset `MSFlixCRM`, source `MSFlixSF`, owns its Bronze/Silver/Gold pipeline family. | 700 customers, 6 campaigns, 700 consents and 600 touches qualified from native Silver and loaded into MSFlix Gold. Optional BPS-native Touch Gold needs dataset relationships. |
+| RTI transactions | Committed SQL outbox → persistent bounded worker → Event Hubs → Eventstream → KQL `RawEvents` → native OneLake. | 13,458 propagated IDs; all three automatic acceptance events observed through the native route. Failed direct Raw branch removed; remaining stream nodes Running. |
+| Raw | Source trace, reference visibility, quarantine and physical `raw.events_ingress`. | Native references processed; deduplicated Raw includes the three latest acknowledged acceptance events. |
 | Silver | Deduplication, source sequences, tombstones, shared keys and relationship integrity. | Date normalization and SQL seven-digit timestamp handling corrected/persisted; the first connected-events Gold publication succeeded. |
-| Warehouse Gold | Current business facts and exact amounts, grouped into catalogue/offers/audiences/sales/playback/marketing. | Publication `msflix-connected-events-20261007` succeeded with 1,002 order lines. Newly staged native master data awaits the next downstream refresh. |
+| Warehouse Gold | Current business facts and exact amounts, grouped into catalogue/offers/audiences/sales/playback/marketing. | Native master refresh completed, including corrected Oracle titles. The automatic acceptance published 1,003 order lines and the target playback. |
 | Ontology v2 | Gold business entities and junction-backed relationships; native graph/Eventhouse children belong to this workload. | Gold binding and the 10-entity/12-relationship projection accepted; native Gold-backed graph queries succeeded. |
-| Cockpit Apps | Authenticated app, trusted commands, native SQL persistence/functions and Gold analytics reads. | Full deployment succeeded with no excluded services, skipped connectors or warnings; local 49-test/build checks passed. The app's native graph path currently returns HTTP 500 and remains under repair despite successful native Ontology queries. |
+| Cockpit Apps | Authenticated app, trusted commands, native SQL persistence/functions and Gold analytics reads. | Cinematic home, interactive graph, Demo controls, recovered artwork and current-event ordering deployed; native user health, Gold and graph calls succeeded. |
 
 For detailed facts, see [Oracle](ORACLE.md), [Salesforce BPS](SALESFORCE-BPS.md),
 [RTI](RTI.md) and [Warehouse/Ontology](WAREHOUSE-ONTOLOGY.md).
@@ -79,11 +81,10 @@ For detailed facts, see [Oracle](ORACLE.md), [Salesforce BPS](SALESFORCE-BPS.md)
 | Marketing | Which campaigns, touches and explicitly recorded conversions exist? |
 
 These are functional areas over the `gold.*` implementation, not six
-already-deployed SQL schemas. The parent is extending Gold with customer-consent
-and campaign-touch facts plus 12 relationship junctions so that Ontology and the
-cockpit share the consolidated business layer. The
-[domain mapping](WAREHOUSE-ONTOLOGY.md) separates those in-progress additions
-from already-authored tables and identifies the remaining qualification gates.
+already-deployed SQL schemas. Gold contains customer-consent and campaign-touch
+facts plus 12 relationship junctions, so Ontology and the cockpit share the
+consolidated business layer. See the
+[domain mapping](WAREHOUSE-ONTOLOGY.md) for the physical tables and relationships.
 
 ## Physical organization and workload boundaries
 
@@ -120,8 +121,13 @@ concurrency.
   invented.
 - SAP and Planning are part of the overall architecture but remain outside
   this implementation workstream, owned externally. This execution provisioned
-  neither and claims no qualified SAP/Planning data. Datasphere and a standalone
-  Data Agent remain outside scope.
+  neither and claims no qualified SAP/Planning data. Datasphere remains outside
+  scope. Flixy was subsequently authorized, but its activation is blocked on
+  approval for Azure OpenAI cross-region processing and conversation storage.
+- The persistent worker uses managed identity, not cached administrator tokens.
+  Its orchestration role is limited to MSFlix; effective SQL DENYs protect
+  operational payloads, deletes and commercial writes. See the
+  [automation runbook](DEMO-AUTOMATION.md) for the scope tradeoff and controls.
 - GPU acceleration is a qualification gate, not a deployed business dependency;
   no `is_accelerated = 1` evidence is claimed.
 

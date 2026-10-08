@@ -65,13 +65,15 @@ Clients, campaigns, consents and marketing touches reach Gold through native BPS
 Recorded conversions remain **0**: none are invented.
 
 **Verified backbone:** actual Task Flow **8 tasks / 9 connectors / 46
-assignments**, Gold **1,002 demonstration orders**, and a live Gold-backed
+assignments**, Gold **1,003 demonstration orders**, and a live Gold-backed
 Ontology graph. The cockpit combines a cinematic film-led home, business views
 and an interactive graph with visible relationships, zoom and node selection.
 
 The **Demo tab** generates bounded, real business transactions through the same
-application commands. Kafka publication and analytics refresh remain separate
-steps; see the refresh instructions below.
+application commands. A persistent cloud worker publishes their events to Kafka,
+then refreshes Raw, Silver, Gold and the ontology graph. Its accepted checkpoint
+contains **13,458 propagated events**. Analytics refresh is asynchronous, not an
+instantaneous consequence of clicking a command.
 
 ## Run it
 
@@ -85,7 +87,8 @@ stage against the approved environment, never reset existing source data.
 [Architecture](docs/ARCHITECTURE.md) · [Oracle](docs/ORACLE.md) ·
 [Salesforce / BPS](docs/SALESFORCE-BPS.md) · [RTI](docs/RTI.md) ·
 [Warehouse → Ontology](docs/WAREHOUSE-ONTOLOGY.md) ·
-[Workspace Task Flow and folders](docs/TASK-FLOW.md) · [Cockpit](docs/COCKPIT.md)
+[Workspace Task Flow and folders](docs/TASK-FLOW.md) · [Cockpit](docs/COCKPIT.md) ·
+[Automatic Demo propagation](docs/DEMO-AUTOMATION.md)
 
 Customer identities are fictional. No real bank charge or commercial
 film-distribution right is claimed. Sourced imagery retains its individual
@@ -95,9 +98,13 @@ See [catalog provenance](data/catalog.sources.json).
 <details>
 <summary>Refresh the complete Warehouse</summary>
 
-Oracle Mirroring runs continuously. For newly generated transactions, confirm
-Kafka broker ACKs, then wait at least **5 minutes for native OneLake availability**
-before refreshing so the events can arrive.
+Oracle Mirroring runs continuously. New Demo transactions propagate automatically;
+this sequence is for a **complete source/master refresh**. Pause the automatic
+worker first and wait for its current cycle to finish; follow the
+[automation runbook](docs/DEMO-AUTOMATION.md) before resuming it with the updated
+master configuration. Kafka broker ACKs and exact event coverage must precede
+analytics publication; native OneLake availability has a **five-minute target**,
+not a guaranteed maximum delay.
 
 1. Complete **native BPS extraction → native B2S/Silver**. Native BPS Gold is
    optional—not a prerequisite for this Warehouse.

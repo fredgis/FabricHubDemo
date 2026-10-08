@@ -92,10 +92,29 @@ py -3 -m scripts.verify_oracle_mirror
 It performs real bounded source writes. Use the saved proof for an ordinary
 documentation review rather than generating new CDC traffic unnecessarily.
 
+### Unicode-safe catalog updates
+
+`Oracle-Literals.ps1` emits ASCII SQL using Oracle `UNISTR` for non-ASCII text.
+This avoids dependence on the VM shell and SQL*Plus client encodings, while
+preserving film names, apostrophes and attribution in the AL32UTF8 database.
+
+On 8 October, 74 titles/attributions with damaged characters in the initial
+mirror snapshot were replayed from the unchanged canonical catalog, using the
+same content keys. The source and mirror then contained no replacement
+characters. SQL endpoint metadata was refreshed after CDC before the repaired
+native references were staged for Raw, Silver and Gold.
+
+`Repair-CatalogEncoding.ps1` only targets the dedicated MSFlix subscription/VM.
+Its default mode updates damaged source text; `-ReplayContentKeys` explicitly
+re-emits selected reference rows when the source is correct but the initial
+mirror copy needs a CDC replacement. It never resets the schema or changes
+order identities, prices or existing environment resources.
+
 ## Implementation and references
 
 - `sources/oracle/Deploy-ReferenceMirror.ps1`
 - `sources/oracle/Generate-ReferenceMigration.ps1`
+- `sources/oracle/Oracle-Literals.ps1`, `sources/oracle/Repair-CatalogEncoding.ps1`
 - `sources/oracle/Register-Gateway.ps1`
 - `sources/oracle/Test-PrivatePaths.ps1`
 - `scripts/verify_oracle_mirror.py`
