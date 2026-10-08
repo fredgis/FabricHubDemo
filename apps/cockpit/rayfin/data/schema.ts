@@ -148,6 +148,16 @@ export class OperatorGrant {
 }
 
 @entity()
+@authenticated('read', { policy: (claims, item) => claims.sub.eq(item.user_id) })
+export class FlixyAccessGrant {
+  @uuid() id!: string;
+  @text({ max: 128, unique: true }) user_id!: string;
+  @text({ max: 36 }) entra_object_id!: string;
+  @text({ max: 36 }) tenant_id!: string;
+  @boolean() enabled!: boolean;
+}
+
+@entity()
 @authenticated('read')
 export class RuntimeBinding {
   @uuid() id!: string;
@@ -232,11 +242,11 @@ export type AppSchema = {
   Content: Content; Customer: Customer; Campaign: Campaign; CampaignMember: CampaignMember;
   IntegrationLink: IntegrationLink; Offer: Offer; Rental: Rental;
   Playback: Playback; Outbox: Outbox; ControlCommand: ControlCommand;
-  OperatorGrant: OperatorGrant; RuntimeBinding: RuntimeBinding;
+  OperatorGrant: OperatorGrant; FlixyAccessGrant: FlixyAccessGrant; RuntimeBinding: RuntimeBinding;
   CommandReceipt: CommandReceipt; EventSequence: EventSequence;
   VolumeRun: VolumeRun;
   AnalyticsBinding: AnalyticsBinding;
   OntologyBinding:OntologyBinding;
 };
 export const schema = [Content, Customer, Campaign, CampaignMember, IntegrationLink, Offer, Rental, Playback, Outbox,
-  ControlCommand, OperatorGrant, RuntimeBinding, CommandReceipt, EventSequence, VolumeRun, AnalyticsBinding,OntologyBinding];
+  ControlCommand, OperatorGrant, FlixyAccessGrant, RuntimeBinding, CommandReceipt, EventSequence, VolumeRun, AnalyticsBinding,OntologyBinding];

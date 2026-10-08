@@ -9,11 +9,11 @@ The workspace description is blank.
 
 | Deliverable | Result |
 |---|---|
-| Physical inventory | **46 actual related items**, listed from Fabric and filtered by MSFlix names / native BPS suffix `8fbe0076`. |
-| Safe organization | **8 real folders; 45 of 46 physical items placed and read back.** |
+| Physical inventory | **47 actual related items**, including the native Flixy Data Agent. |
+| Safe organization | **9 real folders; 46 of 47 physical items placed and read back.** |
 | Native organization | **24 BPS artifacts in `02 Salesforce BPS`, all 4 cockpit items in `08 Cockpit`**; native children followed their parents, all names/IDs/connections preserved. |
 | Remaining folder gate | Native BPS solution `64a5f407-9261-4613-9095-3d72ce8c0dd3` remains at root: documented move returned **404 EntityNotFound**. |
-| Actual Fabric Task Flow | **Persisted and read back: 8 tasks, 9 connectors and 46 unique native artifact assignments.** Create returned 201; ETag-protected assignment update returned 200. |
+| Actual Fabric Task Flow | **Persisted and read back: 9 tasks, 12 connectors and 47 unique native artifact assignments.** Flixy's extension preserved the original eight tasks and 46 assignments using ETag concurrency. |
 
 A folder or Markdown diagram is not a Task Flow. This delivery now includes
 the **actual saved native graph**, not just documentation artifacts.
@@ -23,7 +23,7 @@ the **actual saved native graph**, not just documentation artifacts.
 | Name | `MSFlix Business Architecture` |
 | Flow ID | `253cac16-938e-56ad-8461-b8e9d01f96d5` |
 | Native resource ID | `6125bf4b-bd67-42d3-97ad-7bf0a17096d9` |
-| Final assignment ETag | `"0x8DF24B08CDF4960"` |
+| Flixy extension ETag | `"0x8DF25122042A717"` |
 
 ### Exact observed contract and resolved routing
 
@@ -47,7 +47,8 @@ the **actual saved native graph**, not just documentation artifacts.
 - The original native flow list was **empty** and backed up before creation.
   POST `taskflow202512` returned **201** and a resource location/ETag.
   PUT with `If-Match` returned **200**; GET `taskflow202602` returned the exact
-  8-task/9-edge/46-item structure.
+  original 8-task/9-edge/46-item structure. The 8 October Flixy extension returned
+  the exact 9-task/12-edge/47-item structure, without replacing prior assignments.
 
 No cluster hostname was guessed: the route came from the captured portal adapter
 and previously tested workspace DNS. No browser, login popup, global debug
@@ -68,7 +69,8 @@ relationships; they do not create data connections or schedule jobs.
 | Warehouse Gold business domains | Store data | 1 | Catalogue, offers, audiences, sales, playback, marketing |
 | Ontology v2 | General | 4 | Gold-backed business context and native graph family |
 | Cockpit Apps | Develop data | 4 | App, operational SQL, endpoint and trusted functions |
-| **Total** | | **46** | |
+| Flixy | General | 1 | Native Data Agent using Gold and the ontology-owned graph |
+| **Total** | | **47** | |
 
 | Native task | Actual task ID |
 |---|---|
@@ -80,8 +82,9 @@ relationships; they do not create data connections or schedule jobs.
 | Warehouse Gold business domains | `19c837bb-005a-5e53-8ab0-22394cc7cde1` |
 | Ontology v2 | `c6d9479c-79f1-5a00-9e39-74b7941f96f5` |
 | Cockpit Apps | `6d8cba5c-d5d2-58d5-af33-bb5346233922` |
+| Flixy | `a5d3fed3-3d04-54ac-b2f6-5027a3385ffc` |
 
-The nine saved connectors are:
+The twelve saved connectors are:
 
 1. Oracle references → Raw: mirrored-reference shortcuts.
 2. Salesforce BPS CRM → Raw: qualified MSFlix-keyed CRM handoff.
@@ -92,11 +95,12 @@ The nine saved connectors are:
 7. Warehouse Gold → Cockpit Apps: actual Warehouse analytics reads.
 8. Ontology v2 → Cockpit Apps: instance-qualified Business Graph.
 9. Cockpit Apps → RTI transactions: committed operational outbox.
+10. Warehouse Gold → Flixy: native Warehouse source.
+11. Ontology v2 → Flixy: its actual native graph source.
+12. Flixy → Cockpit Apps: read-only conversation.
 
-CRM custom-object ingestion and updated Ontology instance/binding gates remain
-explicit in [ARCHITECTURE.md](ARCHITECTURE.md). RTI is complete with the exact
-same 13,455 IDs in KQL and Raw, all remaining stream nodes Running, and the
-failed branch removed. Gold publication succeeded with 1,002 order lines.
+Source and execution boundaries remain explicit in [ARCHITECTURE.md](ARCHITECTURE.md).
+Automatic propagation reached 13,458 event IDs and 1,003 Gold order lines.
 SAP and Planning do not appear as deployed tasks.
 
 ## Real folder IDs and placements
@@ -114,6 +118,7 @@ No independent SQL-endpoint, KQL-child or Ontology-child move was attempted.
 | `06 Gold Business Domains` | `97d45536-222a-4611-80ed-f6e4e114cfc8` | 1 |
 | `07 Ontology v2` | `1a0a641e-bfe6-463c-adfb-3ed7a8bbe9f0` | 4 |
 | `08 Cockpit` | `727513cb-e77d-43a1-91b7-1db1b6a331f1` | 4 |
+| `09 Flixy` | `cc0976df-f747-4954-92c7-7967d27ec91d` | 1 |
 
 The user explicitly authorized extending the organization to native BPS and
 cockpit parents. Native jobs use unchanged item IDs and display names; the BPS
@@ -123,7 +128,7 @@ alter navigation, not source names, business definitions, connections or IDs.
 ## Every actual item and its logical task
 
 This table records the physical public item IDs. Native assignment DTOs were
-persisted/read back for all 46 items; portal identities use the captured
+persisted/read back for all 47 items; portal identities use the captured
 artifact-type adapters. Extended folder readback completed at
 **2026-10-07 20:01 UTC**; graph/assignment proof is recorded separately below.
 
@@ -225,6 +230,12 @@ its native task assignment.
 | `MSFlix Business Control` | SQLEndpoint | `6ce7ed79-d134-404b-bf01-709c9f62bb7d` |
 | `MSFlix Business Control` | UserDataFunction | `62904465-1297-4b4c-97aa-1e4228dcd54b` |
 
+### Flixy — 1
+
+| Item | Type | Actual item ID |
+|---|---|---|
+| `Flixy` | DataAgent | `664008b5-3de3-497b-b78f-14c4533147bd` |
+
 ## Reproducible bounded script and evidence
 
 `scripts/workspace_taskflow.py` requires explicit approved tenant, subscription,
@@ -245,6 +256,9 @@ state is backed up, stable task IDs and user-adjusted locations are preserved,
 and updates use the retrieved ETag. First creation requires the observed
 `--bps-portal-item-id`; subsequent runs can retain its already-saved native
 identity. Unrelated canvases are not replaced.
+Unrecognized existing tasks/connectors or any lost assignment now stop an update
+instead of silently replacing it. Flixy's task is included only when its actual
+native Data Agent is present.
 
 `--organize-folders` opt-in uses only documented create-folder and native
 parent-move operations. It moves positively owned root items. The additionally
@@ -268,6 +282,7 @@ Native execution proof in that ignored directory:
 - `native-taskflow-item-bindings.json`: all 46 public/native identity bindings.
 - `native-taskflow-assignment-write-proof.json`: ETag-protected 200 update.
 - `native-taskflow-final-readback.json`: exact saved 8-task/9-edge/46-item graph.
+- `flixy-final-readback.json`: exact saved 9-task/12-edge/47-item extension.
 
 Public item types and portal identities differ for several native workloads.
 The captured adapters include `SynapseNotebook`, `Pipeline`, `SQLDbNative`,

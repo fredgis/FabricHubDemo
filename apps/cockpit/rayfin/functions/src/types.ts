@@ -37,6 +37,10 @@ export type AppFunctionsSchema = {
     input: Record<string, never>;
     output: { source: { workspace_id: string; ontology_id: string; graph_model_id: string; gold_item_id: string }; state: 'ready' | 'empty' | 'pending' | 'binding-mismatch'; queried_at: string; generation: number; message: string; nodes: { key: string; type: string; label: string }[]; edges: { from: string; to: string; type: string }[]; limit: number };
   };
+  flixyAsk: {
+    input: { question: string; historyJson: string };
+    output: { text: string; sources: { label: string; url?: undefined | string }[] };
+  };
   placeOrder: {
     input: { input: { customer_key: string; offer_key: string; idempotency_key: string } };
     output: { entity_key: string; event_ids: string[]; status: string };

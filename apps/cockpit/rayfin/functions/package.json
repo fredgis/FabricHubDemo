@@ -12,6 +12,7 @@
   "dependencies": {
     "@azure/identity": "^4.13.3",
     "@microsoft/fabric-user-data-functions": "1.36.2",
+    "@modelcontextprotocol/sdk": "1.31.0",
     "mssql": "^12.7.2"
   },
   "devDependencies": {

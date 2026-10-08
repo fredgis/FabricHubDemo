@@ -40,13 +40,16 @@ flowchart LR
   Gold -->|"Gold facts + relationship junctions"| Ontology["MSFlixBusiness<br/>Ontology v2 + native graph"]
   Gold -->|"Real SQL analytics"| App
   Ontology -->|"Actual GQL relationships"| App
+  Gold --> Flixy["Flixy<br/>Native Fabric Data Agent"]
+  Ontology -->|"Native graph source"| Flixy
+  Flixy -->|"Read-only conversation"| App
 
   SAP["SAP<br/>Subscriptions · billing<br/>Distributor contracts · financial data"] -->|"Source contracts"| Raw
   Gold --> Planning["Fabric Planning<br/>Forecasts and scenarios"]
   Planning -->|"Governed plan versions"| Gold
 
   classDef stage fill:#1B1C1F,stroke:#ED6757,color:#F3F0EC;
-  class Oracle,Mirror,Salesforce,BPS,App,Functions,SQL,Worker,Kafka,Stream,KQL,Availability,Raw,Silver,Gold,Ontology,SAP,Planning stage;
+  class Oracle,Mirror,Salesforce,BPS,App,Functions,SQL,Worker,Kafka,Stream,KQL,Availability,Raw,Silver,Gold,Ontology,Flixy,SAP,Planning stage;
 ```
 
 The Eventstream remains the required relay. There is **no qualified direct
@@ -65,6 +68,7 @@ and no deployed standalone semantic model in the discovered inventory.
 | Warehouse Gold | Current business facts and exact amounts, grouped into catalogue/offers/audiences/sales/playback/marketing. | Native master refresh completed, including corrected Oracle titles. The automatic acceptance published 1,003 order lines and the target playback. |
 | Ontology v2 | Gold business entities and junction-backed relationships; native graph/Eventhouse children belong to this workload. | Gold binding and the 10-entity/12-relationship projection accepted; native Gold-backed graph queries succeeded. |
 | Cockpit Apps | Authenticated app, trusted commands, native SQL persistence/functions and Gold analytics reads. | Cinematic home, interactive graph, Demo controls, recovered artwork and current-event ordering deployed; native user health, Gold and graph calls succeeded. |
+| Flixy | Native Data Agent, Gold and the ontology-owned GraphModel, source-grounded read-only answers. | Native agent published; real Gold counts and a graph path returned. Direct ontology-context attachment remains blocked by Microsoft; the native graph is the explicit supported alternative. |
 
 For detailed facts, see [Oracle](ORACLE.md), [Salesforce BPS](SALESFORCE-BPS.md),
 [RTI](RTI.md) and [Warehouse/Ontology](WAREHOUSE-ONTOLOGY.md).
@@ -88,7 +92,7 @@ consolidated business layer. See the
 
 ## Physical organization and workload boundaries
 
-Eight real folders now contain **45 of 46 physical items**. SQL endpoints,
+Nine real folders now contain **46 of 47 physical items**. SQL endpoints,
 native cockpit children and Ontology/Eventhouse children moved automatically
 with their parents; no child was moved independently.
 
@@ -98,10 +102,11 @@ unchanged. The native BPS solution launcher itself remains at root because the
 documented move operation returned **404 EntityNotFound** for its public item
 ID; it was not renamed or replaced. BPS internal Bronze/Silver/Gold are not substitutes for the
 separate cross-business `MSFlixRaw`, `MSFlixSilver` and Warehouse `MSFlixGold`.
-The full **46-item** inventory and all folder IDs are in [TASK-FLOW.md](TASK-FLOW.md).
+The full **47-item** inventory and all folder IDs are in [TASK-FLOW.md](TASK-FLOW.md).
 
-The **actual native Task Flow is now persisted**: 8 tasks, 9 connectors and
-46 unique physical-item assignments, confirmed by service readback. The
+The **actual native Task Flow is now persisted**: 9 tasks, 12 connectors and
+47 unique physical-item assignments, confirmed by service readback. Flixy's
+extension preserved all eight earlier tasks and 46 assignments. The
 workspace-specific API host resolved the earlier generic-cluster routing error;
 the original empty flow list was backed up and the assignment update used ETag
 concurrency.
@@ -122,8 +127,11 @@ concurrency.
 - SAP and Planning are part of the overall architecture but remain outside
   this implementation workstream, owned externally. This execution provisioned
   neither and claims no qualified SAP/Planning data. Datasphere remains outside
-  scope. Flixy was subsequently authorized, but its activation is blocked on
-  approval for Azure OpenAI cross-region processing and conversation storage.
+  scope. The user subsequently authorized Flixy and enabled the required
+  Azure OpenAI cross-region processing and conversation-storage settings.
+- Flixy requires a caller-scoped identity grant. The current Rayfin resource
+  token is the app owner's identity, so another caller cannot borrow it.
+  See [Flixy](FLIXY.md) before expanding access.
 - The persistent worker uses managed identity, not cached administrator tokens.
   Its orchestration role is limited to MSFlix; effective SQL DENYs protect
   operational payloads, deletes and commercial writes. See the

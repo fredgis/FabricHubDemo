@@ -1,0 +1,396 @@
+/* Scoped overlay: below the app's skip link (10), above its sidebar (2).
+   Only the trigger and panel intercept pointers; the cockpit stays usable. */
+.flixy-assistant {
+  --flixy-edge: 20px;
+  position: fixed;
+  inset: 0;
+  z-index: 8;
+  pointer-events: none;
+  color: #f3f0ec;
+  font-family: inherit;
+}
+
+.flixy-assistant button,
+.flixy-assistant textarea {
+  font-family: inherit;
+}
+
+.flixy-assistant button {
+  min-height: 44px;
+  min-width: 44px;
+  color: #f3f0ec;
+  white-space: normal;
+}
+
+.flixy-assistant svg {
+  flex-shrink: 0;
+}
+
+.flixy-assistant :is(button, a, textarea):focus-visible {
+  outline: 2px solid #f3f0ec;
+  outline-offset: 3px;
+}
+
+.flixy-assistant .flixy-assistant__trigger {
+  position: absolute;
+  right: calc(var(--flixy-edge) + env(safe-area-inset-right, 0px));
+  bottom: calc(var(--flixy-edge) + env(safe-area-inset-bottom, 0px));
+  pointer-events: auto;
+  min-width: 112px;
+  height: 52px;
+  padding: 12px 18px;
+  border: 1px solid #ed6757;
+  border-radius: 999px;
+  background: #ed6757;
+  color: #121315;
+  font-size: 15px;
+  box-shadow: 0 5px 20px #00000040;
+}
+
+.flixy-assistant__trigger:hover:not(:disabled),
+.flixy-assistant__send:hover:not(:disabled) {
+  background: #f39489;
+  border-color: #f39489;
+}
+
+.flixy-assistant__panel {
+  position: absolute;
+  right: calc(var(--flixy-edge) + env(safe-area-inset-right, 0px));
+  bottom: calc(var(--flixy-edge) + env(safe-area-inset-bottom, 0px) + 64px);
+  width: 420px;
+  max-width: calc(100vw - var(--flixy-edge) - var(--flixy-edge) - env(safe-area-inset-left, 0px) - env(safe-area-inset-right, 0px));
+  height: min(680px, calc(100dvh - var(--flixy-edge) - var(--flixy-edge) - 64px - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px)));
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  overscroll-behavior: contain;
+  pointer-events: auto;
+  border: 1px solid #505158;
+  border-top: 2px solid #ed6757;
+  border-radius: 10px;
+  background: #121315;
+  box-shadow: 0 16px 48px #00000066;
+}
+
+.flixy-assistant__panel[hidden] {
+  display: none;
+}
+
+.flixy-assistant__header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 20px 16px 12px 20px;
+  background: #1b1c1f;
+}
+
+.flixy-assistant__mark {
+  color: #ed6757;
+}
+
+.flixy-assistant__identity {
+  flex: 1;
+  min-width: 0;
+}
+
+.flixy-assistant__eyebrow {
+  color: #b2b1b5;
+  font-size: 9px;
+  font-weight: 650;
+  letter-spacing: 2px;
+}
+
+.flixy-assistant__identity h2 {
+  margin: 4px 0;
+  font-size: 23px;
+  letter-spacing: -.6px;
+}
+
+.flixy-assistant__identity p {
+  margin: 0;
+  color: #b2b1b5;
+  font-size: 11px;
+}
+
+.flixy-assistant__close {
+  align-self: flex-start;
+  padding: 10px;
+  background: transparent;
+  border-color: transparent;
+}
+
+.flixy-assistant__toolbar {
+  display: flex;
+  justify-content: flex-end;
+  padding: 0 16px 8px;
+  background: #1b1c1f;
+  border-bottom: 1px solid #34353a;
+}
+
+.flixy-assistant__toolbar button {
+  background: transparent;
+  border-color: transparent;
+  padding: 8px;
+  font-size: 11px;
+}
+
+.flixy-assistant__thread {
+  flex: 1 1 auto;
+  min-height: 96px;
+  padding: 20px;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  scrollbar-gutter: stable;
+}
+
+.flixy-assistant__empty h3 {
+  margin: 0 0 10px;
+  font-size: 18px;
+}
+
+.flixy-assistant__empty p {
+  margin-bottom: 18px;
+  font-size: 13px;
+  color: #b2b1b5;
+}
+
+.flixy-assistant__suggestions,
+.flixy-assistant__messages,
+.flixy-assistant__sources ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.flixy-assistant__suggestions {
+  display: grid;
+  gap: 8px;
+}
+
+.flixy-assistant__suggestions button {
+  width: 100%;
+  justify-content: space-between;
+  padding: 12px;
+  text-align: left;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.5;
+  background: #1b1c1f;
+  border-color: #505158;
+}
+
+.flixy-assistant__suggestions svg {
+  color: #f39489;
+}
+
+.flixy-assistant__messages {
+  display: grid;
+  gap: 16px;
+}
+
+.flixy-assistant__message {
+  padding: 14px;
+  border: 1px solid #34353a;
+  border-radius: 10px;
+  background: #1b1c1f;
+  min-width: 0;
+}
+
+.flixy-assistant__message--user {
+  margin-left: 26px;
+  border-color: #77534d;
+  background: #2b2422;
+}
+
+.flixy-assistant__speaker {
+  display: block;
+  margin-bottom: 7px;
+  font-size: 11px;
+  font-weight: 650;
+  color: #f39489;
+}
+
+.flixy-assistant__message-text {
+  margin: 0;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  font-size: 13px;
+  line-height: 1.7;
+}
+
+.flixy-assistant__sources {
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid #34353a;
+  font-size: 12px;
+  overflow-wrap: anywhere;
+}
+
+.flixy-assistant__sources p {
+  margin: 0 0 6px;
+  font-size: 11px;
+  color: #b2b1b5;
+}
+
+.flixy-assistant__sources li + li {
+  margin-top: 8px;
+}
+
+.flixy-assistant__sources a {
+  color: #f39489;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.flixy-assistant__sources svg {
+  display: inline;
+  vertical-align: middle;
+  margin-left: 4px;
+}
+
+.flixy-assistant__composer {
+  display: grid;
+  flex-shrink: 0;
+  gap: 10px;
+  padding: 16px 20px 20px;
+  border-top: 1px solid #34353a;
+  background: #1b1c1f;
+}
+
+.flixy-assistant__status {
+  margin: 0;
+  color: #c8c4c3;
+  font-size: 12px;
+}
+
+.flixy-assistant__recovery {
+  padding: 12px;
+  border: 1px solid #a15f56;
+  border-radius: 6px;
+  background: #322322;
+}
+
+.flixy-assistant__recovery p {
+  margin: 0 0 10px;
+  font-size: 12px;
+  color: #f5ccc5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+}
+
+.flixy-assistant__field-heading {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.flixy-assistant__field-heading label {
+  color: #f3f0ec;
+  font-size: 12px;
+}
+
+.flixy-assistant__field-heading span {
+  color: #b2b1b5;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+}
+
+.flixy-assistant textarea {
+  display: block;
+  width: 100%;
+  min-height: 76px;
+  max-height: min(160px, 25dvh);
+  resize: vertical;
+  border: 1px solid #77767b;
+  border-radius: 6px;
+  background: #121315;
+  color: #f3f0ec;
+  padding: 12px;
+  font-size: 14px;
+  line-height: 1.5;
+}
+
+.flixy-assistant textarea::placeholder {
+  color: #b2b1b5;
+}
+
+.flixy-assistant textarea[readonly] {
+  cursor: progress;
+}
+
+.flixy-assistant__hint {
+  margin: 0;
+  color: #b2b1b5;
+  font-size: 11px;
+  line-height: 1.5;
+}
+
+.flixy-assistant__actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.flixy-assistant__actions p {
+  flex: 1;
+  min-width: 110px;
+}
+
+.flixy-assistant .flixy-assistant__send {
+  margin-left: auto;
+  background: #ed6757;
+  border-color: #ed6757;
+  color: #121315;
+}
+
+.flixy-assistant button:disabled {
+  opacity: 1;
+  background: #303137;
+  border-color: #505158;
+  color: #b2b1b5;
+}
+
+.flixy-assistant__sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+  border: 0;
+}
+
+@media (max-width: 480px) {
+  .flixy-assistant {
+    --flixy-edge: 12px;
+  }
+
+  .flixy-assistant__thread,
+  .flixy-assistant__composer {
+    padding: 16px;
+  }
+
+  .flixy-assistant textarea {
+    font-size: 16px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .flixy-assistant *,
+  .flixy-assistant *::before,
+  .flixy-assistant *::after {
+    animation: none;
+    transition: none;
+    scroll-behavior: auto;
+  }
+
+  .flixy-assistant button:active:not(:disabled) {
+    transform: none;
+  }
+}

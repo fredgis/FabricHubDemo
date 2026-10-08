@@ -105,13 +105,13 @@ prices, expiry and availability. Respect reduced motion and keyboard navigation.
 - If no private-VM SKU is allowed in the target region, report the subscription
   availability constraint instead of silently changing the capacity region.
 - Flixy on the Singapore capacity requires Azure OpenAI cross-region processing
-  and conversation storage. Both tenant switches are currently disabled.
-  Approval was requested for an MSFlix-only security group; no approval was
-  received and neither switch was changed.
+  and conversation storage. The user enabled both switches on 8 October;
+  their enabled state was verified. Deployment scripts did not change them.
 - Microsoft currently documents an issue adding new-experience ontologies to
   Data Agents ([known issue 1987](https://support.fabric.microsoft.com/known-issues/?active=true&fixed=true&sort=published&issueId=1987)).
-  Verify the native attachment before claiming that Flixy uses the ontology;
-  a Warehouse-only agent is not equivalent to the requested two-source setup.
+  Native attachment returned `OntologyAddAsDataSourceBlocked`. Flixy uses the
+  supported ontology-owned GraphModel alongside Gold, explicitly labelled
+  "Ontology via native graph", not direct ontology context.
 
 ## Current state
 
@@ -133,5 +133,5 @@ prices, expiry and availability. Respect reduced motion and keyboard navigation.
 | Rayfin cockpit | Cinematic home, Gold business views, interactive graph and bounded Demo tab deployed; recovered licensed images and current-event ordering published |
 | Film imagery | All 82 known licensed files cached; 47 films have a genuine still or poster. Other image categories are explicitly labelled; full film-specific coverage requires more rights-cleared assets |
 | Demo propagation | Managed-identity worker active, enabled and unpaused; real Kafka ACKs, Raw/Silver/Gold publication and target graph path proved; subsequent idle cycle ran without another Spark job |
-| Flixy | Native agent and conversation integration not deployed; cross-region AI processing/storage approval is required before activation |
+| Flixy | Native agent and global cockpit bubble deployed; authenticated answers match independent Gold counts and return real graph relationships; dedicated folder and 9-task/12-connector/47-assignment Task Flow persisted |
 | GPU | No accelerated queries observed; Microsoft limited-preview enablement remains an external gate |

@@ -823,7 +823,15 @@ GQL returned the target order and playback. The worker is active, enabled and
 unpaused; an idle cycle did not launch another Spark job. See
 [Demo automation](DEMO-AUTOMATION.md) for operation and recovery.
 
-Flixy is authorized but is not deployed. Its required Azure OpenAI cross-region
-processing and conversation-storage switches are disabled; the request to
-enable them for an MSFlix-only group has not received approval. No tenant
-policy was changed and no placeholder assistant is presented as a live agent.
+The user has enabled the required Azure OpenAI cross-region processing and
+conversation-storage settings. The actual Data Agent **Flixy** is published,
+with Gold and the ontology's native graph as selected sources. Direct ontology
+attachment is currently blocked by Microsoft, so this supported graph route
+is explicit rather than hidden behind a false direct-context claim.
+
+The new floating Flixy panel is wired to the real typed `flixyAsk` function on
+every authenticated tab. It retains context while closed, supports keyboard
+focus/escape, clear, retry and stop-waiting, and displays explicit service errors.
+Named caller authorization prevents viewers from inheriting the app owner's
+external-resource permissions. See [Flixy](FLIXY.md) for the complete source,
+runtime and deployment contract.

@@ -36,6 +36,7 @@ flowchart LR
   App["MSFLIX BUSINESS CONTROL<br/>Cockpit · operations · business views"]
   SAP["SAP<br/>Subscriptions · billing<br/>Distributor contracts · financial data"]
   Planning["PLANNING<br/>Forecasts and scenarios"]
+  Flixy["FLIXY<br/>Native Fabric Data Agent<br/>Gold + ontology native graph"]
 
   Oracle --> Catalogue
   CRM --> Clients
@@ -49,10 +50,13 @@ flowchart LR
   App -->|"Committed transactions"| RTI
   SAP --> GOLD
   GOLD --> Planning
+  GOLD --> Flixy
+  Ontology -->|"Native graph"| Flixy
+  Flixy -->|"Read-only conversation"| App
 
   classDef source fill:#1B1C1F,stroke:#ED6757,color:#F3F0EC;
   classDef business fill:#ED6757,stroke:#ED6757,color:#121315;
-  class Oracle,CRM,RTI,Ontology,App,SAP,Planning source;
+  class Oracle,CRM,RTI,Ontology,App,SAP,Planning,Flixy source;
   class Catalogue,Clients,Marketing,Transactions,Conversions business;
   style GOLD fill:#121315,stroke:#ED6757,color:#F3F0EC;
   linkStyle 2 stroke:#ED6757,stroke-width:2px;
@@ -64,7 +68,7 @@ business entities across sources, Gold and Ontology.
 Clients, campaigns, consents and marketing touches reach Gold through native BPS.
 Recorded conversions remain **0**: none are invented.
 
-**Verified backbone:** actual Task Flow **8 tasks / 9 connectors / 46
+**Verified backbone:** actual Task Flow **9 tasks / 12 connectors / 47
 assignments**, Gold **1,003 demonstration orders**, and a live Gold-backed
 Ontology graph. The cockpit combines a cinematic film-led home, business views
 and an interactive graph with visible relationships, zoom and node selection.
@@ -74,6 +78,12 @@ application commands. A persistent cloud worker publishes their events to Kafka,
 then refreshes Raw, Silver, Gold and the ontology graph. Its accepted checkpoint
 contains **13,458 propagated events**. Analytics refresh is asynchronous, not an
 instantaneous consequence of clicking a command.
+
+**Flixy** is available from its floating bubble on every cockpit tab, connected
+to the native Fabric Data Agent for Gold and the ontology's real relationships.
+Microsoft currently blocks direct ontology-v2
+attachment, so its supported **native graph** is used instead. Access is
+identity-scoped; see [Flixy](docs/FLIXY.md) for the source and authentication details.
 
 ## Run it
 
@@ -88,7 +98,7 @@ stage against the approved environment, never reset existing source data.
 [Salesforce / BPS](docs/SALESFORCE-BPS.md) · [RTI](docs/RTI.md) ·
 [Warehouse → Ontology](docs/WAREHOUSE-ONTOLOGY.md) ·
 [Workspace Task Flow and folders](docs/TASK-FLOW.md) · [Cockpit](docs/COCKPIT.md) ·
-[Automatic Demo propagation](docs/DEMO-AUTOMATION.md)
+[Automatic Demo propagation](docs/DEMO-AUTOMATION.md) · [Flixy](docs/FLIXY.md)
 
 Customer identities are fictional. No real bank charge or commercial
 film-distribution right is claimed. Sourced imagery retains its individual
