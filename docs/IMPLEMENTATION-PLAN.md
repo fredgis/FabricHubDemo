@@ -12,14 +12,15 @@ Region: `southeastasia` (Singapore). Capacity: F16. Workspace: MSFlix.
 The user authorized a region change on 2026-10-07: Germany West Central and all
 three GPU-supported US regions had zero Fabric CU quota; Southeast Asia had
 512 CU available. This moves the demo outside the EU. The dataset contains no
-real customer identities; SAP cloud integration remains excluded.
+real customer identities; SAP is separately authorized as described below.
 Budget: reasonable demo-sized SKUs, bounded producers, no unapproved capacity
 increase. Reuse existing Azure and Salesforce authentication caches.
 
-SAP, SAP mirroring, Datasphere, simulated SAP invoices/contracts and financial
-Planning are excluded from the deployed implementation described below. The
-separately authorized local SAP work is described in [SAP PR 1](#sap-pr-1-local-data-contract).
-SAP cloud integration and Planning remain future parts of the architecture.
+The original deployment below excludes SAP and financial Planning. approved operator
+subsequently authorized the [local SAP contract](#sap-pr-1-local-data-contract),
+private SAP foundation and [native BPS integration](#sap-native-bps-and-warehouse-publication).
+Planning remains deferred. approved operator owns SAP through `MSFlixGold`; app owner owns
+cockpit changes and repository merges.
 
 On 2026-10-08, the user authorized Flixy: a native Fabric Data Agent sourced from
 the consolidated Gold Warehouse and business ontology, with a conversational
@@ -253,6 +254,314 @@ ADLS + the dedicated SAP BPS/mirror foundation, then native Gold processing.
 Warehouse Finance publication, cockpit, ontology/Flixy and Planning are outside
 this local PR. No infrastructure or existing pipeline is changed.
 
+## SAP native BPS and Warehouse publication
+
+### Scope and current checkpoint
+
+The dedicated `MSFlixSAP` source is `S4M`, simulated S/4HANA 2023 via SAP
+Datasphere. Its resources are isolated from Salesforce in `02bis SAP BPS`;
+the native BPS launcher remains at workspace root because its supported move
+returned `EntityNotFound`. BPS provisioned the SAP mirror itself: do not create
+a second mirror or substitute local Parquet reads for native processing.
+
+The private ADLS account `<sap-storage-account>` has public network and shared-key
+access disabled. The landing shortcut uses workspace identity. Its write role
+is limited to the `datasphere` container; no existing networking was relaxed.
+Azure provisioning belongs to the separate `work/sap-mirroring` change set.
+
+Activated native datasets cover Finance, Accounts Payable, Accounts Receivable,
+Order-to-Cash Billing and `MSFlixSubscriptionsAndContracts`. Four templates
+provide 85 distinct standard objects; the seven `ZMSF_*` objects are explicitly
+custom simulation objects registered and imported through the native BPS UI.
+`native-input-v1.json` captures the standard contract and 71 applicable cube
+relationships; relationships belonging to inactive facts are excluded.
+
+The custom dataset also requires these two native fact-to-dimension relationships.
+Register them with **Manage relationship** in `MSFlixSubscriptionsAndContracts`
+before S2G; importing the tables alone does not create a cube configuration.
+
+| Fact | Dimension | Join condition | Surrogate column |
+| --- | --- | --- | --- |
+| `ZMSF_BILLING_LINK` | `ZMSF_SUBSCRIPTION` | `SUBSCRIPTION_ID = SUBSCRIPTION_ID` | `_key_ZMSFSUBSCRIPTION` |
+| `ZMSF_CONTRACT_CHARGE` | `ZMSF_RIGHTS_CONTRACT` | `CONTRACT_ID = CONTRACT_ID` and `VERSION = VERSION` | `_key_ZMSFRIGHTSCONTRACT` |
+
+Both use join order `0`, equality predicates and no imported dimension columns
+(`DimColumns = []`). Use the BPS tuple syntax for the predicates, for example
+`[("CONTRACT_ID", "CONTRACT_ID", "=="), ("VERSION", "VERSION", "==")]`.
+Native processing retains source-system isolation. Preserve the composite
+contract/version key; joining on contract alone can multiply charges across
+versions. Validate that each fact resolves to exactly one actual dimension row,
+not the native `Key = -1` sentinel. Do not bypass the managed fact notebook's
+required `p_cubeConfig` validation or write internal metadata directly.
+
+The new native adapter supplies all 92 admitted business objects plus `DD03ND`,
+with native columns, types, texts, calendars and financial hierarchies. The
+original 20-object PR1 package is unchanged and must not be used as the native
+input package. Unused standard dimensions are honestly empty, not fabricated
+industrial data. Local contract coverage is not proof of successful native
+Silver or Gold processing.
+
+Checkpoint on 9 October 2026: all 478 source files were published, all 93 tables
+were Replicating without mirror errors, and SQL readback showed 25 GL items,
+25 operational items, four billing items, three subscriptions and two contract
+charges. Billing net is EUR 28. Mirroring processed-row metrics are cumulative
+events, not current table cardinalities.
+
+The first B2S run failed repeatedly because library
+`ei_common_lib-1.0.5` imports `_to_seq`, unavailable in Runtime 2.0. That owned
+run was cancelled. Only the dedicated SAP environment was published to Runtime
+1.3, preserving libraries and all other compute settings. The replacement manual
+B2S run completed successfully. Native BPS's existing daily B2S at 10:00 UTC
+started a scheduled replay during its final seconds; that exact existing run
+was followed without submitting another job and is now Completed. Full SQL
+qualification of the 22 Silver domain tables agrees with the approved financial
+scenario and existing CRM/catalog masters. The first native S2G run stopped on
+missing empty-dimension structures; the schema-only recovery below completed.
+The next attempt reached the custom facts but failed because their relationships
+had not yet been registered (`p_cubeConfig` was empty). Both relationships above
+are now registered through native BPS. Readback confirms every in-scope fact has
+a configuration; the four billing links and two charges each resolve exactly
+once. The controlled S2G retry completed on 9 October at 16:09 UTC, including
+the final native view notebook. Actual Gold rows, surrogate relationships and
+financial totals qualified successfully; pipeline status alone is not sufficient,
+because managed notebooks can capture errors without failing their job.
+
+The first shared Warehouse publication committed at 16:20 UTC. A new SQL
+connection confirmed all 22 domain tables, nine serving views, SAP lineage and
+the exact qualified data fingerprints. The synthetic November 2026 case contains
+10 accounting documents / 25 journal lines: EUR 28 net billings and recognized
+revenue, EUR 13.60 content cost, EUR 14.40 contribution after content cost only,
+EUR 12 receivables, EUR 8.16 payables, EUR 13.44 net bank movement and EUR 2.88
+net VAT liability. Operational masters/facts remain at 700 customers, 305 contents
+and 1,008 order lines, with the same operational publication marker.
+Ignored `warehouse-qualified-v1.json` and `warehouse-persisted-v1.json` retain
+the native qualification and committed readback respectively.
+
+Runtime 1.3 is a demo compatibility recovery with lifecycle limitations, not a
+production upgrade strategy. Salesforce runtime and pipelines were not changed.
+
+### Operator sequence and rerun safeguards
+
+Use the existing Python environment, the SAP requirements and
+`fabric\requirements-deploy.txt` for declared SQL connectivity. The publication
+client uses ODBC 18 when available, otherwise `mssql-python`; it does not silently
+fall back to ODBC 17.
+
+Keep source metadata captures, generated files and all job evidence under ignored
+`.state\sap-native`. Copy `sources\sap\target.example.json` to
+`.state\sap-native\target.local.json` only when that file does not already exist;
+replace the zero `operator_id` with the approved operator's Entra object ID.
+Existing authentication must match the exact tenant, operator and token audience.
+No password, SAS, shared key or access token belongs in configuration or Git.
+The helpers deliberately support only this provisioned MSFlix SAP source.
+
+`native-contract-with-custom.json` is the captured admitted native metadata,
+not a hand-written replacement for registration. Dataset configuration remains
+through the native UI; do not mutate the internal metadata database directly.
+
+```powershell
+# Offline generation and source-publication preview.
+python -m sources.sap.native `
+  --metadata .state\sap-native\native-contract-with-custom.json `
+  --output .state\sap-native\november-2026-native-v3
+python -m sources.sap.publish `
+  --target .state\sap-native\target.local.json `
+  --package .state\sap-native\november-2026-native-v3 `
+  --evidence .state\sap-native\publication.json
+
+# Resume the checkpointed B2S job; do not submit another run blindly.
+python -m sources.sap.process `
+  --target .state\sap-native\target.local.json `
+  --stage b2s --evidence .state\sap-native --apply
+```
+
+The publisher requires `--apply` to write. It commits complete files using
+conditional atomic Put Blob through the OneLake shortcut, verifies the bytes,
+keeps identical existing files and refuses differing files. It publishes metadata,
+initial Parquet, completion markers and chronological deltas. This is a full
+synthetic historical bootstrap, not a live six-day checkpoint demonstration.
+Never reset or replace source files to recover a processing failure.
+
+Accepted jobs are checkpointed before polling. A failed/cancelled native job
+requires `--retry-failed-job` with its exact latest ID; an explicit completed
+rerun requires `--after-completed-job`. A newer checkpoint cannot be overwritten
+by retrying an old failure while native history is lagging. Ambiguous submission
+is a stop condition requiring reconciliation, not permission to POST again.
+Inspect child activities in the native monitor: Core job history does not
+necessarily list child `ExecutePipeline` runs.
+
+Native BPS provisioned daily B2S at 10:00 UTC and S2G at 13:00 UTC under the
+approved operator. They run independently of these local wrappers. During the
+empty-dimension recovery, only the daily SAP Gold schedule was temporarily paused
+to avoid overlapping its retry. After committed Warehouse readback it was restored
+on 9 October, preserving the same schedule ID, owner and complete configuration.
+Ignored `s2g-schedule-recovery.json` retains the before/after evidence and
+`state: restored`. No Salesforce or other schedule was changed.
+An already-running scheduled SAP job can be explicitly followed with
+`--adopt-scheduled-job` and its exact latest ID. The helper checks the live pipeline
+identity and `invokeType=Scheduled`, preserves an accepted different job, and does
+not POST a new run during adoption. These schedules refresh native BPS only:
+publication into `MSFlixGold` remains an explicit, independently gated command,
+not part of the operational demo worker or a newly scheduled Warehouse job.
+
+After the latest B2S is Completed, qualify actual Silver rows and amounts:
+
+```powershell
+$b2s = Get-Content .state\sap-native\b2s-job.json -Raw | ConvertFrom-Json
+$proof = ".state\sap-native\silver-qualified-$($b2s.job_id).json"
+python -m sources.sap.warehouse `
+  --target .state\sap-native\target.local.json `
+  --processing-evidence .state\sap-native `
+  --catalog $proof --run-id msflix-sap-november-2026-v1 --inspect-silver
+python -m sources.sap.process `
+  --target .state\sap-native\target.local.json `
+  --stage s2g --evidence .state\sap-native --apply
+```
+
+Silver inspection shares the full business/accounting gates, but does not
+invent Gold dimension `Key` values: B2S intentionally has no such surrogates.
+The job-qualified proof cannot overwrite evidence from a prior B2S run. The
+local S2G runner refuses missing/mismatched proof or a newer B2S job. If SQL
+metadata lags after native processing, refresh that exact SAP SQL endpoint's
+metadata using the supported API/UI; do not change source tables or relax
+catalog checks.
+
+### Empty-dimension compatibility
+
+The managed B2S ABAP notebook exits successfully on zero source rows before
+materializing a typed Silver table. Its S2G dimension notebook can also return
+an error in `exitValue` while the notebook/pipeline status is Succeeded.
+Consequently, the first fact processing correctly failed
+`CubeConfigValidationFailed` for `I_PLANT` and `I_PERSONWORKAGREEMENT_1`.
+The scenario intentionally has no plants or employee work agreements.
+
+`sources.sap.empty_dimensions` deploys the owned
+`MSFlixSAPEmptyDimensionSchemas` notebook in `02bis SAP BPS`, bound to the
+dedicated SAP Silver and environment. It checks the actual native mirrored
+tables are genuinely empty and contain the declared business columns, then
+creates **only missing typed, zero-row Silver Delta structures**. It never
+creates a plant, employee, contract or journal row, never writes Gold, never
+overwrites a non-Delta path/existing data, and never edits managed BPS notebooks
+or internal metadata. Native S2G remains responsible for all Gold processing.
+
+```powershell
+python -m sources.sap.empty_dimensions `
+  --target .state\sap-native\target.local.json `
+  --evidence .state\sap-native --apply
+```
+
+The command refuses concurrent native SAP processing and checkpoints its
+accepted notebook job before polling; a repeated invocation resumes that
+exact job instead of submitting another. Native SQL readback confirmed both
+initially repaired dimensions have **zero rows**. The version-2 adapter covers
+all 12 declared empty objects, including the seven additional structures exposed
+by the subsequent S2G failure. Those seven have valid Delta logs and SQL-visible
+zero-row tables; the Silver catalog now contains all 92 business tables.
+`DD03ND` remains source metadata, not an expected Silver business table.
+If endpoint visibility lags, refresh only that SAP endpoint's metadata.
+Repairing these unrelated empty structures does not change the qualified
+22-table financial Silver domain.
+
+Only then qualify native Gold:
+
+```powershell
+python -m sources.sap.warehouse `
+  --target .state\sap-native\target.local.json `
+  --processing-evidence .state\sap-native `
+  --catalog .state\sap-native\warehouse-qualified-v1.json `
+  --run-id msflix-sap-november-2026-v1 --inspect-source
+```
+
+`--inspect-source` performs bounded reads only. The default mode is offline
+preview. An unchanged qualified catalog, matching config/references and
+Completed latest live B2S/S2G jobs are required before the same command with
+`--apply` may publish. Use a new catalog path if explicit qualification must be
+repeated; do not overwrite prior evidence to hide source drift.
+
+### Shared Warehouse consumption boundary
+
+`fabric\gold\sap-ddl.sql`, `sap-views.sql` and `sources.sap.warehouse` publish
+22 dedicated `gold.sap_*` source tables and nine SAP views for Finance, current
+AR/AP, payments, invoice items, subscriptions/contracts, fiscal periods and
+account roles, plus `gold.sap_publication` and `gold.sap_writer_guard`.
+These are separate from tables refreshed by the existing `fabric\gold\load.sql`.
+
+All ingress is `INSERT ... SELECT` from actual native BPS Gold in the same
+workspace. Local scenario totals are a reconciliation oracle, never the
+ingestion payload. Native `_SystemName`, `_UpdateTimeStamp` and custom dimension
+`Key` are checked; source NUMC keys and versions are reconstructed as padded
+business text rather than exposed as dimension surrogates.
+The two custom fact surrogates are also compared to their actual dimension
+`Key`, using source-system and business keys (including contract version).
+Null, sentinel, mismatched and multiplying joins block qualification. This
+check runs during Gold inspection, before apply, and again inside the target
+transaction. Silver qualification does not require Gold surrogates.
+
+Publication replaces only its source/company/scenario scope transactionally,
+records independent freshness and job lineage in `gold.sap_publication`, and
+reconciles target rows before commit. Customer and catalog keys must agree with
+existing shared masters, which are read but not mutated. GL and AR/AP remain
+projections of one journal. Collections, refunds and supplier payments must
+reference a non-self, same-partner, opposite-sign invoice/credit of the proper
+document and account type; partial supplier payment remains open.
+
+Fabric Warehouse rejects `SET XACT_ABORT ON`. Publication therefore uses explicit
+`BEGIN TRANSACTION` / `COMMIT`, SQL `TRY/CATCH` with rollback and rethrow, and
+client-side rollback on failure. No partial success or automatic retry is accepted.
+The initial rejected batch left no SAP objects; the supported transaction then
+published successfully.
+
+### SQL handoff for cockpit integration
+
+The published source is `S4M`, company scope `1710`, scenario and initial run
+`msflix-sap-november-2026-v1`, with financial `as_of = 2026-11-30`. This is an
+explicitly synthetic future-period demonstration, not today's production results.
+The publication timestamp describes processing freshness, not the accounting date.
+
+| Serving view in `gold` | Grain and consumption meaning |
+| --- | --- |
+| `sap_monthly_finance` | Company/scenario/run, calendar and fiscal period, currency; GL `0L` revenue, content expense and contribution after content cost only |
+| `sap_current_balances` | Company/scenario/run at the publication `as_of`; AR EUR 12 and AP EUR 8.16 |
+| `sap_ar_open_item_current` | One open customer journal item; includes `CUSTOMER_KEY` and Salesforce `source_customer_id` |
+| `sap_ap_open_item_current` | Two open supplier journal items; signed amounts net to EUR 8.16, not two unpaid invoices |
+| `sap_payment_journal` | Eight GL lines from four collection/refund/payment documents; not eight payments or cash-only lines |
+| `sap_customer_invoice_item` | Four invoice/credit items with customer and subscription/service-period links |
+| `sap_subscription_contract` | Three subscriptions with customer, plan and rights-contract version |
+| `sap_calendar` | Twelve fiscal periods for variant `K4`, year `2026` |
+| `sap_account_roles` | Eight GL accounts with explicit finance roles |
+
+Every view is gated by `gold.sap_publication`. Filter source/company/scenario
+explicitly; never use the operational `gold.publication` as SAP freshness.
+For example:
+
+```sql
+SELECT p.as_of, p.completed_at AS sap_published_at,
+       f.calendar_year, f.calendar_month, f.currency,
+       f.recognized_subscription_revenue, f.content_expense,
+       f.contribution_after_content_cost_only
+FROM gold.sap_monthly_finance f
+JOIN gold.sap_publication p
+  ON p.source_system=f.source_system AND p.company_scope=f.company_scope
+ AND p.scenario_id=f.scenario_id AND p.run_id=f.run_id
+WHERE p.source_system='S4M' AND p.company_scope='1710'
+  AND p.scenario_id='msflix-sap-november-2026-v1';
+```
+
+Contract detail is in `sap_rights_contract`, `sap_rights_coverage` and
+`sap_contract_charge`. Join raw SAP tables to the same publication's
+source/company/scenario/run, retaining contract ID and version. Customer links
+use existing `customer_key`; coverage retains existing `content_key`.
+The supplier and rights terms are fictional. Do not infer a real distributor
+agreement, allocate portfolio content cost to individual films, or label the
+EUR 14.40 contribution as whole-company profit. Never add GL revenue to the
+same journal's AR/AP projection or to existing operational order revenue.
+
+This change does not deploy a semantic model, Plan, SAP writeback, cockpit UI
+or cockpit API. app owner owns integrating this published SQL contract into the
+cockpit. Infrastructure and finance code are reviewed as separate change sets on
+`work/sap-mirroring` and `work/sap-bps-finance`; app owner owns merges.
+Planning remains deferred.
+
 ## UI direction
 
 A cinematic premium business app: restrained dark surfaces, strong film imagery,
@@ -300,6 +609,7 @@ prices, expiry and availability. Respect reduced motion and keyboard navigation.
 | RTI | 13,477 propagated event IDs after evening recovery; all 19 accumulated events verified in native OneLake and deduplicated Raw |
 | Raw/Silver | Native Eventhouse Delta ingestion and all seven native reference inputs processed successfully |
 | Gold | 1,008 order lines and 1,007 playback sessions match operational SQL after evening recovery |
+| SAP | Native Datasphere mirror and BPS Silver/Gold processed; 22 domain tables and nine views published into MSFlixGold for the synthetic November finance case; native schedules restored, Warehouse refresh explicit |
 | Ontology v2 | Gold bindings and 10-entity/12-relationship physical graph published; real GQL paths verified |
 | Rayfin cockpit | Cinematic home, Gold business views, interactive graph and bounded Demo tab deployed; recovered licensed images and current-event ordering published |
 | Film imagery | All 82 known licensed files cached; 47 films have a genuine still or poster. Other image categories are explicitly labelled; full film-specific coverage requires more rights-cleared assets |
