@@ -7,7 +7,7 @@ export type GoldInsightsFilters = {
   territory: string;
   genre: string;
   transactionType: '' | 'TVOD' | 'EST';
-  /** One currency for the entire order cohort, including counts and playback. Never FX. */
+  /** ISO currency, or '*' for ALL currencies (nominal sum, no FX). Empty input keeps the server default. */
   currency: string;
 };
 
@@ -33,7 +33,7 @@ export type GoldInsights = {
   scope: {
     orders: 'created-at-cohort';
     sessions: 'latest-recorded-state-for-cohort-orders';
-    money: 'booked-order-value-not-recognized-revenue';
+    money: 'booked-order-value-not-recognized-revenue' | 'nominal-booked-order-value-no-fx';
     contactableCustomers: 'cohort-customers-current-marketing-consent-any-channel';
     campaigns: 'selected-territory-all-dates';
     touches: 'cohort-customer-touches-in-date-range';
@@ -44,7 +44,9 @@ export type GoldInsights = {
     orderLines: number;
     customers: number;
     titles: number;
-    /** Exact nonnegative integer minor units for filters.currency, across all order statuses. */
+    /** All bookedMinor fields are exact nonnegative integers, across all order statuses.
+     * Single currency: its minor units. ALL ('*'): nominal units scaled by 10,000,
+     * using gold.currency minor_exponent before addition, never exchange rates. */
     bookedMinor: string;
     sessions: number;
     playedOrders: number;

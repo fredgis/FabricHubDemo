@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { createDemoPlan, DemoScenario, type DemoFunctions } from '../../apps/cockpit/src/domain/demo-scenario';
+import { createDemoPlan, DemoScenario, validateDemoConfig, type DemoFunctions } from '../../apps/cockpit/src/domain/demo-scenario';
 
 const references = {
   customers: [{ customer_key: 'MSF-C0001', territory: 'FR' }],
@@ -8,6 +8,28 @@ const references = {
     { offer_key: 'SINTEL:FR:PURCHASE', content_key: 'SINTEL', territory: 'FR', transaction_type: 'EST' },
   ],
   content: [{ content_key: 'SINTEL', duration_seconds: 888 }],
+};
+
+const variedReferences = {
+  customers: [
+    ...references.customers,
+    { customer_key: 'MSF-C0002', territory: 'FR' },
+    { customer_key: 'MSF-C0003', territory: 'GB' },
+    { customer_key: 'MSF-C0004', territory: 'GB' },
+    { customer_key: 'MSF-C0005', territory: 'ES' },
+    { customer_key: 'MSF-C0006', territory: 'DE' },
+    ...references.customers,
+  ],
+  content: [...references.content, { content_key: 'BUNNY', duration_seconds: 30 }, { content_key: 'BROKEN', duration_seconds: 0 }],
+  offers: [
+    ...['FR', 'GB'].flatMap(territory => ['SINTEL', 'BUNNY'].flatMap(content_key =>
+      ['TVOD', 'EST'].map(transaction_type => ({
+        offer_key: `${content_key}:${territory}:${transaction_type}`, content_key, territory, transaction_type,
+      })))),
+    { offer_key: 'SINTEL:ES:TVOD', content_key: 'SINTEL', territory: 'ES', transaction_type: 'TVOD' },
+    { offer_key: 'BROKEN:DE:TVOD', content_key: 'BROKEN', territory: 'DE', transaction_type: 'TVOD' },
+    { offer_key: 'MISSING:FR:TVOD', content_key: 'MISSING', territory: 'FR', transaction_type: 'TVOD' },
+  ],
 };
 
 function boundary(): DemoFunctions {
@@ -25,9 +47,108 @@ function boundary(): DemoFunctions {
   };
 }
 
-afterEach(() => vi.useRealTimers());
+afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks(); });
 
 describe('bounded Demo typed command boundary', () => {
+  it.each(['rental', 'purchase', 'mixed'] as const)('chooses exactly N distinct eligible customers and random films for %s', scenario => {
+    vi.spyOn(Math, 'random').mockReturnValue(0);
+    const plan = createDemoPlan({
+      scenario, count: 7, paceMs: 0, customerMode: 'random', customerCount: 3,
+    }, variedReferences, 'random-a');
+    expect(plan.transactions).toHaveLength(7);
+    expect(new Set(plan.transactions.map(row => row.customerKey)))
+      .toEqual(new Set(['MSF-C0002', 'MSF-C0003', 'MSF-C0004']));
+    plan.transactions.forEach((row, index) => {
+      const customer = variedReferences.customers.find(customer => customer.customer_key === row.customerKey)!;
+      const transactionType = scenario === 'purchase' || (scenario === 'mixed' && index % 2 === 1) ? 'EST' : 'TVOD';
+      expect(variedReferences.offers.find(offer => offer.offer_key === row.offerKey)).toMatchObject({
+        content_key: row.contentKey, territory: customer.territory, transaction_type: transactionType,
+      });
+      expect(row.transactionType).toBe(transactionType);
+      expect(row.progressSeconds).toBe(row.contentKey === 'BUNNY' ? 30 : 60);
+      expect(['BUNNY', 'SINTEL']).toContain(row.contentKey);
+      if (index) expect(row.contentKey).not.toBe(plan.transactions[index - 1].contentKey);
+    });
+  });
+
+  it.each([0, -1, 1.5, NaN, Infinity, 4, 101])('rejects invalid random customer count %s', customerCount => {
+    expect(() => createDemoPlan({
+      scenario: 'rental', count: 3, paceMs: 0, customerMode: 'random', customerCount,
+    }, variedReferences, 'customer-bounds')).toThrow('Random customer count must be a whole number from 1 to the journey count.');
+  });
+
+  it('rejects requests above the distinct eligible customer count and scenarios without eligible customers', () => {
+    const config = { scenario: 'mixed' as const, count: 2, paceMs: 0, customerMode: 'random' as const, customerCount: 2 };
+    expect(() => createDemoPlan(config, { ...references, customers: [...references.customers, ...references.customers] }, 'too-many'))
+      .toThrow('Random customer count exceeds the eligible customer count (1).');
+    for (const unavailable of [
+      { ...references, customers: [] },
+      { ...references, content: [{ content_key: 'SINTEL', duration_seconds: 0 }] },
+      { ...references, offers: [references.offers[0]] },
+    ]) {
+      expect(() => createDemoPlan({ ...config, customerCount: 1 }, unavailable, 'no-eligible'))
+        .toThrow('No existing customers have eligible offers for this scenario.');
+    }
+  });
+
+  it('validates without drawing randomness and preserves the fixed-customer offer rotation', () => {
+    const random = vi.spyOn(Math, 'random').mockReturnValue(0.99);
+    validateDemoConfig({ scenario: 'rental', count: 4, paceMs: 0, customerMode: 'random', customerCount: 2 }, variedReferences);
+    const plan = createDemoPlan({ scenario: 'mixed', count: 4, paceMs: 0, customerKey: 'MSF-C0001' }, variedReferences, 'fixed');
+    expect(random).not.toHaveBeenCalled();
+    expect(new Set(plan.transactions.map(row => row.customerKey))).toEqual(new Set(['MSF-C0001']));
+    expect(plan.transactions.map(row => row.offerKey))
+      .toEqual(['BUNNY:FR:TVOD', 'BUNNY:FR:EST', 'SINTEL:FR:TVOD', 'SINTEL:FR:EST']);
+    const randomized = createDemoPlan({
+      scenario: 'rental', count: 1, paceMs: 0, customerMode: 'random', customerCount: 1,
+    }, { ...variedReferences, customers: references.customers }, 'random-film');
+    expect(random).toHaveBeenCalledOnce();
+    expect(randomized.transactions[0].offerKey).toBe('SINTEL:FR:TVOD');
+  });
+
+  it('reuses the only eligible film and permits a single mixed journey with just a rental offer', () => {
+    const plan = createDemoPlan({
+      scenario: 'mixed', count: 3, paceMs: 0, customerMode: 'random', customerCount: 1,
+    }, references, 'single-film');
+    expect(plan.transactions.map(row => row.contentKey)).toEqual(['SINTEL', 'SINTEL', 'SINTEL']);
+    expect(createDemoPlan({
+      scenario: 'mixed', count: 1, paceMs: 0, customerMode: 'random', customerCount: 1,
+    }, { ...references, offers: [references.offers[0]] }, 'single-rental').transactions[0].transactionType).toBe('TVOD');
+  });
+
+  it('freezes random customer and film parameters across a lost order response and reference changes', async () => {
+    const random = vi.spyOn(Math, 'random').mockReturnValue(0);
+    const mutable = {
+      customers: variedReferences.customers.map(row => ({ ...row })),
+      offers: variedReferences.offers.map(row => ({ ...row })),
+      content: variedReferences.content.map(row => ({ ...row })),
+    };
+    const plan = createDemoPlan({
+      scenario: 'mixed', count: 3, paceMs: 0, customerMode: 'random', customerCount: 2,
+    }, mutable, 'random-retry');
+    const plannedInputs = plan.transactions.map((row, index) => ({ input: {
+      customer_key: row.customerKey, offer_key: row.offerKey, idempotency_key: `demo:random-retry:${index}:order`,
+    } }));
+    const draws = random.mock.calls.length;
+    const functions = boundary();
+    vi.mocked(functions.placeOrder.invoke).mockRejectedValueOnce(new Error('Response lost after order commit.'));
+    const run = new DemoScenario(plan, functions);
+    expect((await run.execute()).status).toBe('failed');
+    mutable.customers.forEach(row => { row.customer_key = 'changed'; row.territory = 'DE'; });
+    mutable.offers.forEach(row => { row.offer_key = 'changed'; row.content_key = 'BROKEN'; });
+    mutable.content.forEach(row => { row.duration_seconds = 1; });
+    random.mockReturnValue(0.99);
+    expect(await run.execute()).toMatchObject({ status: 'completed', completedTransactions: 3 });
+    expect(vi.mocked(functions.placeOrder.invoke).mock.calls.map(([request]) => request))
+      .toEqual([plannedInputs[0], ...plannedInputs]);
+    expect(vi.mocked(functions.recordProgress.invoke).mock.calls.map(([request]) => request.input.position_seconds))
+      .toEqual(plan.transactions.map(row => row.progressSeconds));
+    expect(random).toHaveBeenCalledTimes(draws);
+    expect(Object.isFrozen(plan)).toBe(true);
+    expect(Object.isFrozen(plan.transactions)).toBe(true);
+    expect(plan.transactions.every(Object.isFrozen)).toBe(true);
+  });
+
   it('retries a lost playback response with the identical key and input, not a new order', async () => {
     const functions = boundary();
     vi.mocked(functions.startPlayback.invoke)

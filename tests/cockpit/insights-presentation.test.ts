@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { addDays, dailySeries, daysBetween, minorMoney, percent, share } from '../../apps/cockpit/src/services/insightsPresentation';
+import { addDays, currencyLabel, dailySeries, daysBetween, minorMoney, percent, share } from '../../apps/cockpit/src/services/insightsPresentation';
 
 describe('Insights exact amounts and date series', () => {
   it('formats minor amounts without losing large integer precision', () => {
@@ -7,6 +7,17 @@ describe('Insights exact amounts and date series', () => {
     expect(minorMoney('123', 'JPY')).toBe('¥123');
     expect(minorMoney('1234', 'KWD')).toBe('KWD 1.234');
     expect(() => minorMoney('1.2', 'EUR')).toThrow();
+  });
+  it('formats ALL nominal units exactly without a currency symbol or confusing the Albanian lek', () => {
+    expect(currencyLabel('*')).toBe('ALL · nominal, no FX');
+    expect(minorMoney('144900', '*')).toBe('14.49');
+    expect(minorMoney('0', '*')).toBe('0.00');
+    expect(minorMoney('123400', '*')).toBe('12.34');
+    expect(minorMoney('123410', '*')).toBe('12.341');
+    expect(minorMoney('123401', '*')).toBe('12.3401');
+    expect(minorMoney('9007199254740993012345', '*')).toBe('900,719,925,474,099,301.2345');
+    expect(minorMoney('0', 'ALL')).toBe(new Intl.NumberFormat('en', { style: 'currency', currency: 'ALL' }).format(0));
+    expect(currencyLabel('ALL')).toBe('ALL (Albanian lek)');
   });
   it('computes chart proportions with exact integers and handles empty denominators', () => {
     expect(share('9007199254740993', '18014398509481986')).toBe(50);

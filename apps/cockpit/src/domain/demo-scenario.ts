@@ -9,7 +9,10 @@ export type DemoFunctions = {
   [Name in FunctionName]: Pick<MSFlixClient['functions'][Name], 'invoke'>;
 };
 type CommandResult = AppFunctionsSchema['placeOrder']['output'];
-export type DemoConfig = { scenario: DemoScenarioType; count: number; paceMs: number; customerKey: string };
+export type DemoConfig = { scenario: DemoScenarioType; count: number; paceMs: number } & (
+  | { customerMode?: 'fixed'; customerKey: string }
+  | { customerMode: 'random'; customerCount: number }
+);
 export type DemoReferences = {
   customers: readonly { customer_key: string; territory: string }[];
   offers: readonly { offer_key: string; content_key: string; territory: string; transaction_type: string }[];
@@ -29,26 +32,78 @@ export type DemoRunState = {
   completedTransactions: number; receipts: DemoReceipt[]; error: string; cancelRequested: boolean;
 };
 
-/** Resolve existing territorial offers only. Prices and rental rights remain server-owned. */
-export function createDemoPlan(config: DemoConfig, references: DemoReferences, runId: string = crypto.randomUUID()): DemoPlan {
+function resolveDemoConfig(config: DemoConfig, references: DemoReferences) {
   if (!Number.isInteger(config.count) || config.count < 1 || config.count > 100)
     throw new Error('Journey count must be a whole number from 1 to 100.');
   if (!Number.isInteger(config.paceMs) || config.paceMs < 0 || config.paceMs > 10_000)
     throw new Error('Command pace must be between 0 and 10,000 milliseconds.');
   if (!['rental', 'purchase', 'mixed'].includes(config.scenario)) throw new Error('Choose a supported Demo scenario.');
-  if (!/^[a-zA-Z0-9_-]{1,64}$/.test(runId)) throw new Error('Invalid Demo run ID.');
+  if (config.customerMode === 'random' && (!Number.isInteger(config.customerCount)
+    || config.customerCount < 1 || config.customerCount > config.count))
+    throw new Error('Random customer count must be a whole number from 1 to the journey count.');
+
+  const content = new Map(references.content.filter(film =>
+    Number.isSafeInteger(film.duration_seconds) && film.duration_seconds > 0).map(film => [film.content_key, film]));
+  const offers = references.offers.filter(offer => content.has(offer.content_key))
+    .sort((a, b) => a.offer_key.localeCompare(b.offer_key));
+  const transactionTypes = config.scenario === 'purchase' ? ['EST']
+    : config.scenario === 'mixed' && config.count > 1 ? ['TVOD', 'EST'] : ['TVOD'];
+  const offerTerritories = transactionTypes.map(transactionType => ({
+    transactionType,
+    territories: new Set(offers.filter(offer => offer.transaction_type === transactionType).map(offer => offer.territory)),
+  }));
+  if (config.customerMode === 'random') {
+    const customers = [...new Map(references.customers.filter(customer =>
+      offerTerritories.every(({ territories }) => territories.has(customer.territory)))
+      .map(customer => [customer.customer_key, customer])).values()];
+    if (!customers.length) throw new Error('No existing customers have eligible offers for this scenario.');
+    if (config.customerCount > customers.length)
+      throw new Error(`Random customer count exceeds the eligible customer count (${customers.length}).`);
+    return { customers, offers, content };
+  }
   const customer = references.customers.find(row => row.customer_key === config.customerKey);
   if (!customer) throw new Error('Select an existing customer before starting a Demo.');
-  const transactions = Array.from({ length: config.count }, (_, index): DemoTransaction => {
+  for (const { transactionType, territories } of offerTerritories) {
+    if (!territories.has(customer.territory))
+      throw new Error(`No ${transactionType === 'TVOD' ? 'rental' : 'purchase'} offer with valid film duration exists for ${customer.territory}.`);
+  }
+  return { customers: [customer], offers, content };
+}
+
+export function validateDemoConfig(config: DemoConfig, references: DemoReferences): void {
+  resolveDemoConfig(config, references);
+}
+
+function shuffled<T>(rows: readonly T[]): T[] {
+  const result = [...rows];
+  for (let index = result.length - 1; index > 0; index--) {
+    const other = Math.floor(Math.random() * (index + 1));
+    [result[index], result[other]] = [result[other], result[index]];
+  }
+  return result;
+}
+
+/** Resolve existing territorial offers only. Prices and rental rights remain server-owned. */
+export function createDemoPlan(config: DemoConfig, references: DemoReferences, runId: string = crypto.randomUUID()): DemoPlan {
+  const resolved = resolveDemoConfig(config, references);
+  if (!/^[a-zA-Z0-9_-]{1,64}$/.test(runId)) throw new Error('Invalid Demo run ID.');
+  const customers = config.customerMode === 'random'
+    ? shuffled(resolved.customers).slice(0, config.customerCount) : resolved.customers;
+  const assigned = Array.from({ length: config.count }, (_, index) => customers[index % customers.length]);
+  const scheduled = config.customerMode === 'random' ? shuffled(assigned) : assigned;
+  let previousContentKey = '';
+  const transactions = scheduled.map((customer, index): DemoTransaction => {
     const transactionType = config.scenario === 'purchase' || (config.scenario === 'mixed' && index % 2 === 1) ? 'EST' : 'TVOD';
-    const eligible = references.offers.filter(offer =>
-      offer.territory === customer.territory && offer.transaction_type === transactionType
-      && references.content.some(film => film.content_key === offer.content_key
-        && Number.isSafeInteger(film.duration_seconds) && film.duration_seconds > 0))
-      .sort((a, b) => a.offer_key.localeCompare(b.offer_key));
-    if (!eligible.length) throw new Error(`No ${transactionType === 'TVOD' ? 'rental' : 'purchase'} offer with valid film duration exists for ${customer.territory}.`);
-    const offer = eligible[Math.floor(index / (config.scenario === 'mixed' ? 2 : 1)) % eligible.length];
-    const film = references.content.find(row => row.content_key === offer.content_key)!;
+    const eligible = resolved.offers.filter(offer =>
+      offer.territory === customer.territory && offer.transaction_type === transactionType);
+    let offer = eligible[Math.floor(index / (config.scenario === 'mixed' ? 2 : 1)) % eligible.length];
+    if (config.customerMode === 'random') {
+      const alternatives = eligible.filter(row => row.content_key !== previousContentKey);
+      const choices = alternatives.length ? alternatives : eligible;
+      offer = choices[Math.floor(Math.random() * choices.length)];
+    }
+    previousContentKey = offer.content_key;
+    const film = resolved.content.get(offer.content_key)!;
     return Object.freeze({
       customerKey: customer.customer_key, offerKey: offer.offer_key, contentKey: offer.content_key,
       transactionType, progressSeconds: Math.min(60, film.duration_seconds),

@@ -49,11 +49,14 @@ metrics or imply that the backdrop depicts the selected orders.
 `client.functions.businessInsights.invoke({ filtersJson })` is the read-only
 native entry point. Its typed `GoldInsights` contract lives beside the function.
 The browser submits an inclusive UTC order-date window, territory, genre,
-TVOD/EST transaction type, and one currency. Empty filters select the latest
-30 days of the global order-date extent and the most frequent order-line
-currency; the maximum window is 366 days. Currency filters the entire cohort,
-including counts and associated playback, not just the money. Moving a filter or
-the date-window slider does not issue a request until **Apply filters**.
+TVOD/EST transaction type, and a currency or **ALL**. Empty filters still select
+the latest 30 days of the global order-date extent and the most frequent
+order-line currency; the maximum window is 366 days. A single currency filters
+the entire cohort, including counts and associated playback, not just money.
+ALL includes every currency in the summary, curve, map and breakdowns, while
+retaining the other filters. The API marker is `currency: '*'`, not the ISO
+currency code `ALL` (Albanian lek). Moving a filter or the date-window slider
+does not issue a request until **Apply filters**.
 Heatmap cells and territory buttons apply cross-filters immediately.
 
 The Insights reader loads on the first visit, coalesces identical in-flight
@@ -84,9 +87,14 @@ operational activity or frontend fixtures.
   is not a separate session-date activity count. Recorded position describes
   progress, not time watched. RTI transactions here are published Gold facts,
   not a live Eventhouse feed.
-- Booked amounts remain integer-minor-unit strings through the native
-  response and are formatted exactly. The selected currency is never mixed
-  with another currency. These figures are not bank receipts, invoices,
+- Booked amounts remain exact integer strings through the native response.
+  A single currency uses its original minor units. ALL adds nominal amounts
+  without exchange-rate conversion: each value is aligned using
+  `gold.currency.minor_exponent`, then all `bookedMinor` fields use a common
+  scale of 10,000 units per nominal unit. Counts remain distinct across the
+  combined cohort. The UI labels ALL as nominal with no FX, uses no currency
+  symbol, and preserves up to four decimals. This is not a financially
+  comparable converted total. These figures are not bank receipts, invoices,
   recognized revenue, or margin.
 - Contactability uses the latest effective marketing consent at publication
   among cohort customers. Campaign inventory is selected-territory/all-dates;
@@ -929,8 +937,18 @@ workstream stops here pending the parent's next explicit authorization.
 
 The dedicated **Demo** navigation entry preserves the existing cockpit design.
 It defaults to **10 journeys**, accepts **1–100**, and runs rental, purchase,
-or alternating scenarios for an existing customer using existing territorial
-offers. The default interval is one second between sequential commands.
+or alternating scenarios using existing territorial offers. **Customer** keeps
+the existing single-customer mode. **Random Customer** lets the operator choose
+how many distinct eligible customers to simulate. Journey count remains the
+total for the run, not a per-customer multiplier; every selected customer gets
+at least one journey. The requested customer count cannot exceed either the
+journey count or the eligible customer pool. Films are selected randomly from
+catalogue offers eligible for each customer's territory and the chosen scenario.
+Mixed runs with more than one total journey require both TVOD and EST offers
+for every selected customer; a one-journey mixed run requires only TVOD.
+Customers and offers are fixed in the immutable run plan before execution, so
+retry/resume cannot draw new transactions. The default interval is one second
+between sequential commands.
 Each journey invokes the typed `placeOrder`, `startPlayback`, and
 `recordProgress` functions. Order/session IDs come from the preceding receipt;
 prices, rental rights, actor authorization, and persistence remain server-owned.

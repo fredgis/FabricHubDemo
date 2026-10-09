@@ -1,6 +1,6 @@
 import { useId, useState } from 'react';
 import geography from '@/assets/insights-world.generated.json';
-import { minorMoney, share } from '@/services/insightsPresentation';
+import { currencyLabel, minorMoney, share } from '@/services/insightsPresentation';
 import type { GoldInsights } from '@/services/insights';
 
 const count = new Intl.NumberFormat('en');
@@ -14,6 +14,7 @@ export function InsightsGeography({ data, disabled, onSelect }: {
   data: GoldInsights; disabled: boolean; onSelect: (territory: string) => void;
 }) {
   const id = useId();
+  const unit = currencyLabel(data.filters.currency);
   const [metric, setMetric] = useState<Metric>('customers');
   const [chosenView, setChosenView] = useState<MapView | null>(null);
   const [highlighted, setHighlighted] = useState<string | null>(null);
@@ -47,7 +48,7 @@ export function InsightsGeography({ data, disabled, onSelect }: {
             </div>
           </div>
           <svg className="insights-map" viewBox={views[view]} role="img" aria-labelledby={`${id}-map-title ${id}-map-desc`}>
-            <title id={`${id}-map-title`}>{metric === 'customers' ? 'Customers' : `Booked sales in ${data.filters.currency}`} by commercial territory, {view === 'europe' ? 'Europe' : 'world'} view</title>
+            <title id={`${id}-map-title`}>{metric === 'customers' ? 'Customers' : `Booked sales (${unit})`} by commercial territory, {view === 'europe' ? 'Europe' : 'world'} view</title>
             <desc id={`${id}-map-desc`}>Shading compares territories within this selection. Exact customers, booked sales, orders and sessions are in the territory list. Country outlines do not locate customer residences.</desc>
             {geography.countries.map(country => {
               const row = country.code ? lookup.get(country.code) : undefined;
@@ -68,7 +69,7 @@ export function InsightsGeography({ data, disabled, onSelect }: {
             })}
           </svg>
           <figcaption className="insights-map-legend"><span className="insights-map-key" aria-hidden="true" />
-            <span>{metric === 'customers' ? 'Customers' : `Booked sales · ${data.filters.currency}`}: 0 to {valueLabel(largest)} per territory</span>
+            <span>{metric === 'customers' ? 'Customers' : `Booked sales · ${unit}`}: 0 to {valueLabel(largest)} per territory</span>
             <span>Light outline: matching orders. Other countries: outside this selection.</span></figcaption>
         </figure>
         <div className="insights-map-ledger">
@@ -79,10 +80,10 @@ export function InsightsGeography({ data, disabled, onSelect }: {
               <button type="button" className="insights-map-territory" disabled={disabled}
                 onPointerEnter={() => setHighlighted(row.territory)} onPointerLeave={() => setHighlighted(null)}
                 onFocus={() => setHighlighted(row.territory)} onBlur={() => setHighlighted(null)}
-                onClick={() => onSelect(row.territory)} aria-label={`Filter territory ${row.territory}: ${country?.name ?? 'not mapped'}, ${count.format(row.customers)} customers, ${minorMoney(row.bookedMinor, data.filters.currency)} booked sales, ${count.format(row.orders)} orders, ${count.format(row.sessions)} associated sessions`}>
+                onClick={() => onSelect(row.territory)} aria-label={`Filter territory ${row.territory}: ${country?.name ?? 'not mapped'}, ${count.format(row.customers)} customers, ${minorMoney(row.bookedMinor, data.filters.currency)} booked sales (${unit}), ${count.format(row.orders)} orders, ${count.format(row.sessions)} associated sessions`}>
                 <span className="insights-map-territory-name"><strong>{country?.name ?? row.territory}</strong><span>{country ? row.territory : 'Not mapped'}</span></span>
                 <span className="insights-map-values"><span><strong>{count.format(row.customers)}</strong><small>customers</small></span>
-                  <span><strong>{minorMoney(row.bookedMinor, data.filters.currency)}</strong><small>booked sales · {data.filters.currency}</small></span></span>
+                  <span><strong>{minorMoney(row.bookedMinor, data.filters.currency)}</strong><small>booked sales · {unit}</small></span></span>
                 <span className="insights-map-row-bar" aria-hidden="true"><span style={{ width: `${Math.min(100, share(row[metric], largest.toString()))}%` }} /></span>
                 <span className="insights-map-activity">{count.format(row.orders)} orders · {count.format(row.sessions)} associated sessions</span>
               </button>

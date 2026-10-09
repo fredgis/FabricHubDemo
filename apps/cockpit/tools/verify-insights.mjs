@@ -33,9 +33,14 @@ BEGIN TRY
   BEGIN TRANSACTION;
   SELECT TOP (1) run_id,completed_at FROM gold.publication ORDER BY completed_at DESC,run_id;
   WITH selected AS (
-    SELECT f.order_id,f.customer_key,f.content_key,f.amount_minor,f.first_play_at
+    SELECT f.order_id,f.customer_key,f.content_key,
+      CAST(f.amount_minor AS decimal(38,0)) * CASE WHEN @currency='*'
+        THEN POWER(CAST(10 AS decimal(5,0)),4-fx.minor_exponent) ELSE 1 END AS amount_minor,
+      f.first_play_at
     FROM gold.fact_order_line f
-    WHERE f.created_at>=@date_from AND f.created_at<DATEADD(day,1,@date_to) AND f.currency=@currency
+    JOIN gold.currency fx ON fx.currency=f.currency
+    WHERE f.created_at>=@date_from AND f.created_at<DATEADD(day,1,@date_to)
+      AND (@currency='*' OR f.currency=@currency)
       AND (@territory='' OR COALESCE(NULLIF(f.territory,''),'Unknown')=@territory)
       AND (@transaction_type='' OR f.transaction_type=@transaction_type)
       AND (@genre='' OR EXISTS (SELECT 1 FROM gold.dim_content c WHERE c.content_key=f.content_key

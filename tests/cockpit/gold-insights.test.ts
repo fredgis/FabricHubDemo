@@ -91,6 +91,18 @@ describe('strict parameterized filters', () => {
     await expect(readGoldInsights(binding, 'test-token', JSON.stringify({ genre: 'x'.repeat(2049) }))).rejects.toThrow();
     expect(calls.pools).toBe(0);
   });
+  it('uses a parameterized ALL marker distinct from the ISO currency ALL', async () => {
+    calls.sets = fixture('144900');
+    (calls.sets as Rows)[0][0].currency = '*';
+    const result = await readGoldInsights(binding, 'test-token', '{"currency":"*"}');
+    expect(calls.inputs.currency).toBe('*');
+    expect(result.filters.currency).toBe('*');
+    expect(result.scope.money).toBe('nominal-booked-order-value-no-fx');
+    expect(result.summary.bookedMinor).toBe('144900');
+    expect(result.options.currencies).not.toContain('*');
+    expect(parseInsightsFilters('{"currency":"ALL"}').currency).toBe('ALL');
+    expect(() => insightsFromRecordsets(binding, parseInsightsFilters('{"currency":"*"}'), fixture())).toThrow();
+  });
   it('sends quotes and attempted SQL syntax only as typed parameters', async () => {
     const genre = "Drama'; DROP TABLE gold.fact_order_line;--";
     const territory = "FR' OR 1=1--";
@@ -245,6 +257,8 @@ function cohortDatabase() {
     CREATE TABLE gold.dim_content(content_key TEXT,title TEXT,genre TEXT,duration_seconds INTEGER);
     CREATE TABLE gold.dim_customer(customer_key TEXT);
     CREATE TABLE gold.dim_offer(offer_key TEXT,content_key TEXT,currency TEXT,transaction_type TEXT);
+    CREATE TABLE gold.currency(currency TEXT,minor_exponent INTEGER);
+    INSERT INTO gold.currency VALUES ('EUR',2),('USD',2);
     CREATE TABLE gold.fact_order_line(order_id TEXT,line_number INTEGER,customer_key TEXT,content_key TEXT,offer_key TEXT,
       territory TEXT,currency TEXT,transaction_type TEXT,created_at TEXT,amount_minor INTEGER,first_play_at TEXT);
     CREATE TABLE gold.fact_playback_session(session_id TEXT,order_id TEXT,customer_key TEXT,content_key TEXT,status TEXT,position_seconds INTEGER);
@@ -270,6 +284,7 @@ function cohortDatabase() {
     const statement = db.prepare(`${cte} SELECT
       (SELECT COUNT(*) FROM cohort) AS lines,
       (SELECT COUNT(DISTINCT order_id) FROM cohort) AS orders,
+      (SELECT COUNT(DISTINCT customer_key) FROM cohort) AS customers,
       (SELECT COALESCE(SUM(amount_minor),0) FROM cohort) AS money,
       (SELECT COUNT(*) FROM cohort_sessions) AS sessions,
       (SELECT COALESCE(SUM(completed),0) FROM cohort_sessions) AS completed,
@@ -284,7 +299,7 @@ function cohortDatabase() {
 describe('full-fact cohort join semantics', () => {
   it('counts two same-title lines once for playback and excludes wrong customer/content links', () => {
     const { db, query } = cohortDatabase();
-    try { expect(query()).toEqual({ lines: 3n, orders: 1n, money: 700n, sessions: 2n, completed: 1n, progress: 75 }); }
+    try { expect(query()).toEqual({ lines: 3n, orders: 1n, customers: 1n, money: 700n, sessions: 2n, completed: 1n, progress: 75 }); }
     finally { db.close(); }
   });
   it('isolates currencies and every dimension predicate without converting money', () => {
@@ -295,6 +310,35 @@ describe('full-fact cohort join semantics', () => {
       expect(query({ '@transaction_type': 'EST' })).toMatchObject({ lines: 1n, money: 400n, sessions: 1n });
       expect(query({ '@territory': 'US' })).toMatchObject({ lines: 0n, money: 0n, sessions: 0n });
       expect(query({ '@genre': "Action' OR 1=1--" })).toMatchObject({ lines: 0n, money: 0n, sessions: 0n });
+    } finally { db.close(); }
+  });
+  it('combines currencies without duplicating customers or playback and retains other predicates', () => {
+    const { db, query } = cohortDatabase();
+    try {
+      expect(query({ '@SelectedCurrency': '*' })).toMatchObject({ lines: 5n, orders: 3n, customers: 2n, money: 9170000n, sessions: 4n });
+      expect(query({ '@SelectedCurrency': '*', '@territory': 'FR' })).toMatchObject({ lines: 3n, customers: 1n, money: 70000n, sessions: 2n });
+      expect(query({ '@SelectedCurrency': '*', '@transaction_type': 'EST' })).toMatchObject({ lines: 2n, money: 140000n, sessions: 2n });
+      expect(query({ '@SelectedCurrency': '*', '@genre': 'Action' })).toMatchObject({ lines: 3n, money: 9030000n, sessions: 2n });
+      expect(query({ '@SelectedCurrency': '*', '@StartDate': '2026-10-09' })).toMatchObject({ lines: 0n, money: 0n, sessions: 0n });
+    } finally { db.close(); }
+  });
+  it('aligns zero-to-four-decimal currencies to exact nominal units, preserving the ISO code ALL', () => {
+    const { db, query } = cohortDatabase();
+    try {
+      db.exec(`INSERT INTO gold.currency VALUES ('JPY',0),('KWD',3),('CLF',4),('AAA',1),('ALL',2);
+        INSERT INTO gold.dim_offer VALUES ('JA','A','JPY','TVOD'),('KA','A','KWD','TVOD'),
+          ('CA','A','CLF','TVOD'),('AA','A','AAA','TVOD'),('LA','A','ALL','TVOD');
+        INSERT INTO gold.fact_order_line VALUES
+          ('O4',1,'C1','A','JA','FR','JPY','TVOD','2026-10-08',123,NULL),
+          ('O5',1,'C1','A','KA','FR','KWD','TVOD','2026-10-08',1234,NULL),
+          ('O6',1,'C1','A','CA','FR','CLF','TVOD','2026-10-08',12345,NULL),
+          ('O7',1,'C1','A','AA','FR','AAA','TVOD','2026-10-08',123,NULL),
+          ('O8',1,'C1','A','LA','FR','ALL','TVOD','2026-10-08',500,NULL);`);
+      expect(query({ '@SelectedCurrency': '*' })).toMatchObject({ lines: 10n, orders: 8n, customers: 2n, money: 10597685n, sessions: 4n });
+      expect(query({ '@SelectedCurrency': '*', '@territory': 'FR' })).toMatchObject({ money: 1497685n });
+      expect(query({ '@SelectedCurrency': 'JPY' })).toMatchObject({ money: 123n });
+      expect(query({ '@SelectedCurrency': 'KWD' })).toMatchObject({ money: 1234n });
+      expect(query({ '@SelectedCurrency': 'ALL' })).toMatchObject({ money: 500n });
     } finally { db.close(); }
   });
   it('uses order dates for playback, caps latest position, and excludes invalid durations from averages', () => {

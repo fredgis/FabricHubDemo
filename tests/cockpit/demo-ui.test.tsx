@@ -43,6 +43,59 @@ beforeEach(() => {
 afterEach(cleanup);
 
 describe('dedicated Demo controls', () => {
+  it('shares the total journeys across random customers and remembers the fixed customer selection', async () => {
+    const varied = { ...snapshot,
+      customers: [...snapshot.customers, { ...snapshot.customers[0], customer_key: 'MSF-C0002', name: 'Second fictional customer' }],
+      content: [...snapshot.content, { ...snapshot.content[0], content_key: 'BUNNY', title: 'Big Buck Bunny', duration_seconds: 30 }],
+      offers: [...snapshot.offers, { ...snapshot.offers[0], offer_key: 'BUNNY:FR:RENTAL', content_key: 'BUNNY' }],
+    };
+    render(<DemoPage snapshot={varied} capabilities={{ can_operate: true, reason: 'Operator grant' }} onRefresh={vi.fn()} />);
+    fireEvent.change(screen.getByRole('combobox', { name: 'Existing customer' }), { target: { value: 'MSF-C0002' } });
+    fireEvent.change(screen.getByRole('combobox', { name: 'Customer selection' }), { target: { value: 'random' } });
+    expect(screen.queryByRole('combobox', { name: 'Existing customer' })).not.toBeInTheDocument();
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'Random customer count' }), { target: { value: '2' } });
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'Journey count' }), { target: { value: '5' } });
+    fireEvent.change(screen.getByRole('combobox', { name: 'Pace between commands' }), { target: { value: '0' } });
+    expect(sdk.functions.placeOrder.invoke).not.toHaveBeenCalled();
+    fireEvent.click(screen.getByRole('button', { name: 'Start demo' }));
+    await screen.findByText('All 5 journeys completed.');
+
+    const orders = sdk.functions.placeOrder.invoke.mock.calls.map(([request]) => request.input);
+    expect(orders).toHaveLength(5);
+    expect(new Set(orders.map(row => row.customer_key))).toEqual(new Set(['MSF-C0001', 'MSF-C0002']));
+    expect(new Set(orders.map(row => row.offer_key))).toEqual(new Set(['SINTEL:FR:RENTAL', 'BUNNY:FR:RENTAL']));
+    expect(screen.getByText('2 distinct customers in this run.')).toBeInTheDocument();
+    expect(screen.getAllByText('Customer: MSF-C0001').length).toBeGreaterThan(0);
+    expect(screen.getAllByText('Customer: MSF-C0002').length).toBeGreaterThan(0);
+    fireEvent.change(screen.getByRole('combobox', { name: 'Customer selection' }), { target: { value: 'fixed' } });
+    expect(screen.getByRole('combobox', { name: 'Existing customer' })).toHaveValue('MSF-C0002');
+    expect(screen.queryByRole('spinbutton', { name: 'Random customer count' })).not.toBeInTheDocument();
+    expect(sdk.functions.placeOrder.invoke).toHaveBeenCalledTimes(5);
+  });
+
+  it('links random-customer bounds and eligibility errors without issuing commands', () => {
+    const capabilities = { can_operate: true, reason: 'Operator grant' };
+    const onRefresh = vi.fn();
+    const view = render(<DemoPage snapshot={snapshot} capabilities={capabilities} onRefresh={onRefresh} />);
+    fireEvent.change(screen.getByRole('combobox', { name: 'Customer selection' }), { target: { value: 'random' } });
+    const customerCount = screen.getByRole('spinbutton', { name: 'Random customer count' });
+    expect(customerCount).toHaveValue(1);
+    fireEvent.change(customerCount, { target: { value: '2' } });
+    expect(customerCount).toHaveAttribute('aria-invalid', 'true');
+    expect(customerCount).toHaveAccessibleDescription('Random customer count exceeds the eligible customer count (1).');
+    expect(screen.getByRole('button', { name: 'Start demo' })).toBeDisabled();
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'Journey count' }), { target: { value: '1' } });
+    expect(customerCount).toHaveAttribute('max', '1');
+    expect(customerCount).toHaveAccessibleDescription('Random customer count must be a whole number from 1 to the journey count.');
+    fireEvent.change(customerCount, { target: { value: '1' } });
+    expect(customerCount).not.toHaveAttribute('aria-invalid');
+    expect(screen.getByRole('button', { name: 'Start demo' })).toBeEnabled();
+    view.rerender(<DemoPage snapshot={{ ...snapshot, offers: [] }} capabilities={capabilities} onRefresh={onRefresh} />);
+    expect(customerCount).toHaveAccessibleDescription('No existing customers have eligible offers for this scenario.');
+    expect(screen.getByRole('button', { name: 'Start demo' })).toBeDisabled();
+    expect(sdk.functions.placeOrder.invoke).not.toHaveBeenCalled();
+  });
+
   it('renders actual receipt IDs while keeping generated, Kafka ACK, and Gold evidence separate', async () => {
     const onRefresh = vi.fn();
     const capabilities = { can_operate: true, reason: 'Time-bounded operator grant' };

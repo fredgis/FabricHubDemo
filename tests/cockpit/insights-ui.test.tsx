@@ -34,6 +34,30 @@ describe('Gold insights controls and honest states', () => {
       from: '2026-10-03', to: '2026-10-09', territory: 'FR', genre: 'Animation', transactionType: 'EST', currency: 'GBP',
     }));
   });
+  it('applies ALL to the summary, trend and complete map, retaining it during cross-filtering', async () => {
+    page();
+    const currency = await screen.findByLabelText('Currency');
+    const all = insightsFixture();
+    all.filters = { ...all.filters, currency: '*' };
+    all.summary = { ...all.summary, bookedMinor: '300000' };
+    for (const rows of [all.daily, all.territories, all.heatmap, all.titles]) {
+      for (const row of rows) row.bookedMinor = (BigInt(row.bookedMinor) * 100n).toString();
+    }
+    load.mockResolvedValue(all);
+    expect(screen.getByRole('option', { name: 'ALL' })).toHaveValue('*');
+    fireEvent.change(currency, { target: { value: '*' } });
+    expect(currency).toHaveAccessibleDescription('ALL adds nominal amounts across currencies, without exchange-rate conversion.');
+    expect(load).toHaveBeenCalledTimes(1);
+    fireEvent.click(screen.getByRole('button', { name: 'Apply filters' }));
+    await waitFor(() => expect(screen.getByLabelText('Booked sales')).toHaveTextContent(/^30\.00$/));
+    expect(load).toHaveBeenLastCalledWith(all.filters);
+    expect(screen.getByLabelText('Applied analysis filters')).toHaveTextContent('ALL · nominal, no FX');
+    expect(screen.getAllByRole('button', { name: /^Filter territory/ })).toHaveLength(2);
+    fireEvent.click(within(screen.getByRole('group', { name: 'Trend metric' })).getByRole('button', { name: 'Booked sales' }));
+    expect(screen.getByRole('slider', { name: 'Inspect a day' })).toHaveAttribute('aria-valuetext', 'Oct 9: 10.00 booked sales');
+    fireEvent.click(screen.getByRole('button', { name: /^Filter territory FR:.*20\.00 booked sales \(ALL/ }));
+    await waitFor(() => expect(load).toHaveBeenLastCalledWith({ ...all.filters, territory: 'FR' }));
+  });
   it('rejects an excessive date window and associates the error with both date fields', async () => {
     page();
     const form = await screen.findByRole('form', { name: 'Filter Gold analysis' });

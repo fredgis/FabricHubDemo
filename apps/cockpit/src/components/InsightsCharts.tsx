@@ -1,5 +1,5 @@
 import { useEffect, useId, useRef, useState, type CSSProperties } from 'react';
-import { minorMoney, percent, share, shortDay, type InsightDay } from '@/services/insightsPresentation';
+import { currencyLabel, minorMoney, percent, share, shortDay, type InsightDay } from '@/services/insightsPresentation';
 
 const count = new Intl.NumberFormat('en');
 type TrendMetric = 'orders' | 'bookedMinor' | 'sessions';
@@ -40,6 +40,7 @@ export function DailyChart({ days, currency }: { days: InsightDay[]; currency: s
       {metrics.map(item => <button key={item.key} type="button" aria-pressed={metric === item.key}
         onClick={() => setMetric(item.key)}>{item.label}</button>)}
     </div>
+    {currency === '*' && <p className="insights-empty-note">Sales combine currencies at nominal value, without exchange-rate conversion.</p>}
     <div className="insights-trend-readout" aria-live="polite" aria-atomic="true">
       <span>{shortDay(selected.date)} <small>UTC · order cohort</small></span>
       <strong>{valueLabel(selected[metric])} <small>{metricName.toLowerCase()}</small></strong>
@@ -71,7 +72,7 @@ export function DailyChart({ days, currency }: { days: InsightDay[]; currency: s
     <details className="insights-data-table"><summary>Daily figures</summary>
       <div className="table-scroll" role="region" aria-label="Daily figures" tabIndex={0}>
         <table><caption className="sr-only">Full daily series for the selected order cohort</caption>
-          <thead><tr><th scope="col">Date (UTC)</th><th scope="col">Orders</th><th scope="col">Booked sales ({currency})</th><th scope="col">Associated sessions</th></tr></thead>
+          <thead><tr><th scope="col">Date (UTC)</th><th scope="col">Orders</th><th scope="col">Booked sales ({currencyLabel(currency)})</th><th scope="col">Associated sessions</th></tr></thead>
           <tbody>{days.map(row => <tr key={row.date}><th scope="row">{row.date}</th><td>{count.format(row.orders)}</td>
             <td>{minorMoney(row.bookedMinor, currency)}</td><td>{count.format(row.sessions)}</td></tr>)}</tbody></table>
       </div></details>
@@ -95,7 +96,7 @@ export function TerritoryHeatmap({ cells, currency, onSelect, disabled }: {
     </div>
     {!cells.length ? <p className="insights-empty-note">No territory and genre combinations for these filters.</p> :
       <div className="insights-heat-scroll" role="region" aria-label="Territory and genre heatmap" tabIndex={0}>
-        <table className="insights-heatmap"><caption className="sr-only">{metric === 'orders' ? 'Orders' : `Booked sales in ${currency}`} by territory and genre. Select a cell to filter the dashboard.</caption>
+        <table className="insights-heatmap"><caption className="sr-only">{metric === 'orders' ? 'Orders' : `Booked sales (${currencyLabel(currency)})`} by territory and genre. Select a cell to filter the dashboard.</caption>
           <thead><tr><th scope="col">Genre</th>{territories.map(territory => <th key={territory} scope="col">{territory}</th>)}</tr></thead>
           <tbody>{genres.map(genre => <tr key={genre}><th scope="row">{genre}</th>{territories.map(territory => {
             const cell = lookup.get(JSON.stringify([territory, genre]));
@@ -109,7 +110,7 @@ export function TerritoryHeatmap({ cells, currency, onSelect, disabled }: {
           })}</tr>)}</tbody></table>
       </div>}
     <div className="insights-heat-legend"><span>Less</span>{palette.map(color => <span key={color} style={{ background: color }} aria-hidden="true" />)}<span>More</span>
-      <small>Exact values in every cell. Select one to filter.</small></div>
+      <small>{currency === '*' && 'Nominal sales, no FX conversion. '}Exact values in every cell. Select one to filter.</small></div>
   </>;
 }
 

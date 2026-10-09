@@ -5,7 +5,7 @@ import { InsightsCinema } from '@/components/InsightsCinema';
 import { InsightsGeography } from '@/components/InsightsGeography';
 import { useGoldInsights } from '@/hooks/useGoldInsights';
 import { dateLabel } from '@/services/business';
-import { addDays, dailySeries, daysBetween, shortDay } from '@/services/insightsPresentation';
+import { addDays, currencyLabel, dailySeries, daysBetween, shortDay } from '@/services/insightsPresentation';
 import type { GoldInsights, GoldInsightsFilters } from '@/services/insights';
 import './InsightsPage.css';
 
@@ -48,9 +48,11 @@ function Filters({ data, loading, onApply }: {
           <option value="">All genres</option>{data.options.genres.map(value => <option key={value}>{value}</option>)}</select></label>
         <label htmlFor={`${id}-type`}>Transaction<select id={`${id}-type`} value={draft.transactionType} onChange={event => change('transactionType', event.target.value)}>
           <option value="">Rentals + purchases</option><option value="TVOD">Rentals (TVOD)</option><option value="EST">Purchases (EST)</option></select></label>
-        <label htmlFor={`${id}-currency`}>Currency<select id={`${id}-currency`} required value={draft.currency} onChange={event => change('currency', event.target.value)}>
-          {data.options.currencies.map(value => <option key={value}>{value}</option>)}</select></label>
+        <label htmlFor={`${id}-currency`}>Currency<select id={`${id}-currency`} required value={draft.currency}
+          aria-describedby={draft.currency === '*' ? `${id}-currency-note` : undefined} onChange={event => change('currency', event.target.value)}>
+          <option value="*">ALL</option>{data.options.currencies.map(value => <option key={value} value={value}>{currencyLabel(value)}</option>)}</select></label>
       </div>
+      {draft.currency === '*' && <p id={`${id}-currency-note`}>ALL adds nominal amounts across currencies, without exchange-rate conversion.</p>}
       <div className="insights-filter-actions"><label className="insights-window" htmlFor={`${id}-window`}>
         <span className="insights-window-title"><span>Window ending on {draft.to ? shortDay(draft.to) : 'the selected date'}</span>
           <output htmlFor={`${id}-window`}>{Number.isFinite(duration) ? duration : 0} days</output></span>
@@ -74,7 +76,7 @@ function Sources({ data }: { data: GoldInsights }) {
     </li>)}</ul>
     <details className="insights-method"><summary>How to read these figures</summary><ul>
       <li>All figures query the complete matching Gold facts, not the cockpit's latest-activity lists. Dates select orders and are inclusive, in UTC.</li>
-      <li>Booked sales are exact recorded amounts in the selected currency. Currencies are never added together; these are not payments, invoices or margin.</li>
+      <li>Booked sales are exact recorded amounts. A single currency keeps its original units. ALL adds nominal amounts across currencies without exchange-rate conversion, so it is not a comparable financial total. These are not payments, invoices or margin.</li>
       <li>Playback is associated with the selected order cohort. A session can occur after the order date. Position is playback progress, not time watched.</li>
       <li>Consent counts use the latest effective marketing consent at publication for cohort customers. Campaign inventory covers the selected territory, across all dates. Touches use cohort customers and the selected dates; conversions must match their orders. These are not causal sales attribution.</li>
       <li>The genre matrix shows up to 12 leading genres. Totals, daily series and territory figures are not capped to those genres. Territories are commercial order locations, not customer residences.</li>
@@ -122,7 +124,7 @@ export function InsightsPage({ active, refreshKey, onRead }: {
       <div className="insights-selection" aria-label="Applied analysis filters"><strong>{shortDay(data.filters.from)} to {shortDay(data.filters.to)}, UTC</strong>
         <span>{data.filters.territory || 'All territories'}</span><span>{data.filters.genre || 'All genres'}</span>
         <span>{data.filters.transactionType === 'TVOD' ? 'Rentals' : data.filters.transactionType === 'EST' ? 'Purchases' : 'Rentals + purchases'}</span>
-        <strong>{data.filters.currency} only</strong></div>
+        <strong>{currencyLabel(data.filters.currency)}{data.filters.currency !== '*' && ' only'}</strong></div>
       {loading && <p className="insights-status" role="status">Updating the analysis. The last successful selection remains visible.</p>}
       {data.state === 'empty' ? <section className="insights-initial"><h2>No orders match this selection</h2>
         <p>Gold is published, but this combination has no matching order facts. Widen the dates or reset the filters to the latest available data.</p>

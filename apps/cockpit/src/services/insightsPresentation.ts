@@ -2,15 +2,22 @@ export type InsightDay = { date: string; orders: number; bookedMinor: string; se
 
 const dayMilliseconds = 86_400_000;
 
+export function currencyLabel(currency: string): string {
+  return currency === '*' ? 'ALL · nominal, no FX' : currency === 'ALL' ? 'ALL (Albanian lek)' : currency;
+}
+
 export function minorMoney(minor: string, currency: string): string {
   if (!/^\d+$/.test(minor)) throw new Error('Gold money must be exact nonnegative minor units.');
-  const format = new Intl.NumberFormat('en', { style: 'currency', currency });
-  const digits = format.resolvedOptions().maximumFractionDigits ?? 2;
+  const nominal = currency === '*';
+  const format = new Intl.NumberFormat('en', nominal
+    ? { minimumFractionDigits: 2, maximumFractionDigits: 4 }
+    : { style: 'currency', currency });
+  const digits = nominal ? 4 : format.resolvedOptions().maximumFractionDigits ?? 2;
   const divisor = 10n ** BigInt(digits);
   const exact = BigInt(minor);
   const fraction = (exact % divisor).toString().padStart(digits, '0');
   return format.formatToParts(exact / divisor)
-    .map(part => part.type === 'fraction' ? fraction : part.value).join('');
+    .map(part => part.type === 'fraction' ? nominal ? fraction.replace(/0{1,2}$/, '') : fraction : part.value).join('');
 }
 
 export function share(value: number | string, total: number | string): number {

@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState, type FormEvent } from 'react';
 import { ArrowsClockwise, Play, Stop } from '@phosphor-icons/react';
 import type { AppFunctionsSchema } from '../../rayfin/functions/src/types';
-import { createDemoPlan, DemoScenario, type DemoRunState, type DemoScenarioType } from '../domain/demo-scenario';
+import { createDemoPlan, DemoScenario, validateDemoConfig, type DemoConfig, type DemoRunState,
+  type DemoScenarioType } from '../domain/demo-scenario';
 import { dateLabel, safeError, type Snapshot } from '../services/business';
 import { getRayfinClient } from '../services/rayfinClient';
 
@@ -29,6 +30,8 @@ export function DemoPage({
   const [scenario, setScenario] = useState<DemoScenarioType>('rental');
   const [count, setCount] = useState('10');
   const [paceMs, setPaceMs] = useState(1000);
+  const [customerMode, setCustomerMode] = useState<'fixed' | 'random'>('fixed');
+  const [customerCount, setCustomerCount] = useState('1');
   const [customerKey, setCustomerKey] = useState('');
   const [runState, setRunState] = useState<DemoRunState>();
   const [commandError, setCommandError] = useState('');
@@ -46,13 +49,17 @@ export function DemoPage({
   }, []);
 
   const selectedCustomer = customerKey || snapshot?.customers[0]?.customer_key || '';
-  const config = { scenario, count: Number(count), paceMs, customerKey: selectedCustomer };
+  const config: DemoConfig = customerMode === 'random'
+    ? { scenario, count: Number(count), paceMs, customerMode, customerCount: Number(customerCount) }
+    : { scenario, count: Number(count), paceMs, customerKey: selectedCustomer };
   const invalidCount = !Number.isInteger(config.count) || config.count < 1 || config.count > 100;
   let configurationError = '';
   if (snapshot) {
-    try { createDemoPlan(config, snapshot, 'preview'); }
+    try { validateDemoConfig(config, snapshot); }
     catch (error) { configurationError = safeError(error); }
   }
+  const invalidCustomerCount = config.customerMode === 'random' && (!Number.isInteger(config.customerCount)
+    || config.customerCount < 1 || config.customerCount > config.count || (!invalidCount && !!configurationError));
   const running = runState?.status === 'running';
   const failed = runState?.status === 'failed';
   const canOperate = capabilities.can_operate && !loading && !readError && !busy && !!snapshot;
@@ -109,6 +116,7 @@ export function DemoPage({
   };
 
   const receipts = runState?.receipts ?? [];
+  const runCustomerCount = new Set(runner.current?.plan.transactions.map(row => row.customerKey)).size;
   const eventIds = [...new Set(receipts.flatMap(row => row.result.event_ids))];
   const outbox = new Map(snapshot?.outbox.map(row => [row.event_id, row]) ?? []);
   const acknowledged = eventIds.filter(id => outbox.get(id)?.published_at).length;
@@ -126,8 +134,8 @@ export function DemoPage({
       <p>Persist actual fictional-customer rentals or purchases, start playback, and record progress.
         The server derives prices and viewing rights. No bank charge, invoice, or fabricated event counter.</p>
       <form onSubmit={start} aria-describedby="demo-launch-help">
-        <fieldset disabled={running || busy} style={{ border: 0, padding: 0, margin: 0,
-          display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 20 }}>
+        <fieldset disabled={running || busy} style={{ border: 0, padding: 0, margin: 0, minWidth: 0,
+          display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(min(180px, 100%), 1fr))', gap: 20 }}>
           <legend className="sr-only">Demo scenario settings</legend>
           <label htmlFor="demo-scenario">Scenario
             <select id="demo-scenario" value={scenario} onChange={event => setScenario(event.target.value as DemoScenarioType)}>
@@ -136,14 +144,30 @@ export function DemoPage({
               <option value="mixed">Alternating rentals & purchases</option>
             </select>
           </label>
-          <label htmlFor="demo-customer">Existing customer
+          <label htmlFor="demo-customer-mode">Customer selection
+            <select id="demo-customer-mode" value={customerMode}
+              onChange={event => setCustomerMode(event.target.value as 'fixed' | 'random')}>
+              <option value="fixed">Fixed customer</option>
+              <option value="random">Random Customer</option>
+            </select>
+          </label>
+          {customerMode === 'random' ? <div>
+            <label htmlFor="demo-customer-count">Random customer count
+              <input id="demo-customer-count" type="number" min={1} max={invalidCount ? 100 : config.count}
+                step={1} required value={customerCount} aria-invalid={invalidCustomerCount || undefined}
+                aria-describedby="demo-customer-count-help" onChange={event => setCustomerCount(event.target.value)} />
+            </label>
+            <small id="demo-customer-count-help" aria-live="polite">{invalidCustomerCount
+              ? configurationError || 'Random customer count must be a whole number from 1 to the journey count.'
+              : 'At least one journey per customer. The journey count is the total, not per customer.'}</small>
+          </div> : <label htmlFor="demo-customer">Existing customer
             <select id="demo-customer" value={selectedCustomer} onChange={event => setCustomerKey(event.target.value)}>
               {!snapshot?.customers.length && <option value="">No customers loaded</option>}
               {snapshot?.customers.map(customer => <option key={customer.customer_key} value={customer.customer_key}>
                 {customer.name} · {customer.territory} · {customer.customer_key}
               </option>)}
             </select>
-          </label>
+          </label>}
           <div>
             <label htmlFor="demo-count">Journey count
               <input id="demo-count" type="number" min={1} max={100} step={1} required value={count}
@@ -164,7 +188,8 @@ export function DemoPage({
         </fieldset>
         <p id="demo-launch-help" style={{ marginTop: 20 }}>
           One order, one playback start, and one position update per journey. Only existing territorial offers
-          are used. Commands run sequentially; retries keep the original parameters and idempotency keys.
+          are used. {customerMode === 'random' && 'Random Customer selects customers and catalogue films once per run. '}
+          Commands run sequentially; retries keep the original parameters and idempotency keys.
         </p>
         {blockedReason && <p className="permission-note" id="demo-blocked">{blockedReason}</p>}
         <div className="control-buttons">
@@ -193,6 +218,7 @@ export function DemoPage({
             : runState.status === 'failed' ? 'Demo paused on a command failure.'
               : runState.cancelRequested ? 'Stopping after the in-flight command returns.' : 'Demo commands are running.'}</strong>
         <span>{runState.completedTransactions} completed journeys · {receipts.length} confirmed command receipts</span>
+        <span>{runCustomerCount} distinct {runCustomerCount === 1 ? 'customer' : 'customers'} in this run.</span>
         <span>Run ID: <code>{runState.runId}</code></span>
         <small>Cancel stops unsent commands; it does not roll back persisted orders or abort a native invocation.
           Switching tabs keeps this run and its retry keys. Signing out stops the next command.</small>
@@ -250,7 +276,8 @@ export function DemoPage({
             <th scope="col">Event IDs</th><th scope="col">Receipt / retry key</th></tr></thead>
           <tbody>{receipts.map(receipt => <tr key={receipt.idempotencyKey}>
             <td><strong>{receipt.transactionIndex + 1} · {receipt.command}</strong>
-              <small>{runner.current?.plan.transactions[receipt.transactionIndex].offerKey}</small></td>
+              <small className="identifier">Customer: {runner.current?.plan.transactions[receipt.transactionIndex].customerKey}</small>
+              <small className="identifier">{runner.current?.plan.transactions[receipt.transactionIndex].offerKey}</small></td>
             <td><small>{receipt.command === 'placeOrder' ? 'Order' : 'Playback session'}</small>
               <code className="identifier">{receipt.result.entity_key}</code></td>
             <td>{receipt.result.event_ids.map(id => <div key={id}><code className="identifier">{id}</code>

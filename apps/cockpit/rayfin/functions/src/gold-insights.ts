@@ -46,7 +46,7 @@ export function parseInsightsFilters(filtersJson: string): GoldInsightsFilters {
   if (transactionType !== '' && transactionType !== 'TVOD' && transactionType !== 'EST')
     throw new Error('Select TVOD, EST, or all transaction types.');
   const currency = text('currency', 3);
-  if (currency && !/^[A-Z]{3}$/.test(currency)) throw new Error('Select a single uppercase three-letter currency.');
+  if (currency && currency !== '*' && !/^[A-Z]{3}$/.test(currency)) throw new Error('Select ALL or an uppercase three-letter currency.');
   return { from, to, territory: text('territory', 64), genre: text('genre', 128), transactionType, currency };
 }
 
@@ -58,14 +58,19 @@ const COHORT = `WITH cohort AS (
     COALESCE(NULLIF(f.territory,''),'Unknown') AS territory,
     COALESCE(NULLIF(c.genre,''),'Unknown') AS genre,
     COALESCE(NULLIF(c.title,''),f.content_key) AS title, c.duration_seconds,
-    CAST(f.created_at AS date) AS order_date, f.amount_minor, f.first_play_at
+    CAST(f.created_at AS date) AS order_date,
+    CASE WHEN @SelectedCurrency='*' THEN CAST(f.amount_minor AS decimal(38,0)) *
+      CASE fx.minor_exponent WHEN 0 THEN 10000 WHEN 1 THEN 1000 WHEN 2 THEN 100 WHEN 3 THEN 10 ELSE 1 END
+      ELSE CAST(f.amount_minor AS decimal(38,0)) END AS amount_minor,
+    f.first_play_at
   FROM gold.fact_order_line f
   JOIN gold.dim_content c ON c.content_key=f.content_key
   JOIN gold.dim_customer u ON u.customer_key=f.customer_key
   JOIN gold.dim_offer o ON o.offer_key=f.offer_key AND o.content_key=f.content_key
     AND o.currency=f.currency AND o.transaction_type=f.transaction_type
+  JOIN gold.currency fx ON fx.currency=f.currency
   WHERE f.created_at>=@StartDate AND f.created_at<DATEADD(day,1,@EndDate)
-    AND f.currency=@SelectedCurrency
+    AND (@SelectedCurrency='*' OR f.currency=@SelectedCurrency)
     AND (@territory='' OR COALESCE(NULLIF(f.territory,''),'Unknown')=@territory)
     AND (@genre='' OR COALESCE(NULLIF(c.genre,''),'Unknown')=@genre)
     AND (@transaction_type='' OR f.transaction_type=@transaction_type)
@@ -300,7 +305,7 @@ export function insightsFromRecordsets(source: Source, filters: GoldInsightsFilt
   let from: string, to: string;
   try { from = dateValue(meta.date_from); to = dateValue(meta.date_to); dateRange(from, to); } catch { invalid(); }
   const currency = meta.currency;
-  if (typeof currency !== 'string' || (currency !== '' && !/^[A-Z]{3}$/.test(currency))) invalid();
+  if (typeof currency !== 'string' || (currency !== '' && currency !== '*' && !/^[A-Z]{3}$/.test(currency))) invalid();
   if ((filters.currency && filters.currency !== currency) || (filters.from && filters.from !== from)
     || (filters.to && filters.to !== to)) invalid();
   const published = meta.run_id !== null;
@@ -311,7 +316,7 @@ export function insightsFromRecordsets(source: Source, filters: GoldInsightsFilt
       publication_run_id: published ? text(meta.run_id, 128) : null },
     filters: { ...filters, from, to, currency },
     options: { from: null, to: null, territories: [], genres: [], currencies: [], currencyMinorExponents: [] },
-    scope: { ...scope },
+    scope: { ...scope, money: currency === '*' ? 'nominal-booked-order-value-no-fx' : scope.money },
     summary: { orders: 0, orderLines: 0, customers: 0, titles: 0, bookedMinor: '0', sessions: 0, playedOrders: 0, completedSessions: 0 },
     daily: [], heatmap: [], titles: [], territories: [],
     audience: { customerCount: 0, contactableCustomers: null, campaigns: 0, touches: null, conversions: null },
@@ -344,7 +349,8 @@ export function insightsFromRecordsets(source: Source, filters: GoldInsightsFilt
   const total = base.summary;
   if (total.orders > total.orderLines || total.customers > total.orderLines || total.titles > total.orderLines
     || total.playedOrders > total.orders || total.completedSessions > total.sessions
-    || (total.orderLines > 0 && (!base.options.from || !base.options.currencies.includes(currency)))) invalid();
+    || (total.orderLines > 0 && (!base.options.from || !base.options.currencies.length
+      || (currency !== '*' && !base.options.currencies.includes(currency))))) invalid();
   base.state = total.orderLines ? 'ready' : 'empty';
 
   const daily = rows(5, INSIGHTS_LIMITS.days).map(row => {

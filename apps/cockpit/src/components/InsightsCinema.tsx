@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { catalogArt } from '@/assets/catalog-art.generated';
 import { catalogArtVariants } from '@/assets/catalog-art-variants.generated';
 import { dateLabel } from '@/services/business';
-import { minorMoney, shortDay } from '@/services/insightsPresentation';
+import { currencyLabel, minorMoney, shortDay } from '@/services/insightsPresentation';
 import type { GoldInsights } from '@/services/insights';
 
 const art = catalogArt.find(item => item.content_key === 'MSF-FILM-BUNNY');
@@ -23,7 +23,7 @@ export function InsightsCinema({ data }: { data: GoldInsights }) {
       <p className="insights-kicker">Sales to screen</p>
       <p className="insights-cinema-window">{shortDay(data.filters.from)} to {shortDay(data.filters.to)}, UTC · {data.filters.territory || 'All territories'}</p>
       <p className="insights-sales" aria-label="Booked sales">{minorMoney(data.summary.bookedMinor, data.filters.currency)}</p>
-      <p className="insights-sales-note">Booked sales · {data.filters.currency}. Recorded orders, not bank payments.</p>
+      <p className="insights-sales-note">Booked sales · {currencyLabel(data.filters.currency)}. Recorded orders, not bank payments.</p>
       <dl className="insights-kpis">
         <div><dt>Distinct orders</dt><dd>{count.format(data.summary.orders)}</dd></div>
         <div><dt>Customers</dt><dd>{count.format(data.summary.customers)}</dd></div>
