@@ -1,0 +1,10 @@
+{
+  "tenant_id": "1e45d0cb-b0dd-408c-8806-58b447605e96",
+  "subscription_id": "ce9dbfdd-c341-4e8d-a1fa-51617c74c3eb",
+  "workspace_id": "d9c835a9-16d2-4997-9969-16cc4389a7c7",
+  "operator_id": "00000000-0000-0000-0000-000000000000",
+  "source_system": "S4M",
+  "system_suffix": "fea347cc",
+  "landing_lakehouse_id": "a2cdcb76-3a38-443f-8510-0ecb1d3ab6f3",
+  "mirror_id": "05aa4b9d-f4f9-4540-b302-8d531a43981e"
+}
