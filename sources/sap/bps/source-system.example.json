@@ -1,0 +1,16 @@
+{
+  "sourceSystem": {
+    "name": "S4M",
+    "properties": {
+      "sourceType": "SAP",
+      "systemType": "S4HANA",
+      "systemVersion": "S4HANA2023"
+    },
+    "connection": {
+      "connectionType": "SAPDatasphere",
+      "sqlConnectionId": "<native-FabricSql-OAuth-connection-id>",
+      "storageAccountConnectionId": "<dedicated-ADLS-connection-id>",
+      "subpath": "datasphere/S4M"
+    }
+  }
+}
