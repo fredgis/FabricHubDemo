@@ -75,13 +75,29 @@ describe('Gold insights controls and honest states', () => {
     await waitFor(() => expect(screen.queryByRole('alert')).not.toBeInTheDocument());
     expect(load).toHaveBeenCalledTimes(3);
   });
-  it('states the source boundary and labels unavailable artwork honestly', async () => {
-    page();
+  it('replaces the film ranking with a licensed backdrop while keeping the source boundary honest', async () => {
+    const { container } = page();
     await screen.findByRole('heading', { name: 'Where the picture comes from' });
     expect(screen.getByText('SAP').closest('li')).toHaveTextContent('Not published');
     expect(screen.getByText('SAP').closest('li')).toHaveTextContent('Local integration contract only');
-    expect(screen.getByRole('img', { name: 'Visuel non disponible : Fixture film' })).toBeInTheDocument();
+    expect(screen.queryByRole('heading', { name: 'The films behind the figures' })).not.toBeInTheDocument();
+    expect(screen.queryByText('Fixture film')).not.toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: 'Where are customers buying?' })).toBeInTheDocument();
+    const image = container.querySelector('.insights-cinema-art img')!;
+    expect(image).toHaveAttribute('alt', '');
+    expect(image).toHaveAttribute('src', expect.stringContaining('/artwork/optimized/'));
+    fireEvent.click(screen.getByText('Backdrop: Big Buck Bunny · Image credits'));
+    expect(screen.getByText(/Blender Foundation.*Licensed CC BY 3.0/)).toBeInTheDocument();
     expect(screen.getByText(/not time watched/)).toBeInTheDocument();
+    fireEvent.error(image);
+    expect(container.querySelector('.insights-cinema-art')).not.toBeInTheDocument();
+    expect(screen.getByText('Backdrop unavailable. All figures remain available.')).toBeInTheDocument();
+    expect(screen.getByLabelText('Booked sales')).toHaveTextContent('€30.00');
+  });
+  it('cross-filters from the geographic figures without losing other active filters', async () => {
+    page();
+    fireEvent.click(await screen.findByRole('button', { name: /^Filter territory FR:/ }));
+    await waitFor(() => expect(load).toHaveBeenLastCalledWith({ ...insightsFixture().filters, territory: 'FR' }));
   });
 });
 

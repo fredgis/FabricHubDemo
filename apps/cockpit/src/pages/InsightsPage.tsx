@@ -1,12 +1,11 @@
 import { useEffect, useId, useState, type FormEvent } from 'react';
 import { ArrowsClockwise, ChartLine, SlidersHorizontal } from '@phosphor-icons/react';
-import { Artwork } from '@/components/CatalogArtwork';
 import { DailyChart, PlaybackArc, TerritoryHeatmap } from '@/components/InsightsCharts';
+import { InsightsCinema } from '@/components/InsightsCinema';
+import { InsightsGeography } from '@/components/InsightsGeography';
 import { useGoldInsights } from '@/hooks/useGoldInsights';
-import { catalogArt } from '@/assets/catalog-art.generated';
-import { catalogArtVariants } from '@/assets/catalog-art-variants.generated';
 import { dateLabel } from '@/services/business';
-import { addDays, dailySeries, daysBetween, minorMoney, share, shortDay } from '@/services/insightsPresentation';
+import { addDays, dailySeries, daysBetween, shortDay } from '@/services/insightsPresentation';
 import type { GoldInsights, GoldInsightsFilters } from '@/services/insights';
 import './InsightsPage.css';
 
@@ -78,41 +77,13 @@ function Sources({ data }: { data: GoldInsights }) {
       <li>Booked sales are exact recorded amounts in the selected currency. Currencies are never added together; these are not payments, invoices or margin.</li>
       <li>Playback is associated with the selected order cohort. A session can occur after the order date. Position is playback progress, not time watched.</li>
       <li>Consent counts use the latest effective marketing consent at publication for cohort customers. Campaign inventory covers the selected territory, across all dates. Touches use cohort customers and the selected dates; conversions must match their orders. These are not causal sales attribution.</li>
-      <li>The film ranking and genre matrix are bounded views. The totals and daily series are not capped to those displayed groups.</li>
+      <li>The genre matrix shows up to 12 leading genres. Totals, daily series and territory figures are not capped to those genres. Territories are commercial order locations, not customer residences.</li>
       <li>SAP is excluded from financial claims unless its tables are actually published. Customer identities in this demonstration are fictional Salesforce records.</li>
     </ul></details>
   </section>;
 }
 
-function Titles({ titles, currency }: { titles: GoldInsights['titles']; currency: string }) {
-  const [expanded, setExpanded] = useState(false);
-  const shown = expanded ? titles : titles.slice(0, 6);
-  return <section aria-labelledby="insights-titles-title">
-    <div className="insights-titles-heading"><div><h2 id="insights-titles-title">The films behind the figures</h2>
-      <p>Top {titles.length} titles by booked sales in this selection. Oracle catalogue, RTI orders and playback.</p></div>
-      {titles.length > 6 && <button type="button" aria-expanded={expanded} aria-controls="insights-title-grid" onClick={() => setExpanded(value => !value)}>
-        {expanded ? 'Show top 6' : `Show all ${titles.length} titles`}</button>}</div>
-    {!titles.length ? <p className="insights-empty-note">No matching catalogue titles for this order cohort.</p> :
-      <div className="insights-title-grid" id="insights-title-grid">{shown.map((title, index) => {
-        const art = catalogArt.find(item => item.content_key === title.contentKey);
-        const variants = catalogArtVariants.find(item => item.content_key === title.contentKey);
-        return <article className="insights-title-card" key={title.contentKey}>
-          <Artwork film={{ content_key: title.contentKey, title: title.title, image_url: '' }} />
-          <div className="insights-title-body"><div className="insights-title-meta"><strong>{String(index + 1).padStart(2, '0')}</strong><span>{title.genre}</span></div>
-            <h3>{title.title}</h3><span className="insights-title-sales">{minorMoney(title.bookedMinor, currency)}</span>
-            <p className="insights-title-counts">{number.format(title.orders)} orders · {number.format(title.sessions)} sessions</p>
-            {title.averageProgress !== null ? <label className="insights-title-progress">
-              <span>Average recorded position: {number.format(title.averageProgress)}%</span>
-              <meter min={0} max={100} value={title.averageProgress} aria-label={`Average recorded playback position for ${title.title}`} /></label>
-              : <p className="insights-title-counts">No recorded playback position.</p>}
-            {art && <details><summary>Image source &amp; license</summary><p>{art.attribution}</p><p>{art.license}</p>
-              {variants && <p>{variants.modifications}</p>}<p>Reference artwork does not imply distribution rights.</p></details>}
-          </div></article>;
-      })}</div>}
-  </section>;
-}
-
-function Audience({ data, loading, onTerritory }: { data: GoldInsights; loading: boolean; onTerritory: (territory: string) => void }) {
+function Audience({ data }: { data: GoldInsights }) {
   const audience = data.audience;
   const nullableCount = (value: number | null) => value === null ? 'Not available' : number.format(value);
   return <aside className="insights-audience-panel" aria-labelledby="insights-playback-title">
@@ -127,12 +98,6 @@ function Audience({ data, loading, onTerritory }: { data: GoldInsights; loading:
     </dl><p>Consents at publication; campaign inventory across all dates. Touches use the selected customers and dates, without causal sales attribution.</p>
       {audience.conversions !== null && <p>{number.format(audience.conversions)} recorded campaign conversions for these customers.</p>}
     </div>
-    <div className="insights-territories"><h3>Where the sales are booked</h3>{data.territories.map(territory => <div className="insights-territory" key={territory.territory}>
-      <div className="insights-territory-head"><button type="button" disabled={loading} onClick={() => onTerritory(territory.territory)}
-        aria-label={`Filter territory ${territory.territory}`}>{territory.territory}</button><strong>{minorMoney(territory.bookedMinor, data.filters.currency)}</strong></div>
-      <div className="insights-territory-bar" aria-hidden="true"><span style={{ width: `${Math.min(100, share(territory.bookedMinor, data.summary.bookedMinor))}%` }} /></div>
-      <small>{number.format(territory.orders)} orders · {number.format(territory.customers)} customers</small>
-    </div>)}</div>
   </aside>;
 }
 
@@ -152,35 +117,29 @@ export function InsightsPage({ active, refreshKey, onRead }: {
       <p>{data ? 'The last successful selection and figures remain below. ' : 'No sample or operational fallback is shown. '}{error}</p>
       <button type="button" disabled={loading} onClick={() => void refresh()}><ArrowsClockwise aria-hidden="true" />Retry Gold analysis</button></section>}
     {ready && <>
+      {data.state === 'ready' && <InsightsCinema data={data} />}
       <Filters data={data} loading={loading} onApply={applyFilters} />
       <div className="insights-selection" aria-label="Applied analysis filters"><strong>{shortDay(data.filters.from)} to {shortDay(data.filters.to)}, UTC</strong>
         <span>{data.filters.territory || 'All territories'}</span><span>{data.filters.genre || 'All genres'}</span>
         <span>{data.filters.transactionType === 'TVOD' ? 'Rentals' : data.filters.transactionType === 'EST' ? 'Purchases' : 'Rentals + purchases'}</span>
         <strong>{data.filters.currency} only</strong></div>
-      {loading && <p className="insights-status" role="status">Updating the analysis. Figures below still show the last successful selection.</p>}
+      {loading && <p className="insights-status" role="status">Updating the analysis. The last successful selection remains visible.</p>}
       {data.state === 'empty' ? <section className="insights-initial"><h2>No orders match this selection</h2>
         <p>Gold is published, but this combination has no matching order facts. Widen the dates or reset the filters to the latest available data.</p>
         <div><button type="button" disabled={loading} onClick={() => applyFilters({})}>Use latest data window</button></div></section> : <>
-        <section className="insights-primary" aria-label="Sales and order trend">
-          <div className="insights-scoreboard"><p className="insights-kicker">Sales to screen</p><div>
-            <p className="insights-sales" aria-label="Booked sales">{minorMoney(data.summary.bookedMinor, data.filters.currency)}</p>
-            <p className="insights-sales-note">Booked sales · {data.filters.currency}<br />Recorded orders, not bank payments.</p></div>
-            <dl className="insights-kpis"><div><dt>Distinct orders</dt><dd>{number.format(data.summary.orders)}</dd></div>
-              <div><dt>Customers</dt><dd>{number.format(data.summary.customers)}</dd></div>
-              <div><dt>Titles ordered</dt><dd>{number.format(data.summary.titles)}</dd></div>
-              <div><dt>Order lines</dt><dd>{number.format(data.summary.orderLines)}</dd></div></dl>
-            <p className="insights-cohort-note">Oracle titles and offers meet Salesforce customers and RTI transactions through shared business keys.</p></div>
-          <div className="insights-trend-panel"><div className="insights-panel-heading"><div><h2>When does the business happen?</h2>
+        <div className="insights-analysis">
+          <section className="insights-trend-panel" aria-label="Sales and order trend"><div className="insights-panel-heading"><div><h2>When does the business happen?</h2>
             <p>Daily order cohorts. Switch the measure, then inspect a day.</p></div><ChartLine size={24} aria-hidden="true" /></div>
             <DailyChart key={JSON.stringify(data.filters)} days={dailySeries(data.daily, data.filters.from, data.filters.to)} currency={data.filters.currency} />
-          </div></section>
-        <div className="insights-analysis"><section className="insights-heat-panel" aria-labelledby="insights-heat-title">
+          </section><Audience data={data} />
+        </div>
+        <InsightsGeography data={data} disabled={loading} onSelect={territory => applyFilters({ ...data.filters, territory })} />
+        <section className="insights-heat-panel" aria-labelledby="insights-heat-title">
           <div className="insights-panel-heading"><div><h2 id="insights-heat-title">Which stories travel?</h2>
             <p>Territory × genre. Select a cell to cross-filter the entire dashboard. Up to 12 leading genres are shown.</p></div></div>
           <TerritoryHeatmap cells={data.heatmap} currency={data.filters.currency} disabled={loading}
             onSelect={(territory, genre) => applyFilters({ ...data.filters, territory, genre })} />
-        </section><Audience data={data} loading={loading} onTerritory={territory => applyFilters({ ...data.filters, territory })} /></div>
-        <Titles titles={data.titles} currency={data.filters.currency} />
+        </section>
       </>}
     </>}
     {data?.state === 'unpublished' && <section className="insights-initial"><h2>Gold is not published yet</h2>

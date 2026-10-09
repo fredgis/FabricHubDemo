@@ -25,21 +25,24 @@ page or fails rather than showing partial KPIs.
 
 ## MSFlix Insights
 
-Release verification (2026-10-09): frontend and functions builds passed, along
-with 51 frontend/Flixy tests and 70 backend tests. Full `rayfin up` publication
-succeeded on the verified existing MSFlix app; `rayfin up status` confirmed the
-deployment. An authenticated `businessInsights` read returned `ready`, with
-503 EUR orders and 292,497 booked minor units for 2026-10-07 through 2026-10-08.
-The source publication was 2026-10-08T21:04:33.251Z. No independent direct-SQL
-comparison was completed. Manual interface validation is left to the user at
-their request; no complete browser acceptance run is claimed.
+Initial release verification (historical, 2026-10-09): frontend and functions
+builds passed, with 51 frontend/Flixy tests and 70 backend tests. Full `rayfin up`
+publication and `rayfin up status` succeeded on the existing MSFlix app. A native
+`businessInsights` read returned 503 EUR orders and 292,497 booked minor units
+for October 7–8, from the October 8 Gold publication. That initial release did
+not include a complete browser acceptance run or an independent direct-SQL
+comparison.
 
 Open **MSFlix Insights**, immediately below **Business Graph**, to compare
 booked sales, customers and associated playback in one Gold order cohort.
-The screen includes a daily trend with a day cursor and an exact-value table,
-a clickable territory-by-genre heatmap, playback association, Salesforce
-customer/campaign context, territory rankings, and catalogue artwork with
-source and license disclosure. The screen does not generate sample metrics.
+A cinematic summary introduces the booked amount and cohort counts over a
+licensed Big Buck Bunny backdrop. The daily trend retains its day cursor and
+exact-value table, alongside playback association and Salesforce context.
+**Audience atlas** maps customers and booked sales by commercial territory;
+its exact-value territory buttons filter the whole dashboard. The
+territory-by-genre heatmap remains available below it. The former **The films
+behind the figures** ranking is removed. The screen does not generate sample
+metrics or imply that the backdrop depicts the selected orders.
 
 ### Reads and filters
 
@@ -63,13 +66,24 @@ operational activity or frontend fixtures.
 ### Interpreting the measures
 
 - All matching Gold fact rows contribute to totals and daily series. The
-  ranking shows the top 12 films by booked value; the heatmap shows up to 12
-  genres. Territory results are complete within the supported 50-territory
-  boundary. These visual limits do not cap the totals or daily series.
+  heatmap shows up to 12 genres. Territory results are complete within the
+  supported 50-territory boundary. The heatmap limit does not cap the totals,
+  daily series or territory figures.
+- Map locations are order territories, not customer residences. Customers can
+  buy in several territories; adding territorial customer counts does not give
+  the globally distinct customer count shown above the map. Unknown or unmapped
+  territories retain their figures and filter buttons.
+- Customers/booked-sales shading and Europe/World controls change the local map
+  presentation without new backend reads or changes to the cohort. A territory
+  button applies that territory while retaining the other applied filters. The
+  Mercator map uses simplified country outlines, not equal-area geometry; tiny
+  territories may be absent. Exact amounts remain in the adjacent list. In a
+  multi-territory World view, country-code labels appear on list hover/focus
+  rather than overlapping over Europe.
 - Dates select orders. Associated playback can occur later than an order and
   is not a separate session-date activity count. Recorded position describes
-  progress, not time watched. Film-level average progress is a 0–100% mean of
-  latest session position divided by valid title duration.
+  progress, not time watched. RTI transactions here are published Gold facts,
+  not a live Eventhouse feed.
 - Booked amounts remain integer-minor-unit strings through the native
   response and are formatted exactly. The selected currency is never mixed
   with another currency. These figures are not bank receipts, invoices,
@@ -90,21 +104,98 @@ operational activity or frontend fixtures.
 
 ### Visual decisions
 
-The requested MSFlix identity sets **ENERGY 2 / RHYTHM 3 / MOTION 1**.
+The requested MSFlix identity sets **ENERGY 2 / RHYTHM 3 / MOTION 2**: a cinema
+analysis screen for operators comparing sales, audiences and playback.
 
 | Decision | Reason |
 |---|---|
 | Fixed charcoal, silver and vermilion | Continue the cockpit's cinema identity; reserve vermilion for selections and analytical magnitude. |
 | Segoe UI with tabular figures | Match the Microsoft/Fabric environment and keep changing numeric values aligned. |
-| Sales figure beside a dominant daily chart | Establish the amount and timing before comparing audiences or films. |
-| Heatmap, playback summary, then film cards | Give each business question the chart shape it needs rather than repeating KPI cards. |
-| Spacing and stacking change with available width | Keep the analysis readable when columns no longer fit; allow tables to scroll within their own labeled region. |
-| Film cards and licensed catalogue images | Connect aggregate results to recognizable catalogue entries; unavailable artwork is labeled honestly. |
+| Licensed animated-film still beside the sales summary | Add the requested cinema character without repeating a film-card catalogue. |
+| Dark image scrim; separate mobile image strip | Preserve readable numbers over the brightest photograph and keep mobile copy outside the image. |
+| Summary, trend/playback, geographic map, then genre matrix | Answer amount, timing, audience location and genre questions with different compositions. |
+| Local country outlines plus an exact-value list | Show distribution while keeping figures and filters accessible without precise map clicks. |
 | Small control and panel radii; no glass or shadow | Distinguish controls from grouped analysis without decorative elevation. |
-| Chart gradient and playback ring | Show magnitude and part-to-whole association; exact labels and tables carry the information without color. |
-| Sliders, refresh and chart glyphs | Identify the actual filtering, re-reading and analysis controls. |
-| No animated reveals or perpetual chart motion | Let users compare stable values while inspecting and changing filters. |
-| Visible focus, 44px controls and explicit statuses | Keep the same analysis operable by keyboard and touch. |
+| Chart gradient, territory scale and playback ring | Encode magnitude and association; labels and tables remain usable without color. |
+| Responsive spacing and stacked panels | Keep the content readable as the available width narrows; contain table scrolling. |
+| One 1.4-second backdrop settle, never a loop | Introduce the cinematic scene once without moving values during analysis; reduced motion disables it. |
+| Visible focus, 44px controls and explicit statuses | Keep the analysis operable by keyboard and touch, including empty/error states. |
+
+### Artwork and map provenance
+
+The backdrop reuses the locally bundled **Big Buck Bunny (2008), Blender
+Foundation**, licensed [CC BY 3.0](https://creativecommons.org/licenses/by/3.0/).
+The existing optimized WebP derivatives retain their recorded attribution;
+the image-credit disclosure also states the CSS cropping and darkening. This
+is catalogue decoration, not a claim about the selected cohort or film rights.
+An image failure removes only the decoration, leaving the real figures intact.
+
+The 177 country outlines come from
+[Natural Earth v5.1.2](https://github.com/nvkelso/natural-earth-vector/blob/v5.1.2/geojson/ne_110m_admin_0_countries.geojson),
+under its [public-domain terms](https://www.naturalearthdata.com/about/terms-of-use/).
+`apps\cockpit\tools\build-insights-map.mjs` generates the checked-in geometry
+in `src\assets\insights-world.generated.json`; run it with Node from the app
+folder to reproduce the asset. Source SHA-256:
+`6866c877d39cba9c357620878839b336d569f8c662d3cfab4cb1dbe2d39c977f`.
+Country lookup uses `ISO_A2_EH`, including France. Geometry is bundled locally;
+viewing or filtering the map sends no business data to a map service.
+
+### Cinema and geography verification (2026-10-09)
+
+- **PASS, functional tests:** 27 focused tests across UI, geography, presentation,
+  read lifecycle and navigation, including exact amounts beyond JavaScript's
+  safe integer limit, unmapped territories, overlap and disabled cross-filters.
+- **PASS, native data:** authenticated Edge at 19:57 UTC reconciled the displayed
+  summary and territory amounts against `businessInsights`, with no mocked
+  business response. October 9/EUR showed €79.80: Belgium and France each had
+  €39.90, one customer, ten orders and ten associated sessions. CAD and CHF
+  selections also returned their own amounts. This is not an independent SQL
+  reconciliation or accounting-revenue assertion.
+- **PASS, interaction and recovery:** keyboard-operated map controls caused no
+  new native reads; selecting France retained the other filters and reconciled
+  its sales. Credits opened by keyboard. A real empty date window, a deliberately
+  aborted refresh, retry and an image-error event preserved honest states and
+  recovered without sample data. No unexpected console errors were observed.
+- **PASS, responsive/accessibility checks:** ten widths from 1440 to 320 CSS px,
+  including 720px as 200%-equivalent reflow, had no page overflow or clipped
+  summary/territory text. Changed controls met 44px targets. Keyboard focus had
+  a 3px outline with space in the scrollable territory list, including
+  forced-colors mode. Reduced motion disabled the backdrop animation.
+- **PASS, computed contrast:** 31 changed-surface text, outline, focus and bar
+  pairs passed their thresholds. The minimum text ratio was 5.64:1, including
+  the worst-case white photograph under the summary scrim; minimum checked
+  non-text contrast was 3.05:1. These are computed and browser checks, not a
+  claim of a full WCAG certification.
+
+Local screenshots and detailed results are in the ignored
+`.state\insights\cinema-map` directory. The visual decisions above document the
+2/3/2 design direction and each treatment's purpose; no new testimonials,
+marketing claims, navigation destinations or sample metrics were introduced.
+
+Delivery gate for the changed cinema and geography sections:
+
+| Gate | Result and evidence |
+|---|---|
+| Function, truthful content and accessibility | PASS: native Gold values, real filters, licensed artwork, empty/error recovery, keyboard and responsive checks above; changed copy has no em dashes. |
+| Purpose | PASS: the visual-decisions table ties the image, scrim, palette, layouts and motion to reading the analysis; no decorative glass, glow or card catalogue. |
+| Character and composition | PASS: declared 2/3/2 direction, booked-sales focal point, cinema backdrop, map/list and heatmap compositions, restrained vermilion accent. |
+| Craft | PASS: 27 tests, browser checks and production build; functional controls and documented limitations, without invented metrics or claims. |
+
+Full CLI 1.36.2 `rayfin up` published this revision to the existing app with no
+excluded services or warnings. Before deployment, the approved subscription's
+cached identity verified the exact MSFlix workspace and capacity. This replaced
+only the wrapper's failed default-account credential lookup; the default Azure
+account, target checks and application access policy were unchanged.
+`rayfin up status` then confirmed the expected app, authenticated management
+endpoint (HTTP 200), auth and data services.
+
+The production build produced `index-BS9y6Q5q.css` and `index-DXZSVxsn.js`.
+At 20:06 UTC, a post-deployment typed native read again returned 20 orders,
+two customers, 20 associated sessions and €79.80 for October 9/EUR, with Gold
+publication time 19:17:50.867 UTC. Browser acceptance used local Edge connected
+to that deployed backend. Direct bearer-only requests to protected static
+hosting returned 401, so this evidence does not claim served-asset hash parity
+or a complete hosted-browser acceptance run. Protected access was not relaxed.
 
 ## Live deployment, 2026-10-07
 
