@@ -10,6 +10,7 @@ export default defineConfig({
       '@': resolve(import.meta.dirname, 'src'),
       'react/jsx-dev-runtime': resolve(import.meta.dirname, 'node_modules/react/jsx-dev-runtime.js'),
       'react/jsx-runtime': resolve(import.meta.dirname, 'node_modules/react/jsx-runtime.js'),
+      react: resolve(import.meta.dirname, 'node_modules/react/index.js'),
       '@testing-library/react': resolve(import.meta.dirname, 'node_modules/@testing-library/react/dist/index.js'),
     },
   },

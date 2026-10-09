@@ -73,6 +73,14 @@ assignments**, Gold **1,008 demonstration orders**, and a live Gold-backed
 Ontology graph. The cockpit combines a cinematic film-led home, business views
 and an interactive graph with visible relationships, zoom and node selection.
 
+**MSFlix Insights**, immediately below Business Graph, joins published Gold
+orders, Oracle catalogue, Salesforce customer context and associated RTI playback.
+A shared date, territory, genre, transaction and currency selection drives the
+daily charts, territory/genre heatmap and film ranking. Amounts stay separated
+by currency; the source panel identifies unpublished integrations, including SAP.
+See the [dashboard definitions](docs/COCKPIT.md#msflix-insights) for the cohort
+and source boundaries.
+
 The **Demo tab** generates bounded, real business transactions through the same
 application commands. A persistent cloud worker publishes their events to Kafka,
 then refreshes Raw, Silver, Gold and the ontology graph. Its accepted checkpoint

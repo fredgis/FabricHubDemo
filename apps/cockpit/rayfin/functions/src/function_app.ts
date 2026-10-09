@@ -6,6 +6,8 @@ import { atomic, poolFor, type Store } from './storage.js';
 import * as commands from './commands.js';
 import {readGoldDashboard,type GoldDashboard} from './gold-dashboard.js';
 import{goldView,readGoldPages,type GoldPages}from'./gold-pages.js';
+import { readGoldInsights } from './gold-insights.js';
+import type { GoldInsights } from './gold-insights-contract.js';
 import{readOntologyGraph,type OntologyGraph}from'./ontology-graph.js';
 import { askNativeFlixy, assertFlixyIdentity, flixyAgentId, type FlixyAnswer } from './flixy.js';
 
@@ -59,6 +61,10 @@ udf.func('businessDashboard',async(ctx:RayfinContext<AppSchema,AudienceType.Sql>
 udf.func('businessViews',async(ctx:RayfinContext<AppSchema,AudienceType.Sql>):Promise<GoldPages>=>{
   return readGoldPages(await analytics(ctx),ctx.Tokens.Sql);
 },[]);
+udf.func('businessInsights', async (filtersJson: string,
+  ctx: RayfinContext<AppSchema, AudienceType.Sql>): Promise<GoldInsights> => {
+  return readGoldInsights(await analytics(ctx), ctx.Tokens.Sql, filtersJson);
+}, []);
 udf.func('businessPage',async(view:string,ctx:RayfinContext<AppSchema,AudienceType.Sql>):Promise<GoldPages>=>{
   const scope=goldView(view);
   return readGoldPages(await analytics(ctx),ctx.Tokens.Sql,scope);

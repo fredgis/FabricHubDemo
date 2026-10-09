@@ -11,9 +11,11 @@ import type{GoldPages}from'../../rayfin/functions/src/gold-pages';
 import{catalogArt}from'@/assets/catalog-art.generated';
 import { catalogArtVariants } from '@/assets/catalog-art-variants.generated';
 import { DemoPage } from '@/pages/DemoPage';
+import { InsightsPage, type InsightsReadState } from '@/pages/InsightsPage';
 import { FlixyAssistant } from '@/components/FlixyAssistant';
+import { Artwork } from '@/components/CatalogArtwork';
 import { askFlixy } from '@/services/flixy';
-import type { Content, Rental } from '../../rayfin/data/schema';
+import type { Rental } from '../../rayfin/data/schema';
 import type { Capabilities, CommandResult, Health } from '../../rayfin/functions/src/domain';
 
 const sections = [
@@ -22,6 +24,7 @@ const sections = [
   { key: 'orders', name: 'Rentals & Purchases', icon: ShoppingBag },
   { key: 'audiences', name: 'Audiences & Campaigns', icon: UsersThree },
   { key: 'graph', name: 'Business Graph', icon: Graph },
+  { key: 'insights', name: 'MSFlix Insights', icon: ChartBar },
   { key: 'demo', name: 'Demo', icon: Play },
   { key: 'operations', name: 'Operations', icon: Broadcast },
 ] as const;
@@ -45,33 +48,16 @@ export function LoadingState() {
 function Status({ value }: { value: string }) {
   return <span className={`status status-${value}`}>{value.replaceAll('_', ' ')}</span>;
 }
-export function Artwork({ film, hero = false }: { film: Content; hero?: boolean }) {
-  const [failed, setFailed] = useState(false);
-  const art=catalogArt.find(item=>item.content_key===film.content_key);
-  const optimized=catalogArtVariants.find(item=>item.content_key===film.content_key);
-  const variants=optimized?.variants;
-  const display=hero?variants?.at(-1):variants?.[0];
-  const url=art?(failed?art.fallback_path:display?.path??art.imagepath):safeUrl(film.image_url);
-  const editorial=art&&(failed||art.kind==='original-editorial');
-  return url ? <div className={hero?'hero-art':'film-art'} style={{position:hero?'absolute':'relative'}}>
-    <img src={url} alt={art?editorial?`Illustration MSFlix for ${film.title}; not an official film poster`:art.alt:hero?`${film.title} reference artwork`:''}
-    srcSet={!failed?variants?.map(item=>`${item.path} ${item.width}w`).join(', '):undefined}
-    sizes={hero?'(max-width: 760px) 100vw, 75vw':'(max-width: 600px) 90vw, (max-width: 1000px) 45vw, 320px'}
-    width={display?.width} height={display?.height} decoding="async"
-    loading={hero ? 'eager' : 'lazy'} fetchPriority={hero ? 'high' : 'auto'}
-    onError={() => setFailed(true)} style={{width:'100%',height:'100%',objectFit:'cover',objectPosition:hero?'center 40%':undefined}} />
-    {editorial&&<span className="editorial-credit">Illustration MSFlix · Not official artwork</span>}</div>
-    : <div className={hero ? 'hero-art artwork-missing' : 'film-art artwork-missing'}
-      role="img" aria-label={`Visuel non disponible : ${film.title}`}>
-      <img src="/catalog-unavailable.svg" alt="" aria-hidden="true" className="unavailable-art" />
-      <span>Visuel non disponible</span></div>;
-}
+export { Artwork } from '@/components/CatalogArtwork';
 
 export function HomePage() {
   const { user, signOut } = useAuth();
   const [section, setSection] = useState<Section>('overview');
   const [graphVisited, setGraphVisited] = useState(false);
   const [graphRefreshKey, setGraphRefreshKey] = useState(0);
+  const [insightsVisited, setInsightsVisited] = useState(false);
+  const [insightsRefreshKey, setInsightsRefreshKey] = useState(0);
+  const [insightsRead, setInsightsRead] = useState<InsightsReadState>({ loading: false, queriedAt: null });
   const { snapshot, loading, error, updated, refresh, gold, goldLoading, goldError, hasReadGold } = useCockpitReads(section);
   const [capabilities, setCapabilities] = useState<Capabilities>({ can_operate: false, reason: 'Checking command permissions…' });
   const [permissionError, setPermissionError] = useState('');
@@ -105,7 +91,13 @@ export function HomePage() {
   const canOperate = capabilities.can_operate && !busy && !loading && !error;
   const context = { snapshot, canOperate, busy, command };
   const selected = sections.find(s => s.key === section)!;
-  const readAt = gold?.pages.dashboard.freshness.queried_at ?? updated;
+  const readAt = section === 'insights' ? insightsRead.queriedAt : gold?.pages.dashboard.freshness.queried_at ?? updated;
+  const refreshing = section === 'insights' ? insightsRead.loading : loading || goldLoading;
+  const refreshSection = () => {
+    if (section === 'graph') setGraphRefreshKey(value => value + 1);
+    else if (section === 'insights') setInsightsRefreshKey(value => value + 1);
+    else void refresh();
+  };
   const heroVariants=catalogArtVariants.find(item=>item.content_key==='MSF-FILM-BUNNY')?.variants;
   return <div className="app-shell">
     {heroVariants&&<link rel="preload" as="image" href={heroVariants.at(-1)?.path}
@@ -116,15 +108,19 @@ export function HomePage() {
       <a className="brand" href="/" aria-label="MSFlix home">MS<span>FLIX</span><small>BUSINESS CONTROL</small></a>
       <nav aria-label="Main navigation">{sections.map(({ key, name, icon: Icon }) =>
         <button key={key} aria-current={section === key ? 'page' : undefined}
-          onClick={() => { if(key==='graph')setGraphVisited(true);setSection(key); }}><Icon size={20} weight={section === key ? 'fill' : 'regular'} aria-hidden="true" />{name}</button>)}</nav>
+          onClick={() => {
+            if (key === 'graph') setGraphVisited(true);
+            if (key === 'insights') setInsightsVisited(true);
+            setSection(key);
+          }}><Icon size={20} weight={section === key ? 'fill' : 'regular'} aria-hidden="true" />{name}</button>)}</nav>
       <div className="sidebar-bottom"><span className="workspace-label">MSFlix workspace</span>
         <strong>{user?.name}</strong><p>{capabilities.can_operate ? 'Operator' : 'Viewer'}</p>
         <button onClick={() => void signOut()}><SignOut aria-hidden="true" /> Sign out</button></div>
     </aside>
     <div className="workspace">
       <header className="topbar"><span>MSFlix <span className="muted">/ {selected.name}</span></span>
-        <button onClick={() => section==='graph'?setGraphRefreshKey(value=>value+1):void refresh()} disabled={loading || goldLoading || busy}>
-          <ArrowsClockwise aria-hidden="true" />{loading || goldLoading ? 'Refreshing…' : section==='graph'?'Refresh graph':'Refresh data'}</button></header>
+        <button onClick={refreshSection} disabled={refreshing || busy}>
+          <ArrowsClockwise aria-hidden="true" />{refreshing ? 'Refreshing…' : section === 'graph' ? 'Refresh graph' : section === 'insights' ? 'Refresh insights' : 'Refresh data'}</button></header>
       <main id="main" tabIndex={-1}>
         <div className="page-heading"><div><p className="eyebrow">ENTERTAINMENT BUSINESS</p>
           <h1>{section === 'overview' ? 'The business behind the stories.' : selected.name}</h1>
@@ -132,6 +128,7 @@ export function HomePage() {
             : section === 'orders' ? 'Persisted demo transactions and time-bound viewing rights. No bank charges.'
               : section === 'audiences' ? 'Fictional customer identities, stored in actual Salesforce CRM records.'
                 : section === 'graph' ? 'Read the actual consolidated business ontology.'
+                  : section === 'insights' ? 'From catalogue to customer to screen. One connected view of published Gold data.'
                   : section === 'demo' ? 'Bounded real rental, purchase, and playback journeys. Delivery and publication are separate.'
                   : section === 'operations' ? 'Real connections, command receipts and delivery acknowledgements.'
                     : 'Sourced film metadata, explicit demo offers and traceable artwork rights.'}</p></div>
@@ -142,7 +139,7 @@ export function HomePage() {
         {commandError && <p className="notice" role="alert">{commandError} Retrying the same command reuses its idempotency key.</p>}
         {receipt && <div className="receipt" role="status"><strong>Command persisted: {receipt.status}</strong>
           <span>Entity {receipt.entity_key}</span><span>{receipt.event_ids.length} returned event receipts. Broker delivery is separate.</span></div>}
-        {error && <ErrorState message={`${snapshot ? 'Refresh failed. The records below are from the last successful read. ' : ''}${error}`} retry={() => void refresh()} />}
+        {section !== 'insights' && error && <ErrorState message={`${snapshot ? 'Refresh failed. The records below are from the last successful read. ' : ''}${error}`} retry={() => void refresh()} />}
         {['overview','catalog','audiences'].includes(section)&&<>
           {goldLoading&&!gold&&<LoadingState/>}
           {goldError&&<ErrorState message={`Gold business read failed: ${goldError} ${gold?'The last successful Gold read remains visible.':'No operational fallback.'}`} retry={()=>void refresh()}/>}
@@ -156,6 +153,8 @@ export function HomePage() {
           </>}</>}
         {(graphVisited||hasReadGold)&&<div hidden={section!=='graph'}><OntologyGraph active={section==='graph'}
           prefetch={hasReadGold} renderCanvas={graphVisited} refreshKey={graphRefreshKey}/></div>}
+        {insightsVisited && <div hidden={section !== 'insights'}><InsightsPage active={section === 'insights'}
+          refreshKey={insightsRefreshKey} onRead={setInsightsRead} /></div>}
         <div hidden={section !== 'demo'}><DemoPage snapshot={snapshot} capabilities={capabilities}
           loading={loading} readError={error} busy={busy} snapshotUpdatedAt={updated}
           gold={gold?.pages} goldLoading={goldLoading} goldError={goldError} onRefresh={refresh} /></div>

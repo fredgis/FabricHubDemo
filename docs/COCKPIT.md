@@ -2,12 +2,14 @@
 
 ## Delivered application
 
-An authenticated, charcoal entertainment-business app with six sections:
+An authenticated, charcoal entertainment-business app with eight sections:
 Overview, Catalog, Rentals & Purchases, Audiences & Campaigns, Business Graph,
-Operations. It is not a consumer streaming clone. It reads entity data through
-Rayfin `client.data` and invokes native commands through `client.functions`.
-No handwritten GraphQL, fabricated KPI series, bank payment, invoices, SAP,
-financial Planning or standalone Data Agent are included.
+MSFlix Insights, Demo, and Operations. It reads published Gold business views
+through native read-only functions, operational entities through Rayfin
+`client.data`, and native commands through `client.functions`. Flixy connects
+the floating assistant to the native Fabric Data Agent.
+No handwritten GraphQL, fabricated KPI series, bank payments, invoices,
+published SAP finance or financial Planning are included.
 
 Catalog artwork is the parent's actual Blender open-film metadata, with source,
 Creative Commons license and attribution shown in the catalog and spotlight.
@@ -20,6 +22,89 @@ reduced-motion handling, and explicit loading, empty, connection and command
 failure states. Revenue is calculated from persisted booked commercial rows,
 grouped by currency; no currencies are added together. Pagination reads every
 page or fails rather than showing partial KPIs.
+
+## MSFlix Insights
+
+Release verification (2026-10-09): frontend and functions builds passed, along
+with 51 frontend/Flixy tests and 70 backend tests. Full `rayfin up` publication
+succeeded on the verified existing MSFlix app; `rayfin up status` confirmed the
+deployment. An authenticated `businessInsights` read returned `ready`, with
+503 EUR orders and 292,497 booked minor units for 2026-10-07 through 2026-10-08.
+The source publication was 2026-10-08T21:04:33.251Z. No independent direct-SQL
+comparison was completed. Manual interface validation is left to the user at
+their request; no complete browser acceptance run is claimed.
+
+Open **MSFlix Insights**, immediately below **Business Graph**, to compare
+booked sales, customers and associated playback in one Gold order cohort.
+The screen includes a daily trend with a day cursor and an exact-value table,
+a clickable territory-by-genre heatmap, playback association, Salesforce
+customer/campaign context, territory rankings, and catalogue artwork with
+source and license disclosure. The screen does not generate sample metrics.
+
+### Reads and filters
+
+`client.functions.businessInsights.invoke({ filtersJson })` is the read-only
+native entry point. Its typed `GoldInsights` contract lives beside the function.
+The browser submits an inclusive UTC order-date window, territory, genre,
+TVOD/EST transaction type, and one currency. Empty filters select the latest
+30 days of the global order-date extent and the most frequent order-line
+currency; the maximum window is 366 days. Currency filters the entire cohort,
+including counts and associated playback, not just the money. Moving a filter or
+the date-window slider does not issue a request until **Apply filters**.
+Heatmap cells and territory buttons apply cross-filters immediately.
+
+The Insights reader loads on the first visit, coalesces identical in-flight
+requests, ignores out-of-order responses, and retains the last successful
+selection on failure. Retry repeats the attempted filters. Navigation preserves
+the draft; the header refresh and timestamp belong to Insights rather than the
+operational pages. A failed, empty, or unpublished Gold read never substitutes
+operational activity or frontend fixtures.
+
+### Interpreting the measures
+
+- All matching Gold fact rows contribute to totals and daily series. The
+  ranking shows the top 12 films by booked value; the heatmap shows up to 12
+  genres. Territory results are complete within the supported 50-territory
+  boundary. These visual limits do not cap the totals or daily series.
+- Dates select orders. Associated playback can occur later than an order and
+  is not a separate session-date activity count. Recorded position describes
+  progress, not time watched. Film-level average progress is a 0–100% mean of
+  latest session position divided by valid title duration.
+- Booked amounts remain integer-minor-unit strings through the native
+  response and are formatted exactly. The selected currency is never mixed
+  with another currency. These figures are not bank receipts, invoices,
+  recognized revenue, or margin.
+- Contactability uses the latest effective marketing consent at publication
+  among cohort customers. Campaign inventory is selected-territory/all-dates;
+  touches use cohort customers and the selected date window. Conversions must
+  match the selected orders and customers. Campaign activity is descriptive
+  context, not causal attribution of sales.
+- Each source lists its actual published Gold tables in an expandable section.
+  Oracle supplies catalogue/offer context, Salesforce supplies CRM context,
+  and RTI supplies order/playback facts. SAP is explicitly **Not published**
+  until its contribution is present in the Warehouse. The local SAP contract
+  alone is not a live connection or a financial fact source.
+- Publication time is distinct from query time and is not a live source-health
+  claim. Fact `run_id` values identify producers; they are not a filter for
+  membership in the latest publication.
+
+### Visual decisions
+
+The requested MSFlix identity sets **ENERGY 2 / RHYTHM 3 / MOTION 1**.
+
+| Decision | Reason |
+|---|---|
+| Fixed charcoal, silver and vermilion | Continue the cockpit's cinema identity; reserve vermilion for selections and analytical magnitude. |
+| Segoe UI with tabular figures | Match the Microsoft/Fabric environment and keep changing numeric values aligned. |
+| Sales figure beside a dominant daily chart | Establish the amount and timing before comparing audiences or films. |
+| Heatmap, playback summary, then film cards | Give each business question the chart shape it needs rather than repeating KPI cards. |
+| Spacing and stacking change with available width | Keep the analysis readable when columns no longer fit; allow tables to scroll within their own labeled region. |
+| Film cards and licensed catalogue images | Connect aggregate results to recognizable catalogue entries; unavailable artwork is labeled honestly. |
+| Small control and panel radii; no glass or shadow | Distinguish controls from grouped analysis without decorative elevation. |
+| Chart gradient and playback ring | Show magnitude and part-to-whole association; exact labels and tables carry the information without color. |
+| Sliders, refresh and chart glyphs | Identify the actual filtering, re-reading and analysis controls. |
+| No animated reveals or perpetual chart motion | Let users compare stable values while inspecting and changing filters. |
+| Visible focus, 44px controls and explicit statuses | Keep the same analysis operable by keyboard and touch. |
 
 ## Live deployment, 2026-10-07
 
@@ -116,6 +201,7 @@ Context parameters are injected by the host and stripped by generated
 |---|---|---|
 | capabilities | none | `{can_operate, reason}` |
 | health | none | `{database, functions, outbox_pending, broker}` |
+| businessInsights | `{filtersJson: JSON.stringify(filters)}` | GoldInsights, including resolved filters, exact amounts, source tables and freshness |
 | placeOrder | `{input:{customer_key,offer_key,idempotency_key}}` | CommandResult |
 | startPlayback | `{input:{order_id,idempotency_key}}` | CommandResult |
 | recordProgress | `{input:{session_id,position_seconds,idempotency_key}}` | CommandResult |
