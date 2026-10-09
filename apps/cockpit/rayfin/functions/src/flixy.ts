@@ -1,5 +1,6 @@
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StreamableHTTPClientTransport } from '@modelcontextprotocol/sdk/client/streamableHttp.js';
+import { EmbeddedResourceSchema } from '@modelcontextprotocol/sdk/types.js';
 
 export type FlixyConfig = {
   tenant_id: string;
@@ -97,6 +98,8 @@ export function flixyAnswerText(answer: unknown): string {
     throw new Error('Invalid native Flixy response format.');
   const parts: string[] = [];
   for (const block of answer.content as unknown[]) {
+    // Fabric attaches query-result files beside its answer; never dereference their URIs.
+    if (EmbeddedResourceSchema.safeParse(block).success) continue;
     if (!record(block) || block.type !== 'text' || typeof block.text !== 'string')
       throw new Error('Unsupported native Flixy content format.');
     parts.push(block.text);

@@ -91,6 +91,12 @@ responses. **Stop waiting** stops the UI wait; it does not claim cancellation of
 an already-running native query. The backend uses a bounded 180-second deadline.
 Clearing the cockpit history is not a promise to delete service-side retention.
 
+Native MCP answers may include embedded query-result files, such as CSV, alongside
+text blocks. The cockpit validates these attachments against the MCP resource
+schema and ignores them, without opening their URIs or rendering their contents.
+It preserves the text blocks in order and still rejects malformed content, empty
+or oversized text answers, and native tool failures.
+
 The panel's controls, suggestions and status messages are in English. Assistant
 answers render safe GitHub-flavored Markdown, including real tables, lists,
 emphasis and code blocks; user messages remain literal text. Tables scroll
@@ -140,6 +146,9 @@ node tools\verify-flixy.mjs --initialize-access
 user to the same Entra identity verified through cached SQL authorization; it
 does not enumerate users or create broad grants. Without that flag, the tool
 only asks the deployed native function its bounded Gold and graph questions.
+The verifier accepts Markdown fences and the native generated-result-file notice
+around the JSON answer; all counts must still match the independent Gold read.
+Other unexpected text or malformed JSON fails verification.
 Operational evidence remains ignored under `.state\flixy`.
 
 The implementation follows the public management-plane contract in Microsoft's

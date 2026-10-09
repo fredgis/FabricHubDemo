@@ -5,6 +5,7 @@ import { parseArgs } from 'node:util';
 import { RayfinClient } from '@microsoft/rayfin-client';
 import { signInWithEntraToken } from '@microsoft/rayfin-auth-provider-fabric';
 import { RayfinAuth } from '../node_modules/@microsoft/rayfin-cli/dist/auth/rayfin-auth.js';
+import { parseFlixyVerificationAnswer } from './flixy-verification.mjs';
 
 const { values } = parseArgs({ options: { 'initialize-access': { type: 'boolean' } } });
 const tenant = '11111111-1111-4111-8111-111111111111';
@@ -88,7 +89,7 @@ try {
     + '"commandes_distinctes":nombre,"publication_utc":"date","sources":["tables utilisees"]}.';
   const first = await client.functions.flixyAsk.invoke({ question, historyJson: '[]' }, { timeoutMs: 200000 });
   if (!first.text?.trim() || !Array.isArray(first.sources)) throw new Error('Native Flixy response is invalid.');
-  const counts = JSON.parse(first.text.trim().replace(/^```(?:json)?\s*/i, '').replace(/\s*```$/, ''));
+  const counts = parseFlixyVerificationAnswer(first.text);
   for (const key of Object.keys(expected)) {
     if (!Number.isSafeInteger(counts[key]) || counts[key] !== expected[key])
       throw new Error(`Native Flixy ${key} differs from the independently read Gold snapshot.`);

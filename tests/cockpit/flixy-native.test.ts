@@ -1,4 +1,4 @@
-import { describe, expect, it } from 'vitest';
+import { describe, expect, it, vi } from 'vitest';
 import { assertFlixyIdentity, flixyAgentId, flixyAnswerText, flixyQuestion, validateFlixySources,
   type FlixyConfig } from '../../apps/cockpit/rayfin/functions/src/flixy';
 
@@ -41,6 +41,47 @@ describe('Flixy native authorization and source boundary', () => {
     expect(() => validateFlixySources({ value: [good.value[0], { ...good.value[1], selectionState: 'None' }] }, config)).toThrow();
     expect(() => validateFlixySources({ ...good, continuationUri: 'https://example.org' }, config)).toThrow();
     expect(() => validateFlixySources({ value: [good.value[0], source(config.data_agent_id, 'GraphModel')] }, config)).toThrow();
+  });
+});
+
+describe('Flixy native result attachments', () => {
+  const csv = {
+    type: 'resource',
+    resource: { uri: 'file:///result_0.csv', mimeType: 'text/csv', text: 'total_films\r\n305\r\n' },
+    annotations: { audience: ['user', 'assistant'], priority: 1 },
+  };
+  const answer = { type: 'text', text: '305 films in gold.dim_content.' };
+
+  it('accepts the native answer accompanied by an embedded CSV result', () => {
+    expect(flixyAnswerText({ content: [answer, csv], isError: false })).toBe(answer.text);
+  });
+  it('keeps text order without rendering or fetching supplemental result files', () => {
+    const fetch = vi.fn();
+    vi.stubGlobal('fetch', fetch);
+    try {
+      const binary = { type: 'resource', resource: { uri: 'https://example.org/result.bin', blob: 'AA==' } };
+      expect(flixyAnswerText({ content: [csv, answer, binary, { type: 'text', text: 'Current publication.' }] }))
+        .toBe(`${answer.text}\nCurrent publication.`);
+      expect(fetch).not.toHaveBeenCalled();
+    } finally {
+      vi.unstubAllGlobals();
+    }
+  });
+  it('still requires a nonempty, bounded text answer', () => {
+    expect(() => flixyAnswerText({ content: [csv] })).toThrow(/empty or too large/);
+    expect(() => flixyAnswerText({ content: [csv, { type: 'text', text: ' ' }] })).toThrow(/empty or too large/);
+    expect(() => flixyAnswerText({ content: [csv, { type: 'text', text: 'a'.repeat(64001) }] }))
+      .toThrow(/empty or too large/);
+  });
+  it('preserves native tool failures even when result files are attached', () => {
+    expect(() => flixyAnswerText({ content: [{ type: 'text', text: 'Denied' }, csv], isError: true }))
+      .toThrow('Denied');
+  });
+  it('rejects malformed resource blocks rather than silently treating them as attachments', () => {
+    for (const resource of [null, {}, { text: 'missing URI' }, { uri: 'file:///result.csv', text: 305 }]) {
+      expect(() => flixyAnswerText({ content: [answer, { type: 'resource', resource }] }))
+        .toThrow(/Unsupported native Flixy content format/);
+    }
   });
 });
 
