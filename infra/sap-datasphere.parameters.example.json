@@ -1,0 +1,12 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location": {"value": "southeastasia"},
+    "environment": {"value": "dev"},
+    "storageAccountName": {"value": "<globally-unique-sap-storage-name>"},
+    "workspaceId": {"value": "<existing-MSFlix-workspace-id>"},
+    "workspaceIdentityPrincipalId": {"value": "<workspace-identity-object-id>"},
+    "operatorPrincipalId": {"value": "<authorized-operator-object-id>"}
+  }
+}

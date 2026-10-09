@@ -124,10 +124,11 @@ concurrency.
 - Exact minor-unit amounts remain separated by currency. No bank charge,
   royalty settlement, financial margin or commercial distribution right is
   invented.
-- SAP and Planning are part of the overall architecture but remain outside
-  this implementation workstream, owned externally. This execution provisioned
-  neither and claims no qualified SAP/Planning data. Datasphere remains outside
-  scope. The user subsequently authorized Flixy and enabled the required
+- SAP and Planning are part of the overall architecture. The initial workstream
+  provisioned neither and claims no qualified SAP/Planning data. The separately
+  authorized SAP storage and native Fabric foundation is described below;
+  data processing and Warehouse publication belong to the separate SAP finance
+  change set. The user subsequently authorized Flixy and enabled the required
   Azure OpenAI cross-region processing and conversation-storage settings.
 - Flixy requires a caller-scoped identity grant. The current Rayfin resource
   token is the app owner's identity, so another caller cannot borrow it.
@@ -138,6 +139,183 @@ concurrency.
   [automation runbook](DEMO-AUTOMATION.md) for the scope tradeoff and controls.
 - GPU acceleration is a qualification gate, not a deployed business dependency;
   no `is_accelerated = 1` evidence is claimed.
+
+## SAP Azure storage foundation
+
+On 8 October 2026, Florent authorized the Azure SAP foundation independently of
+the local data-generator PR. Frederic retains ownership of merges. Infrastructure
+changes are on the separate `flthibau/sap-mirroring` branch, based on `main`,
+without merging or changing PR 1.
+
+| Resource | Configuration |
+|---|---|
+| Account | `stmsflixsap029985`, `rg-msflix-demo-sea`, Southeast Asia |
+| Storage | StorageV2, ADLS Gen2 hierarchical namespace, Standard LRS, Hot |
+| Container | `datasphere`, private |
+| DFS endpoint | `https://stmsflixsap029985.dfs.core.windows.net/` |
+| Authentication | Microsoft Entra; shared keys disabled |
+| Public access | Public network access disabled; anonymous blob access disabled |
+| Network exception | Only the existing MSFlix workspace resource-instance rule; no IP/VNet rules or blanket trusted-service bypass |
+| Workspace identity | Account-scoped Storage Blob Data Reader plus Storage Blob Data Contributor on the `datasphere` container only |
+| Authorized operator | Florent: Storage Blob Data Contributor, scoped to this dedicated account |
+
+The account has HTTPS-only access, TLS 1.2 minimum and Microsoft-managed
+encryption. This is **trusted workspace access**, not a newly deployed private
+endpoint. The existing workspace Private Link, VNet, VMs, gateway, Event Hubs,
+capacity and Salesforce BPS resources are unchanged. No credentials or storage
+keys are produced by the template.
+
+Account-level data roles are limited to this newly isolated SAP storage account
+and follow the documented trusted-workspace-access authorization requirements.
+The workspace identity can read the account and publish only inside the
+`datasphere` container through the OneLake shortcut. That container-scoped write
+grant was added during native SAP setup to create the required `S4M` directory
+and support the intended publication route without opening the firewall.
+If another connection identity is chosen, its permissions
+must be reviewed explicitly; the template does not grant all workspace users
+storage access.
+
+The source is `infra\sap-datasphere.bicep`. Copy the example parameters to an
+ignored local file and populate the approved workspace/identity IDs. Do not
+deploy placeholder parameters or reuse an account owned by another workload.
+Use the existing deployment policy for subscription, tenant, region and group.
+
+```powershell
+$policy = Get-Content fabric\target-policy.json -Raw | ConvertFrom-Json
+$parameters = '@.state\sap-azure\parameters.private.json'
+az bicep build --file infra\sap-datasphere.bicep `
+  --outfile .state\sap-azure\template.json
+az deployment group validate --subscription $policy.subscription_id `
+  --resource-group $policy.resource_group `
+  --template-file .state\sap-azure\template.json --parameters $parameters
+az deployment group what-if --subscription $policy.subscription_id `
+  --resource-group $policy.resource_group `
+  --template-file .state\sap-azure\template.json --parameters $parameters
+```
+
+Before execution, require a preview limited to this dedicated storage account,
+its blob service/container, the two expected account-scoped data grants and the
+workspace identity's container-scoped writer grant.
+Never apply a preview that changes existing MSFlix components or widens network
+access without separate approval. Deployment uses incremental mode:
+
+```powershell
+az deployment group create --subscription $policy.subscription_id `
+  --resource-group $policy.resource_group --mode Incremental `
+  --name msflix-sap-foundation-20261008 `
+  --template-file .state\sap-azure\template.json --parameters $parameters
+```
+
+The deployment and management-plane readback succeeded. Parameters, previews and
+readback evidence remain in ignored `.state\sap-azure`; generated SAP source
+data is not uploaded by this deployment.
+
+### Fabric SAP entrypoint
+
+The following dedicated Fabric resources were created on 8 October using
+Florent's identity and the public Fabric APIs:
+
+| Resource | Identifier / placement |
+|---|---|
+| Folder `02bis SAP BPS` | `3bd360e0-6629-44c6-a81f-ec0d5f0d2666` |
+| Lakehouse `MSFlixSAPLanding` | `a2cdcb76-3a38-443f-8510-0ecb1d3ab6f3`, in the SAP folder |
+| Landing SQL endpoint | `e16cfab4-a7a2-45d6-bae1-1bc044a1a04c`, provisioned successfully |
+| Connection `MSFlixSAPADLSRead` | `6aceb6e9-9224-49f2-a06b-040ff32c824e`, AzureDataLakeStorage, WorkspaceIdentity |
+| Shortcut | `Files/datasphere` -> `https://stmsflixsap029985.dfs.core.windows.net/datasphere` |
+| Native BPS item `MSFlixSAP` | `9e97cdb9-2bad-449d-9268-ed187aa7c0d9`, type `Microsoft.WaaS.BusinessProcessSolutions` |
+
+The ADLS connection uses the discovered `AzureDataLakeStorage` creation method,
+with `server=stmsflixsap029985.dfs.core.windows.net` and `path=/datasphere`.
+`skipTestConnection=false`; the connector only advertises the API's
+`NotEncrypted` enum, but its actual endpoint is HTTPS and storage requires TLS.
+The shortcut was created with conflict policy `Abort`, not overwrite.
+
+A real OneLake directory-list read initially returned an empty `paths` array.
+Native BPS setup then required the `S4M` subdirectory to exist. The workspace
+identity received a Blob Data Contributor grant on this container only; a
+conditional create through `Files/datasphere/S4M` returned HTTP 201, and readback
+confirmed the empty directory. No business files were uploaded. Workspace roles,
+storage public-access settings and existing network exceptions are unchanged.
+
+The native BPS item was successfully created through `POST /v1/workspaces/{id}/items`.
+Its documented move operation returned `EntityNotFound`, as with the existing
+Salesforce BPS launcher, so this item remains at workspace root. Its landing
+lakehouse and SQL child are correctly grouped in `02bis SAP BPS`.
+
+### Native SAP BPS source and mirror
+
+After Florent completed interactive sign-in, the native portal created the
+`MSFlixSAPFabricSQL` OAuth connection (`4d48ac67-52c5-40b2-9aa4-d9e68387d7cd`,
+type `FabricSql`). No tokens/passwords were copied into code, evidence or browser
+storage by the deployment scripts. Use the native UI for this OAuth flow; the
+public create-connection request has no OAuth2 credential input.
+
+Inside **MSFlixSAP > Configure source system > New source system**, the deployed
+settings are SAP / `S4M` / SAP S/4HANA / SAP S/4HANA 2023 / SAP Datasphere, storage
+connection `MSFlixSAPADLSRead`, SQL connection `MSFlixSAPFabricSQL`, and relative
+container path **`datasphere/S4M`**. This version is a simulation template profile,
+not a claim that a real S/4HANA system is connected. The corresponding input
+shape is in `sources\sap\bps\source-system.example.json`; it documents the native
+form, not an independently supported public source-provisioning API.
+
+The first submission returned `ShortcutCreationFailed` because the source
+directory was absent. After the empty directory was created, native **Edit >
+Update** resumed the existing source; no source or native item was deleted.
+The source eventually reported **Succeeded**.
+
+BPS provisioned the resource family with suffix **`fea347cc`**:
+
+| Type | Count |
+|---|---:|
+| Data pipelines | 7 |
+| Notebooks | 15 |
+| Lakehouses (Bronze/Silver/Gold) | 3 |
+| Environment | 1 |
+| SQL metadata database | 1 |
+| Native SAP mirrored database | 1 |
+| SQL endpoints | 5 |
+
+At the foundation checkpoint, all **33 native items** were in `02bis SAP BPS`,
+together with the two landing items: **35 items in the folder**, before later
+processing-recovery additions. Only the 28 native parents were moved; their
+five SQL endpoints followed automatically. Native IDs and names were preserved,
+no active SAP pipeline was found during placement, and Salesforce's resource
+family was not moved. The BPS launcher itself remains at root as noted above.
+
+The only SAP mirror is BPS-created
+`bps_mirrored_sap_db_S4M_fea347cc`
+(`05aa4b9d-f4f9-4540-b302-8d531a43981e`). Its public definition reports:
+
+- Source type `SAP`, subtype `Datasphere`.
+- Landing lakehouse: native Bronze `e342518f-5688-4c53-ac5b-5ca09ec68181`.
+- Root `Files/S4M`, backed by its native ADLS shortcut to `/datasphere/S4M`.
+- Delta target, `enableDeltaChangeDataFeed=true`, retention 30 days.
+
+At the 8 October foundation checkpoint, the mirror reported **Running**, with
+**zero tables** because no source files had been published. The native environment
+was provisioned on runtime **2.0**, unchanged by this infrastructure change.
+No business-processing job was manually started in that phase. Native provisioned
+artifacts alone are not proof of data readiness or a successful data cycle.
+
+The separately approved finance phase completed on 9 October: 93 SAP mirror
+tables were replicating, native Silver/Gold was processed, and 22 domain tables
+plus nine views were published into `MSFlixGold`. That phase also recovered the
+SAP environment to runtime 1.3 for library compatibility; the infrastructure
+template does not configure runtime. Its processing code, accounting gates and
+SQL consumption contract belong to `flthibau/sap-bps-finance`.
+Do not upload the PR1 partial source projection as if it were already BPS-ready.
+
+Direct storage access from a workstation is intentionally blocked by the storage
+network policy, even when that user has Azure Owner or a data role.
+
+For repeat Fabric setup, confirm the workspace identity's required Fabric role
+and use a supported connection creation experience. Organizational-account
+connections to firewall-protected storage should be created through the shortcut
+or pipeline experience; a connection test from Manage connections and gateways
+can report Offline. Do not resolve that by enabling public storage access.
+
+See [trusted workspace access](https://learn.microsoft.com/en-us/fabric/security/security-trusted-workspace-access)
+and [SAP mirroring via Datasphere](https://learn.microsoft.com/en-us/fabric/mirroring/sap-datasphere-tutorial).
 
 ## Evidence and source of truth
 
