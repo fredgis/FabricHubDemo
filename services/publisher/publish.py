@@ -17,7 +17,10 @@ class TransientSqlConnectionError(RuntimeError):
 
     def __init__(self, sqlstate):
         self.sqlstate = sqlstate
-        super().__init__(f"SQLDriverConnect timed out [{sqlstate}]; no statement submitted")
+        timeout = sqlstate in ("HYT00", "HYT01")
+        self.kind = "sql_connect_timeout" if timeout else "sql_connect_unavailable"
+        reason = "timed out" if timeout else "could not establish a verified connection"
+        super().__init__(f"SQLDriverConnect {reason} [{sqlstate}]; no statement submitted")
 
 
 def canonical_payload(value: str | dict[str, Any]) -> tuple[dict[str, Any], str]:
@@ -134,10 +137,11 @@ def sql_connect(server, database, credential, *, autocommit=False):
             attrs_before={1256: token_bytes}, autocommit=autocommit, timeout=30,
         )
     except pyodbc.Error as exc:
-        # Classify only at the connect boundary. The same HYT00 raised by
-        # execute/commit can be an ambiguous write and must NOT be replayed.
+        # Only failed connection establishment is safe to retry. This includes
+        # 08001 TLS handshake failures, always with certificate validation;
+        # the same SQLSTATE from execute/commit must NOT replay a write.
         state = exc.args[0] if exc.args else ""
-        if state in ("HYT00", "HYT01"):
+        if state in ("HYT00", "HYT01", "08001"):
             raise TransientSqlConnectionError(state) from exc
         raise
     connection.timeout = 300

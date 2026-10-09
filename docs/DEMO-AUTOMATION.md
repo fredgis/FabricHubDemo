@@ -170,8 +170,13 @@ IDs. `resume` follows repair of a blocked stage; it does not discard job intent.
   job ID immediately afterwards. A crash/lost response is reconciled against
   job history; it never blindly submits the same job again.
 - Each stage has a 30-minute deadline. SQL **connection-establishment** timeouts
-  (`HYT00`/`HYT01` from `SQLDriverConnect`, before any statement is submitted)
+  (`HYT00`/`HYT01`) and unavailable connections (`08001`, including transient TLS
+  handshake failures) from `SQLDriverConnect`, before any statement is submitted,
   keep the same cycle/phase and persist their error plus next retry time.
+  Every attempt retains `Encrypt=yes;TrustServerCertificate=no`; retries never
+  accept an untrusted certificate or bypass authentication. A persistent TLS
+  failure still requires repairing the certificate chain, not weakening TLS.
+  The retry kind distinguishes `sql_connect_timeout` from `sql_connect_unavailable`.
   Retry delays are 30, 60, 120, and 240 seconds; after the fifth failed
   connection the worker waits 900 seconds before another bounded burst.
   No attempts occur during the persisted backoff, including after restart.
@@ -184,8 +189,23 @@ IDs. `resume` follows repair of a blocked stage; it does not discard job intent.
   login timeout, and an uncertain job POST is never blindly resubmitted.
   A successful connection-retry pass records `last_recovery`; none of these
   states claim that downstream data has caught up.
-- A Gold load can be retried because it is an atomic snapshot reconciliation;
-  its fresh marker is checked first to recognize a commit after a lost response.
+  If an older version already persisted an `08001` connection failure as
+  `blocked`, verify a secure connection, deploy the fix, and `resume` once.
+  Keep its checkpoint and job IDs; do not rerun Start Demo to retry delivery.
+- During Gold reconciliation, a native ODBC SQLSTATE `40001` with SQL Server
+  deadlock code `1205` is retryable: SQL Server has rolled back the victim
+  transaction. The worker persists `gold_deadlock` and retries the **whole**
+  reconciliation on fresh connections after 30, 60, 120, and 240 seconds.
+  Each attempt checks the publication marker first and verifies the target
+  rows afterwards; it never retries an isolated statement inside a transaction.
+  Completed Raw/Silver jobs, event IDs and the same cycle are preserved.
+  These waits count toward the Gold stage deadline. A fifth deadlock blocks
+  with `gold_deadlock_exhausted`; restarts or intervening connection outages
+  do not reset the cycle's deadlock budget. Inspect competing writers before
+  explicitly resuming. Other SQL execution errors, including ambiguous
+  statement/commit timeouts and Outbox failures, remain nonretryable.
+  After deploying this fix over an older `1205` blocked checkpoint, `resume`
+  once to retry that same Gold stage, without rerunning Start Demo.
 - Keep `/var/lib/msflix-demo`; deleting it forces historical reconciliation.
   SQLite uses WAL and synchronous FULL. The status JSON is an atomic, compact
   read model; the database is authoritative.

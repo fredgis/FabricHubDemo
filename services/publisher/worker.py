@@ -14,11 +14,12 @@ from pathlib import Path
 from fabric.rest import DeploymentError, safe_error_message
 from services.publisher.access import check_access, validate_authorization
 from services.publisher.publish import TransientSqlConnectionError
-from services.publisher.runtime import Runtime, latest_targets, timestamp
+from services.publisher.runtime import GoldDeadlockError, Runtime, latest_targets, timestamp
 
 ACTIVE = ("NotStarted", "InProgress", "Running")
 FAILED = ("Failed", "Cancelled", "Canceled", "Deduped")
 CONNECT_RETRY_DELAYS = (30, 60, 120, 240, 900)
+GOLD_RETRY_DELAYS = (30, 60, 120, 240)
 
 
 def validate_config(cfg):
@@ -132,15 +133,25 @@ class Worker:
         self.state.pop("failures", None)
         self.save()
 
+    def block(self, exc, kind="nonretryable"):
+        self.state["error"] = safe_error_message(str(exc))
+        self.state["error_kind"] = kind
+        self.state["blocked_phase"] = self.state["phase"]
+        self.state["phase"] = "blocked"
+        self.state.pop("retry", None)
+        self.save()
+        print(json.dumps({"phase": "blocked", "error": self.state["error"]}), flush=True)
+
     def run_pass(self):
-        """One bounded pass; only failed connection establishment may retry."""
+        """Retry only failed connects or confirmed, rolled-back Gold deadlocks."""
         if self.state["phase"] == "blocked":
             return
         now = self.clock()
         retry = self.state.get("retry")
         if retry and now < retry["next_attempt_at"]:
             return
-        if retry and retry["phase"] == self.state["phase"] and self.state["phase"] != "idle":
+        if (retry and retry["kind"].startswith("sql_connect_") and
+                retry["phase"] == self.state["phase"] and self.state["phase"] != "idle"):
             # SQL unavailability stopped all stage work. Exclude precisely that
             # downtime, not healthy OneLake/job wait time, from its deadline.
             self.state["stage_started_at"] += max(0, now - retry["suspended_at"])
@@ -152,10 +163,12 @@ class Worker:
             self.tick()
         except TransientSqlConnectionError as exc:
             previous = self.state.get("retry", {})
+            if not previous.get("kind", "").startswith("sql_connect_"):
+                previous = {}
             attempt = previous.get("attempt", 0) % len(CONNECT_RETRY_DELAYS) + 1
             failed_at = self.clock()
             self.state["retry"] = {
-                "kind": "sql_connect_timeout", "sqlstate": exc.sqlstate,
+                "kind": exc.kind, "sqlstate": exc.sqlstate,
                 "phase": self.state["phase"], "attempt": attempt,
                 "total_failures": previous.get("total_failures", 0) + 1,
                 "first_failure_at": previous.get("first_failure_at", attempted_at),
@@ -170,17 +183,35 @@ class Worker:
             print(json.dumps({"phase": self.state["phase"], "error": self.state["error"],
                               "retry": self.state["retry"]}), flush=True)
             return
+        except GoldDeadlockError as exc:
+            if self.state["phase"] != "gold":
+                self.block(exc)
+                return
+            history = self.state["cycle"].setdefault("gold_deadlocks", {
+                "first_failure_at": attempted_at, "total_failures": 0})
+            history["total_failures"] += 1
+            attempt = history["total_failures"]
+            if attempt > len(GOLD_RETRY_DELAYS):
+                self.block("Gold deadlock retry limit reached after five failed attempts; "
+                           "inspect competing writes before resume", "gold_deadlock_exhausted")
+                return
+            failed_at = self.clock()
+            self.state["retry"] = {
+                **history, "kind": "gold_deadlock", "sqlstate": "40001", "native_error": 1205,
+                "phase": "gold", "attempt": attempt, "last_failure_at": failed_at,
+                "next_attempt_at": failed_at + GOLD_RETRY_DELAYS[attempt - 1],
+            }
+            self.state["error"] = str(exc)
+            self.state["error_kind"] = "transient_gold_deadlock"
+            self.save()
+            print(json.dumps({"phase": "gold", "error": self.state["error"],
+                              "retry": self.state["retry"]}), flush=True)
+            return
         except Exception as exc:
             # Permission/config/data faults, failed jobs, and statement/commit
             # timeouts are not safe connection retries. Preserve their exact
             # stage and any submission intent; no automatic write resubmission.
-            self.state["error"] = safe_error_message(str(exc))
-            self.state["error_kind"] = "nonretryable"
-            self.state["blocked_phase"] = self.state["phase"]
-            self.state["phase"] = "blocked"
-            self.state.pop("retry", None)
-            self.save()
-            print(json.dumps({"phase": "blocked", "error": self.state["error"]}), flush=True)
+            self.block(exc)
             return
         recovered = self.state.pop("retry", None)
         if recovered:

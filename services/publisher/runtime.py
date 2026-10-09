@@ -18,6 +18,10 @@ from services.publisher import publish
 SKILL = "e2e-medallion-architecture"
 
 
+class GoldDeadlockError(DeploymentError):
+    """Gold reconciliation was aborted by a confirmed SQL Server deadlock."""
+
+
 def timestamp(value):
     if isinstance(value, str):
         value = datetime.fromisoformat(value.replace("Z", "+00:00"))
@@ -229,6 +233,21 @@ class Runtime:
         return True
 
     def gold(self, cycle):
+        from pyodbc import Error
+
+        try:
+            return self._gold(cycle)
+        except DeploymentError as exc:
+            cause = exc.__cause__
+            if (isinstance(cause, Error) and cause.args[:1] == ("40001",) and
+                    any(isinstance(part, str) and re.search(
+                        r"\(1205\)(?:\s+\(SQL\w+\))?(?:;|$)", part) for part in cause.args[1:])):
+                # SQL Server rolls back the victim. Retry the whole reconciliation,
+                # never an individual statement or an ambiguous commit failure.
+                raise GoldDeadlockError("Gold reconciliation deadlock (40001/1205); transaction rolled back") from exc
+            raise
+
+    def _gold(self, cycle):
         with closing(self.analytics("silver")) as source:
             validate_silver(source, self.cfg["run_id"])
             marker = execute(source, "SELECT run_id,completed_at FROM silver.publication;")

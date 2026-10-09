@@ -77,6 +77,57 @@ class WorkerConnectionRecoveryTests(unittest.TestCase):
         self.assertEqual(self.store.db.execute("SELECT COUNT(*) FROM receipts").fetchone()[0], 1)
         self.runtime.submit_job.assert_not_called()
 
+    def test_tls_connect_failure_recovers_from_idle_without_manual_resume(self):
+        self.store.save({"phase": "idle", "last_cycle": None})
+        error = pyodbc.OperationalError(
+            "08001", "SSL Provider: certificate verify failed:unable to get local issuer certificate "
+            "(SQLDriverConnect)")
+        state, calls = self.once(error)
+        self.assertEqual(calls, 1)
+        self.assertEqual(state["phase"], "idle")
+        self.assertEqual(state["retry"]["kind"], "sql_connect_unavailable")
+        state, calls = self.once()
+        self.assertEqual(calls, 0, "A TLS failure must observe the durable backoff")
+        self.now = state["retry"]["next_attempt_at"]
+        state, calls = self.once()
+        self.assertEqual(calls, 1)
+        self.assertEqual(state["phase"], "waiting_native_onelake")
+        self.assertEqual(state["cycle"]["events"], [event()])
+        self.assertEqual(state["last_recovery"]["kind"], "sql_connect_unavailable")
+        self.assertEqual(self.store.pending([event()]), [event()])
+        self.runtime.submit_job.assert_not_called()
+
+    def test_unavailable_connection_preserves_an_inflight_cycle(self):
+        state, _ = self.once(pyodbc.OperationalError("08001", "Unable to connect (SQLDriverConnect)"))
+        self.now = state.get("retry", {}).get("next_attempt_at", self.now + 30)
+        state, _ = self.once()
+        self.assertEqual(state["phase"], "raw")
+        self.assertEqual(state["cycle"]["id"], self.cycle["id"])
+        self.assertEqual(state["cycle"]["events"], self.cycle["events"])
+        self.runtime.submit_job.assert_not_called()
+
+    def test_retryable_tls_failure_never_disables_certificate_validation(self):
+        credential = Mock()
+        credential.get_token.return_value.token = "fixture-token-not-a-live-credential"
+        error = pyodbc.OperationalError("08001", "certificate verify failed (SQLDriverConnect)")
+        with patch("pyodbc.connect", side_effect=error) as connect:
+            with self.assertRaises(publish.TransientSqlConnectionError):
+                publish.sql_connect("sql.example", "demo", credential)
+        self.assertIn("Encrypt=yes;TrustServerCertificate=no;", connect.call_args.args[0])
+        self.assertEqual(connect.call_count, 1)
+
+    def test_established_connection_failure_is_not_retried(self):
+        self.runtime.publish.side_effect = pyodbc.OperationalError(
+            "08001", "Connection failed during SQLExecDirectW; write outcome unknown")
+        state, _ = self.once()
+        self.assertEqual(state["phase"], "blocked")
+        self.assertEqual(state["error_kind"], "nonretryable")
+        self.runtime.publish.reset_mock()
+        self.runtime.publish.side_effect = None
+        state, _ = self.once()
+        self.runtime.publish.assert_not_called()
+        self.assertEqual(state["phase"], "blocked")
+
     def test_permission_failure_remains_blocked_on_subsequent_healthy_connection(self):
         error = pyodbc.ProgrammingError("28000", "Login failed for user (18456) (SQLDriverConnect)")
         for _ in range(5):
