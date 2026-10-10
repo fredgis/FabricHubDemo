@@ -112,8 +112,14 @@ stage against the approved environment, never reset existing source data.
 
 [SAP local data contract](docs/IMPLEMENTATION-PLAN.md#sap-pr-1-local-data-contract):
 the separately developed, synthetic subscription/billing/content-contract scenario
-runs locally only. It does not deploy SAP mirroring, BPS or Finance into this
-workspace, and does not change the existing cockpit's data.
+retains its local-only generator. The [native SAP integration](docs/IMPLEMENTATION-PLAN.md#sap-native-bps-and-warehouse-publication)
+adds a separately authorized private Datasphere landing, native SAP mirroring and
+isolated BPS processing. The first qualified native Gold scenario is now published
+in `MSFlixGold`: 22 SAP domain tables, nine serving views and separate SAP freshness.
+The synthetic November 2026 case reports EUR 28 net revenue, EUR 13.60 content
+expense and EUR 14.40 contribution after content cost only. Every subsequent
+publication still requires actual native Silver/Gold qualification; neither
+Planning nor cockpit changes are included.
 
 Customer identities are fictional. No real bank charge or commercial
 film-distribution right is claimed. Sourced imagery retains its individual
@@ -121,7 +127,7 @@ license; original editorial imagery is never presented as an official poster.
 See [catalog provenance](data/catalog.sources.json).
 
 <details>
-<summary>Refresh the complete Warehouse</summary>
+<summary>Refresh the operational Warehouse</summary>
 
 Oracle Mirroring runs continuously. New Demo transactions propagate automatically;
 this sequence is for a **complete source/master refresh**. Pause the automatic
@@ -131,8 +137,8 @@ master configuration. Kafka broker ACKs and exact event coverage must precede
 analytics publication; native OneLake availability has a **five-minute target**,
 not a guaranteed maximum delay.
 
-1. Complete **native BPS extraction → native B2S/Silver**. Native BPS Gold is
-   optional—not a prerequisite for this Warehouse.
+1. Complete **Salesforce native BPS extraction → native B2S/Silver**. Salesforce
+   native BPS Gold is optional for this operational refresh.
 2. Export/stage the **processed BPS snapshots through our CLI**, following the
    [native-source handoff](docs/SALESFORCE-BPS.md).
 3. Run **MSFlixRawProcessing before MSFlixSilverProcessing**:
@@ -150,6 +156,8 @@ Full prerequisites and source commands are in the
 [BPS](docs/SALESFORCE-BPS.md), [RTI](docs/RTI.md) and
 [Warehouse](docs/WAREHOUSE-ONTOLOGY.md) deep dives. The native BPS Touch/facts
 relationship gate is separate; it does not block loading its processed Silver
-data into this Warehouse.
+data into this Warehouse. SAP uses its own
+[native-Gold-only publication](docs/IMPLEMENTATION-PLAN.md#sap-native-bps-and-warehouse-publication);
+the operational refresh neither replaces SAP tables nor advances `gold.sap_publication`.
 
 </details>
