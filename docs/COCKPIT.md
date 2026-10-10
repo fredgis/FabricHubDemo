@@ -1337,6 +1337,18 @@ These traces support the next diagnosis; they do not claim a latency gain. The
 45-second shared query budget, eight-request bound and two-second waits are
 unchanged.
 
+The installed Rayfin 1.36.2 dependency chain forwards these console records to
+Azure Functions' invocation logger; they are not returned by the native function
+response. The installed SDK/CLI contracts expose correlation IDs but no supported
+invocation-log lookup. Ordinary thrown exceptions can include
+`errors[].properties.error_type` and `error_message` in the HTTP error envelope;
+the client does not preserve those properties structurally in `NetworkError`.
+The initial capture did not retain them. Resolving that historical failure now
+requires service-side telemetry for invocation
+`<GRAPH_INVOCATION_ID>`, starting at
+`2026-10-10T20:28:18.399Z`. The available evidence does not establish a 30-second
+host timeout, and downstream log storage/access have not been verified.
+
 The high-priority follow-up was published with full Rayfin 1.36.2 `up` on
 2026-10-10 after checking the existing MSFlix workspace and approved capacity.
 All 81 targeted tests across seven files, frontend/backend builds and changed-module
@@ -1345,6 +1357,13 @@ Health, two ready Overview responses and a ready Graph with 60 nodes and 60 edge
 The Graph check took 28.574 seconds; it is not evidence of an acceleration or a
 fix for the earlier intermittent 500. The Gold publication remained unchanged
 (`published_at=2026-10-10T12:15:40.884Z`, 1,062 order lines).
+
+Four further sequential Graph reads returned HTTP 200 and `ready`, each with
+60 nodes and 60 edges, in 17.471, 7.791, 6.385 and 3.927 seconds. A final read
+returned the same counts in 15.044 seconds. The diagnostic harness retains
+invocation/root-activity IDs and now classifies nested error properties without
+storing raw messages. None of these five calls reproduced the historical 500;
+its cause remains unresolved rather than confirmed fixed.
 
 A production-build browser check against the published APIs verified one Health
 call on entering Operations, a 68 ms cached revisit with no additional Health
