@@ -9,6 +9,7 @@ from datetime import datetime, timezone
 from urllib.error import HTTPError
 from urllib.parse import urlparse
 from urllib.request import HTTPRedirectHandler, Request, build_opener
+from uuid import UUID
 
 from fabric.contracts import ENTITIES, GOLD_TABLES, LINKS
 from fabric.rest import DeploymentError, FabricClient
@@ -139,6 +140,56 @@ class Runtime:
         return [{**r, "event_id": str(r["event_id"]), "published_at": str(r["published_at"]),
                  "occurred_at": str(r["occurred_at"])} for r in rows]
 
+    def next_reload(self):
+        with closing(self.operational()) as connection:
+            rows = execute(connection,
+                "SELECT TOP (2) CONVERT(varchar(36),id) AS id,type,status,parameters "
+                "FROM dbo.ControlCommands WHERE type IN ('reload_oracle','reload_salesforce') "
+                "AND status IN ('requested','running','blocked') ORDER BY id;")
+        if not rows:
+            return None
+        if len(rows) != 1:
+            raise DeploymentError("Multiple active source reloads; reconcile the command queue before resuming")
+        row = rows[0]
+        if row["status"] != "requested":
+            raise DeploymentError("Active source reload has no local checkpoint; reconcile before resuming")
+        try:
+            command_id = str(UUID(row["id"]))
+            parameters = json.loads(row["parameters"])
+        except (ValueError, TypeError, AttributeError) as exc:
+            raise DeploymentError("Invalid source reload command identity or parameters") from exc
+        if not isinstance(parameters, dict) or type(parameters.get("limit")) is not int or parameters["limit"] != 1:
+            raise DeploymentError("Source reload command must request exactly one load")
+        return {"id": command_id, "type": row["type"]}
+
+    def set_reload_status(self, cycle, status, error=None):
+        transitions = {
+            "running": "'requested','running','blocked'",
+            "blocked": "'requested','running','blocked'",
+            "completed": "'running','blocked','completed'",
+        }
+        if status not in transitions or cycle.get("source") not in ("oracle", "salesforce"):
+            raise DeploymentError("Invalid source reload status transition")
+        command_id = str(UUID(cycle["command_id"]))
+        command_type = "reload_" + cycle["source"]
+        message = str(error or "Source reload needs operator attention")[:1000] if status == "blocked" else None
+        with closing(self.operational()) as connection:
+            rows = execute(connection,
+                "UPDATE dbo.ControlCommands SET status=?, "
+                "completed_at=CASE WHEN ?='completed' THEN COALESCE(completed_at,SYSUTCDATETIME()) ELSE NULL END, "
+                "error=? OUTPUT INSERTED.status AS status WHERE id=CONVERT(uniqueidentifier,?) AND type=? "
+                f"AND status IN ({transitions[status]});",
+                (status, status, message, command_id, command_type))
+            if len(rows) == 1:
+                return rows[0]["status"]
+            current = execute(connection,
+                "SELECT status FROM dbo.ControlCommands WHERE id=CONVERT(uniqueidentifier,?) AND type=?;",
+                (command_id, command_type))
+        # A lost completion response must never turn a completed command into a failure.
+        if status == "blocked" and current == [{"status": "completed"}]:
+            return "completed"
+        raise DeploymentError("Source reload command is missing or no longer in the expected state")
+
     def delta_rows(self, item, path, columns, filters=None):
         from deltalake import DeltaTable
         import pyarrow as pa
@@ -183,16 +234,38 @@ class Runtime:
         return self.client.request("GET",
             f"/v1/workspaces/{self.ws}/items/{item_id}/jobs/instances/{job_id}", skill=skill)[2]
 
-    def submit_job(self, item_id, graph=False):
-        skill = "fabriciq-ontology-cli" if graph else "spark-cli"
+    def submit_job(self, item_id, graph=False, *, pipeline=False, parameters=None):
+        if graph and (pipeline or parameters) or pipeline and parameters:
+            raise DeploymentError("Invalid job execution options")
+        skill = ("fabriciq-ontology-cli" if graph else
+                 "e2e-medallion-architecture" if pipeline else "spark-cli")
+        kind = "Pipeline" if pipeline else "RunNotebook"
         path = (f"/v1/workspaces/{self.ws}/graphModels/{item_id}/jobs/refreshGraph/instances" if graph else
-                f"/v1/workspaces/{self.ws}/items/{item_id}/jobs/instances?jobType=RunNotebook")
-        status, headers, result = self.client.request("POST", path, None if graph else {}, skill)
+                f"/v1/workspaces/{self.ws}/items/{item_id}/jobs/instances?jobType={kind}")
+        body = None if graph else {}
+        if parameters:
+            if set(parameters) != {"config_json"} or not isinstance(parameters["config_json"], str):
+                raise DeploymentError("Only the Raw config_json notebook parameter is supported")
+            body = {"executionData": {"parameters": {
+                "config_json": {"value": parameters["config_json"], "type": "string"}}}}
+        status, headers, result = self.client.request("POST", path, body, skill)
         location = headers.get("location", "")
         if status != 202 or urlparse(location).hostname != "api.fabric.microsoft.com":
             raise DeploymentError("Job submission ambiguous; reconcile saved intent with job history")
         return {"id": location.rstrip("/").split("/")[-1],
                 "not_before": __import__("time").time() + max(1, int(headers.get("retry-after", 30)))}
+
+    def prepare_source_reload(self, cycle):
+        from services.publisher.source_reload import SourceReload
+        return SourceReload(self).prepare(cycle)
+
+    def stage_source_reload(self, cycle):
+        from services.publisher.source_reload import SourceReload
+        return SourceReload(self).stage(cycle)
+
+    def verify_source_reload(self, cycle, layer):
+        from services.publisher.source_reload import SourceReload
+        return SourceReload(self).verify(cycle, layer)
 
     def analytics(self, layer):
         item = self.cfg["items"][layer]

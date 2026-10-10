@@ -18,6 +18,16 @@ REQUIRED_SQL = {
     "can_insert_orders": 0,
     "can_read_orders": 0,
 }
+REQUIRED_RELOAD_SQL = {
+    "can_read_controls": 1,
+    "can_mark_control_status": 1,
+    "can_mark_control_completed": 1,
+    "can_mark_control_error": 1,
+    "can_change_control_parameters": 0,
+    "can_change_control_type": 0,
+    "can_insert_controls": 0,
+    "can_delete_controls": 0,
+}
 
 
 def validate_authorization(cfg):
@@ -53,8 +63,9 @@ def identity_claims(access_token, cfg):
             "application_id": expected["appid"], "vm_resource_id": expected["xms_mirid"]}
 
 
-def validate_sql_permissions(permissions):
-    if any(permissions.get(key) != value for key, value in REQUIRED_SQL.items()):
+def validate_sql_permissions(permissions, *, source_reload=False):
+    required = {**REQUIRED_SQL, **(REQUIRED_RELOAD_SQL if source_reload else {})}
+    if any(permissions.get(key) != value for key, value in required.items()):
         raise DeploymentError("Effective SQL permission preflight failed: " + json.dumps(permissions))
     if permissions.get("database_user") != "msflix_demo_worker":
         raise DeploymentError("Expected the explicitly mapped managed-identity SQL user")
@@ -87,7 +98,18 @@ def check_access(runtime):
               HAS_PERMS_BY_NAME('dbo.Rentals','OBJECT','INSERT') AS can_insert_orders,
               HAS_PERMS_BY_NAME('dbo.Rentals','OBJECT','SELECT') AS can_read_orders;
         """)[0]
-        validate_sql_permissions(permissions)
+        if cfg.get("source_reload_enabled"):
+            permissions.update(execute(connection, """
+                SELECT HAS_PERMS_BY_NAME('dbo.ControlCommands','OBJECT','SELECT') AS can_read_controls,
+                  HAS_PERMS_BY_NAME('dbo.ControlCommands','OBJECT','UPDATE','status','COLUMN') AS can_mark_control_status,
+                  HAS_PERMS_BY_NAME('dbo.ControlCommands','OBJECT','UPDATE','completed_at','COLUMN') AS can_mark_control_completed,
+                  HAS_PERMS_BY_NAME('dbo.ControlCommands','OBJECT','UPDATE','error','COLUMN') AS can_mark_control_error,
+                  HAS_PERMS_BY_NAME('dbo.ControlCommands','OBJECT','UPDATE','parameters','COLUMN') AS can_change_control_parameters,
+                  HAS_PERMS_BY_NAME('dbo.ControlCommands','OBJECT','UPDATE','type','COLUMN') AS can_change_control_type,
+                  HAS_PERMS_BY_NAME('dbo.ControlCommands','OBJECT','INSERT') AS can_insert_controls,
+                  HAS_PERMS_BY_NAME('dbo.ControlCommands','OBJECT','DELETE') AS can_delete_controls;
+            """)[0])
+        validate_sql_permissions(permissions, source_reload=cfg.get("source_reload_enabled", False))
         lock = execute(connection,
             "DECLARE @r int; EXEC @r=sys.sp_getapplock "
             "@Resource=N'MSFlix-DemoPreflight',@LockMode=N'Exclusive',"

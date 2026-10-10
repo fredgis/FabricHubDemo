@@ -16,7 +16,7 @@ from services.publisher.worker import validate_config
 from services.publisher.access import POLICY
 
 
-def sql_permissions(connection, application_id, name="msflix_demo_worker"):
+def sql_permissions(connection, application_id, name="msflix_demo_worker", *, source_reload=False):
     """No db_owner grant. DENY also constrains Fabric-inherited SQL permissions."""
     # Fabric SQL service principals use application/client ID as SID, unlike
     # Entra users/groups (object ID). ARM/Fabric role assignments still use the
@@ -49,8 +49,24 @@ def sql_permissions(connection, application_id, name="msflix_demo_worker"):
         if row["name"] != "published_at":
             column = row["name"].replace("]", "]]")
             execute(connection, f"DENY UPDATE ON OBJECT::dbo.Outboxes ([{column}]) TO {user};")
+    if source_reload:
+        controls = execute(connection,
+            "SELECT name FROM sys.columns WHERE object_id=OBJECT_ID('dbo.ControlCommands');")
+        writable = {"status", "completed_at", "error"}
+        if not writable.issubset({row["name"] for row in controls}):
+            raise DeploymentError("Expected persisted ControlCommands status schema missing")
+        execute(connection, f"REVOKE SELECT,UPDATE ON OBJECT::dbo.ControlCommands FROM {user};")
+        execute(connection, f"GRANT SELECT ON OBJECT::dbo.ControlCommands TO {user}; "
+                            f"GRANT UPDATE ON OBJECT::dbo.ControlCommands (status,completed_at,error) TO {user};")
+        execute(connection, f"DENY INSERT,DELETE,ALTER,TAKE OWNERSHIP ON OBJECT::dbo.ControlCommands TO {user};")
+        for row in controls:
+            if row["name"] not in writable:
+                column = row["name"].replace("]", "]]")
+                execute(connection, f"DENY UPDATE ON OBJECT::dbo.ControlCommands ([{column}]) TO {user};")
     for row in tables:
         if (row["schema_name"], row["table_name"]) == ("dbo", "Outboxes"):
+            continue
+        if source_reload and (row["schema_name"], row["table_name"]) == ("dbo", "ControlCommands"):
             continue
         table = ".".join("[" + row[k].replace("]", "]]") + "]" for k in ("schema_name", "table_name"))
         execute(connection, f"DENY SELECT,INSERT,UPDATE,DELETE,ALTER,TAKE OWNERSHIP ON OBJECT::{table} TO {user};")
@@ -115,6 +131,7 @@ def prepare(args):
                managed_identity_application_id=application_id,
                graph_id=graph["id"], items=items, notebooks=notebook_ids,
                poll_seconds=30, stage_timeout_seconds=1800,
+               source_reload_enabled=source.get("source_reload_enabled", False),
                operational={"item_id": args.operational_item, "server": args.server, "database": args.database},
                publisher={"namespace": source["eventhub_namespace"].split(".")[0],
                           "topic": source["eventhub_name"], "duration": 30, "max_messages": 2000, "batch_size": 128})
@@ -138,7 +155,8 @@ def prepare(args):
             raise DeploymentError("Existing MI workspace role differs; review rather than silently widening")
         credential = make_credential(argparse.Namespace(auth="azure-cli", tenant=source["tenant_id"]))
         with closing(sql_connect(args.server, args.database, credential, autocommit=True)) as connection:
-            evidence["sql_permissions"] = sql_permissions(connection, application_id)
+            evidence["sql_permissions"] = sql_permissions(
+                connection, application_id, source_reload=cfg["source_reload_enabled"])
         evidence["workspace_role"] = "Contributor"
     (args.output.parent / "permissions.json").write_text(json.dumps(evidence, indent=2), encoding="utf-8")
     print(json.dumps({k: v for k, v in evidence.items() if k != "sql_permissions"}), flush=True)

@@ -13,6 +13,10 @@ const sdk = vi.hoisted(() => ({
   },
 }));
 vi.mock('../../apps/cockpit/src/services/rayfinClient', () => ({ getRayfinClient: () => sdk }));
+vi.mock('../../apps/cockpit/src/services/source-reloads', async importOriginal => ({
+  ...await importOriginal<typeof import('../../apps/cockpit/src/services/source-reloads')>(),
+  readSourceReloads: async () => [],
+}));
 import { DemoPage } from '../../apps/cockpit/src/pages/DemoPage';
 
 const snapshot = {
@@ -73,10 +77,11 @@ describe('dedicated Demo controls', () => {
     expect(sdk.functions.placeOrder.invoke).toHaveBeenCalledTimes(5);
   });
 
-  it('links random-customer bounds and eligibility errors without issuing commands', () => {
+  it('links random-customer bounds and eligibility errors without issuing commands', async () => {
     const capabilities = { can_operate: true, reason: 'Operator grant' };
     const onRefresh = vi.fn();
     const view = render(<DemoPage snapshot={snapshot} capabilities={capabilities} onRefresh={onRefresh} />);
+    await screen.findByText('Oracle: no persisted reload request');
     fireEvent.change(screen.getByRole('combobox', { name: 'Customer selection' }), { target: { value: 'random' } });
     const customerCount = screen.getByRole('spinbutton', { name: 'Random customer count' });
     expect(customerCount).toHaveValue(1);
@@ -175,9 +180,10 @@ describe('dedicated Demo controls', () => {
     expect(sdk.functions.placeOrder.invoke).not.toHaveBeenCalled();
   });
 
-  it('disables submission and links the validation message for a journey count above 100', () => {
+  it('disables submission and links the validation message for a journey count above 100', async () => {
     render(<DemoPage snapshot={snapshot} capabilities={{ can_operate: true, reason: 'Operator grant' }}
       onRefresh={vi.fn()} />);
+    await screen.findByText('Oracle: no persisted reload request');
     const count = screen.getByRole('spinbutton', { name: 'Journey count' });
     fireEvent.change(count, { target: { value: '101' } });
     expect(count).toHaveAttribute('aria-invalid', 'true');
@@ -186,9 +192,10 @@ describe('dedicated Demo controls', () => {
     expect(sdk.functions.placeOrder.invoke).not.toHaveBeenCalled();
   });
 
-  it('defaults to ten bounded journeys and never grants command permissions to a viewer', () => {
+  it('defaults to ten bounded journeys and never grants command permissions to a viewer', async () => {
     render(<DemoPage snapshot={snapshot} capabilities={{ can_operate: false, reason: 'Read-only viewer.' }}
       onRefresh={vi.fn()} />);
+    await screen.findByText('Oracle: no persisted reload request');
     expect(screen.getByRole('spinbutton', { name: 'Journey count' })).toHaveValue(10);
     expect(screen.getByRole('spinbutton', { name: 'Journey count' })).toHaveAttribute('min', '1');
     expect(screen.getByRole('spinbutton', { name: 'Journey count' })).toHaveAttribute('max', '100');

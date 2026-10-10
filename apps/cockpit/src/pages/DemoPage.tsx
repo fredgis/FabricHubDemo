@@ -5,6 +5,7 @@ import { createDemoPlan, DemoScenario, validateDemoConfig, type DemoConfig, type
   type DemoScenarioType } from '../domain/demo-scenario';
 import { dateLabel, safeError, type Snapshot } from '../services/business';
 import { getRayfinClient } from '../services/rayfinClient';
+import { SourceReloadControls } from './SourceReloadControls';
 
 type Capabilities = AppFunctionsSchema['capabilities']['output'];
 type Health = AppFunctionsSchema['health']['output'];
@@ -225,6 +226,8 @@ export function DemoPage({
       </div>}
     </section>
 
+    <SourceReloadControls commands={snapshot?.commands} capabilities={capabilities} busy={busy || running} />
+
     <section aria-labelledby="demo-propagation-heading">
       <div className="page-heading">
         <div><h2 id="demo-propagation-heading">Generation is not delivery</h2>
@@ -264,7 +267,8 @@ export function DemoPage({
         </article>
       </div>
       <p className="permission-note" style={{ marginTop: 18 }}>Refresh reads status only. It does not start a publisher,
-        refresh a pipeline, or publish Gold. Automatic end-to-end propagation is not claimed by this tab.</p>
+        refresh a pipeline, or publish Gold. Only the explicit source reload buttons above queue source-chain work.
+        These Demo event counters do not claim automatic end-to-end propagation.</p>
     </section>
 
     <section className="playback-section" aria-labelledby="demo-receipts-heading">

@@ -20,6 +20,8 @@ ACTIVE = ("NotStarted", "InProgress", "Running")
 FAILED = ("Failed", "Cancelled", "Canceled", "Deduped")
 CONNECT_RETRY_DELAYS = (30, 60, 120, 240, 900)
 GOLD_RETRY_DELAYS = (30, 60, 120, 240)
+SOURCE_STAGES = ("extraction", "silver", "dimensions", "facts")
+PRIVATE_CYCLE_FIELDS = ("events", "targets", "raw_config", "reference_snapshot", "source_items")
 
 
 def validate_config(cfg):
@@ -38,6 +40,8 @@ def validate_config(cfg):
         raise ValueError("Polling interval must be 15..300 seconds")
     if not 300 <= cfg.get("stage_timeout_seconds", 1800) <= 3600:
         raise ValueError("Stage timeout must be 300..3600 seconds")
+    if not isinstance(cfg.get("source_reload_enabled", False), bool):
+        raise ValueError("source_reload_enabled must be boolean")
     for layer in ("raw", "silver", "gold", "kql"):
         uuid.UUID(cfg["items"][layer]["id"])
     for value in cfg["notebooks"].values():
@@ -81,7 +85,7 @@ class Store:
         public = {k: v for k, v in state.items() if k != "cycle"}
         if state.get("cycle"):
             cycle = state["cycle"]
-            public["cycle"] = {k: v for k, v in cycle.items() if k not in ("events", "targets")}
+            public["cycle"] = {k: v for k, v in cycle.items() if k not in PRIVATE_CYCLE_FIELDS}
             public["cycle"]["event_count"] = len(cycle["events"])
         temporary = self.directory / "status.json.tmp"
         temporary.write_text(json.dumps(public, indent=2), encoding="utf-8")
@@ -98,7 +102,7 @@ class Store:
 
     def complete(self, state):
         cycle = state["cycle"]
-        summary = {k: v for k, v in cycle.items() if k not in ("events", "targets")}
+        summary = {k: v for k, v in cycle.items() if k not in PRIVATE_CYCLE_FIELDS}
         summary.update(event_count=len(cycle["events"]), completed_at=time.time())
         # The event checkpoint and cycle completion commit together. No
         # watermark can advance on mere broker ACK, job success, or row counts.
@@ -140,11 +144,25 @@ class Worker:
         self.state["phase"] = "blocked"
         self.state.pop("retry", None)
         self.save()
+        self._report_blocked_reload()
         print(json.dumps({"phase": "blocked", "error": self.state["error"]}), flush=True)
+
+    def _report_blocked_reload(self):
+        cycle = self.state.get("cycle", {})
+        if cycle.get("kind") != "source_reload" or self.state.get("control_block_reported"):
+            return
+        try:
+            self.runtime.set_reload_status(cycle, "blocked", self.state["error"])
+            self.state["control_block_reported"] = True
+            self.state.pop("control_status_error", None)
+        except Exception as exc:
+            self.state["control_status_error"] = safe_error_message(str(exc))
+        self.save()
 
     def run_pass(self):
         """Retry only failed connects or confirmed, rolled-back Gold deadlocks."""
         if self.state["phase"] == "blocked":
+            self._report_blocked_reload()
             return
         now = self.clock()
         retry = self.state.get("retry")
@@ -159,6 +177,12 @@ class Worker:
             self.save()
         attempted_at = now
         try:
+            if self.state.get("control_block_reported") or self.state.get("control_status_error"):
+                if self.state["phase"] != "source_complete":
+                    self.runtime.set_reload_status(self.state["cycle"], "running")
+                self.state.pop("control_block_reported", None)
+                self.state.pop("control_status_error", None)
+                self.save()
             self.state["publisher"] = self.runtime.publish(self.store.receipt)
             self.tick()
         except TransientSqlConnectionError as exc:
@@ -224,11 +248,24 @@ class Worker:
         self.state.pop("failures", None)
         self.save()
 
-    def _job(self, layer):
-        graph = layer == "graph"
-        skill = "fabriciq-ontology-cli" if graph else "spark-cli"
-        item = self.cfg["graph_id"] if graph else self.cfg["notebooks"][layer]
+    def _reload_jobs_idle(self, except_item=None):
         cycle = self.state["cycle"]
+        items = [(item, "spark-cli") for item in self.cfg["notebooks"].values()]
+        items += [(self.cfg["graph_id"], "fabriciq-ontology-cli")]
+        items += [(item, "e2e-medallion-architecture")
+                  for item in cycle.get("source_pipelines", {}).values()]
+        return all(not any(job["status"] in ACTIVE for job in self.runtime.jobs(item, skill))
+                   for item, skill in items if item != except_item)
+
+    def _job(self, layer):
+        cycle = self.state["cycle"]
+        graph = layer == "graph"
+        pipeline = layer.startswith("bps_")
+        skill = ("fabriciq-ontology-cli" if graph else
+                 "e2e-medallion-architecture" if pipeline else "spark-cli")
+        item = (self.cfg["graph_id"] if graph else
+                cycle["source_pipelines"][layer.removeprefix("bps_")] if pipeline else
+                self.cfg["notebooks"][layer])
         ref = cycle.get(layer + "_job")
         intent = cycle.get(layer + "_intent")
         if ref:
@@ -265,10 +302,12 @@ class Worker:
             # A graph run that began before our Gold commit cannot prove this
             # cycle. Wait for it; do not create a concurrent refresh.
             return False
-        if not graph and any(j.get("startTimeUtc") and
-                             self.clock() - timestamp(j["startTimeUtc"]) < 300 for j in jobs):
+        if not graph and not pipeline and any(j.get("startTimeUtc") and
+                                              self.clock() - timestamp(j["startTimeUtc"]) < 300 for j in jobs):
             return False
-        if layer == "raw":
+        if cycle.get("kind") == "source_reload" and not self._reload_jobs_idle(item):
+            return False
+        if layer == "raw" and cycle.get("kind") != "source_reload":
             # Don't write Raw while an external Silver or graph job is active.
             for other, other_item in (("spark-cli", self.cfg["notebooks"]["silver"]),
                                       ("fabriciq-ontology-cli", self.cfg["graph_id"])):
@@ -276,7 +315,13 @@ class Worker:
                     return False
         cycle[layer + "_intent"] = self.clock()
         self.save()
-        cycle[layer + "_job"] = self.runtime.submit_job(item, graph)
+        if pipeline:
+            cycle[layer + "_job"] = self.runtime.submit_job(item, pipeline=True)
+        elif layer == "raw" and cycle.get("kind") == "source_reload":
+            cycle[layer + "_job"] = self.runtime.submit_job(
+                item, parameters={"config_json": json.dumps(cycle["raw_config"])})
+        else:
+            cycle[layer + "_job"] = self.runtime.submit_job(item, graph)
         self.save()
         return False
 
@@ -287,6 +332,16 @@ class Worker:
         if phase != "idle" and self.clock() - self.state["stage_started_at"] > self.cfg.get("stage_timeout_seconds", 1800):
             raise DeploymentError(f"{phase} exceeded bounded stage deadline; no success claimed")
         if phase == "idle":
+            if self.cfg.get("source_reload_enabled"):
+                command = self.runtime.next_reload()
+                if command:
+                    self.state["cycle"] = {
+                        "id": str(uuid.uuid4()), "kind": "source_reload", "command_id": command["id"],
+                        "source": command["type"].removeprefix("reload_"),
+                        "started_at": self.clock(), "events": [], "targets": [],
+                    }
+                    self.advance("source_claim")
+                    return
             pending = self.store.pending(self.runtime.published())
             if not pending:
                 self.state["idle_checked_at"] = self.clock()
@@ -301,7 +356,24 @@ class Worker:
             return
         cycle = self.state["cycle"]
         ids = [row["event_id"] for row in cycle["events"]]
-        if phase == "waiting_native_onelake":
+        if phase == "source_claim":
+            self.runtime.set_reload_status(cycle, "running")
+            self.advance("source_prepare")
+        elif phase == "source_prepare":
+            cycle.update(self.runtime.prepare_source_reload(cycle))
+            self.advance("bps_extraction" if cycle["source"] == "salesforce" else "source_snapshot")
+        elif phase.startswith("bps_"):
+            stage = phase.removeprefix("bps_")
+            if stage not in SOURCE_STAGES:
+                raise DeploymentError("Unknown persisted native Salesforce stage")
+            if self._job(phase):
+                index = SOURCE_STAGES.index(stage) + 1
+                self.advance("bps_" + SOURCE_STAGES[index] if index < len(SOURCE_STAGES) else "source_snapshot")
+        elif phase == "source_snapshot":
+            if self._reload_jobs_idle():
+                cycle.update(self.runtime.stage_source_reload(cycle))
+                self.advance("raw")
+        elif phase == "waiting_native_onelake":
             cycle["native_onelake"] = self.runtime.exact_ids("native", ids)
             self.save()
             if cycle["native_onelake"]["complete"]:
@@ -310,7 +382,10 @@ class Worker:
             if self._job("raw"):
                 self.advance("verify_raw")
         elif phase == "verify_raw":
-            cycle["raw_proof"] = self.runtime.exact_ids("raw", ids)
+            if cycle.get("kind") == "source_reload":
+                cycle["raw_proof"] = {"complete": self.runtime.verify_source_reload(cycle, "raw")}
+            else:
+                cycle["raw_proof"] = self.runtime.exact_ids("raw", ids)
             self.save()
             if cycle["raw_proof"]["complete"]:
                 self.advance("silver")
@@ -321,12 +396,15 @@ class Worker:
             self.runtime.refresh_metadata()
             self.advance("gold")
         elif phase == "gold":
+            if cycle.get("kind") == "source_reload" and not self.runtime.verify_source_reload(cycle, "silver"):
+                return
             marker = self.runtime.gold(cycle)
-            if marker:
+            if marker and (cycle.get("kind") != "source_reload" or self.runtime.verify_source_reload(cycle, "gold")):
                 cycle["gold_publication"] = marker
                 self.advance("waiting_gold_onelake")
         elif phase == "waiting_gold_onelake":
-            if self.runtime.gold_onelake(cycle):
+            if (self.runtime.gold_onelake(cycle) and
+                    (cycle.get("kind") != "source_reload" or self.runtime.verify_source_reload(cycle, "gold_onelake"))):
                 cycle["gold_onelake_verified_at"] = self.clock()
                 self.advance("graph")
         elif phase == "graph":
@@ -336,8 +414,15 @@ class Worker:
             proof = self.runtime.verify_graph(cycle["targets"])
             if proof is not None:
                 cycle["graph_proof"] = proof
-                self.state = self.store.complete(self.state)
-                self.save()
+                if cycle.get("kind") == "source_reload":
+                    self.advance("source_complete")
+                else:
+                    self.state = self.store.complete(self.state)
+                    self.save()
+        elif phase == "source_complete":
+            self.runtime.set_reload_status(cycle, "completed")
+            self.state = self.store.complete(self.state)
+            self.save()
         else:
             raise DeploymentError("Unknown persisted worker phase")
 

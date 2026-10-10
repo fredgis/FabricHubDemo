@@ -18,7 +18,13 @@ ROOT = Path(__file__).resolve().parents[1]
 def bundle(cfg):
     paths = list((ROOT / "services/publisher").glob("*.py"))
     paths += [ROOT / "services/publisher/msflix-demo-worker.service"]
-    paths += [ROOT / "fabric" / name for name in ("__init__.py", "build.py", "contracts.py", "rest.py", "sql.py")]
+    paths += [ROOT / "fabric" / name for name in (
+        "__init__.py", "build.py", "contracts.py", "rest.py", "sql.py", "native_references.py",
+        "staging.py", "deploy.py", "connections.py", "rti.py")]
+    paths += [ROOT / "sources/salesforce/bps" / name for name in (
+        "__init__.py", "snapshot.py", "inspect.py", "jobs.py")]
+    paths += [path for path in (ROOT / "sources/__init__.py", ROOT / "sources/salesforce/__init__.py")
+              if path.is_file()]
     paths += list((ROOT / "fabric/gold").glob("*.sql"))
     memory = io.BytesIO()
     with zipfile.ZipFile(memory, "w", zipfile.ZIP_DEFLATED) as archive:

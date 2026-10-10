@@ -1,5 +1,6 @@
 """Embedded in Fabric notebooks by build.py; uses their built-in Spark session."""
 import json
+import re
 import uuid
 from datetime import datetime, timezone
 from urllib.parse import urlparse
@@ -102,6 +103,15 @@ def ingest_eventhouse_delta(spark, notebookutils, cfg):
         source.unpersist()
 
 
+def reference_run_id(cfg, source):
+    value = source.get("snapshot_run_id", cfg["run_id"])
+    if "snapshot_run_id" in source and (
+        not isinstance(value, str) or not re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_-]{0,127}", value)
+    ):
+        raise ValueError("snapshot_run_id must be a safe 1..128 character identifier")
+    return value
+
+
 def run_raw(spark, notebookutils, cfg, mode):
     from pyspark.sql import functions as F, types as T
     bootstrap_raw(spark)
@@ -123,6 +133,7 @@ def run_raw(spark, notebookutils, cfg, mode):
         T.StructField("reason", T.StringType())])
     total_bad = 0
     for entity, source in cfg["sources"].items():
+        snapshot_id = reference_run_id(cfg, source)
         if entity not in ENTITIES:
             raise ValueError(f"Unsupported reference entity: {entity}")
         if not source.get("path"):
@@ -132,7 +143,7 @@ def run_raw(spark, notebookutils, cfg, mode):
         if source["path"].startswith(("http:", "https:")):
             raise ValueError("Stage public/source exports in OneLake Files; direct HTTP Spark reads are not ingress")
         if spark.table("raw.snapshot_batches").where(
-            (F.col("entity") == entity) & (F.col("run_id") == cfg["run_id"])
+            (F.col("entity") == entity) & (F.col("run_id") == snapshot_id)
         ).limit(1).count():
             continue
         reader = spark.read.format(source.get("format", "json"))
@@ -160,15 +171,15 @@ def run_raw(spark, notebookutils, cfg, mode):
         total_bad += count_bad
         q = bad.select(F.sha2("_json", 256).alias("record_id"), F.lit(entity).alias("entity"),
                        F.col("_json").alias("row_json"), F.col("_result.reason").alias("reason"),
-                       F.lit(cfg["run_id"]).alias("run_id"), F.lit(now).alias("quarantined_at"))
+                       F.lit(snapshot_id).alias("run_id"), F.lit(now).alias("quarantined_at"))
         quarantine(spark, "raw.quarantine", q)
         if count_bad > cfg.get("max_quarantine_records", 0):
             processed.unpersist()
             raise ValueError(f"{entity}: {count_bad} invalid source records quarantined; serving gate closed")
         valid = processed.where(F.col("_result.reason").isNull()).select(
-            F.sha2(F.concat(F.lit(entity + ":" + cfg["run_id"] + ":"), "_json"), 256).alias("record_id"),
+            F.sha2(F.concat(F.lit(entity + ":" + snapshot_id + ":"), "_json"), 256).alias("record_id"),
             F.lit(entity).alias("entity"), F.col("_result.key").alias("entity_key"),
-            F.col("_result.state").alias("row_json"), F.lit(cfg["run_id"]).alias("run_id"),
+            F.col("_result.state").alias("row_json"), F.lit(snapshot_id).alias("run_id"),
             F.lit(now).alias("ingested_at"),
             # Never delete absent source records when any source record was rejected.
             F.lit(bool(source.get("snapshot_complete", False)) and count_bad == 0).alias("snapshot_complete"))
@@ -176,7 +187,7 @@ def run_raw(spark, notebookutils, cfg, mode):
             raise ValueError(f"{entity}: duplicate natural keys in reference batch")
         count = valid.count()
         merge_rows(spark, "raw.reference_snapshots", valid, ["record_id"])
-        batch = spark.createDataFrame([(entity, cfg["run_id"], now,
+        batch = spark.createDataFrame([(entity, snapshot_id, now,
             bool(source.get("snapshot_complete", False)) and count_bad == 0, count)],
             "entity string, run_id string, ingested_at timestamp, snapshot_complete boolean, row_count long")
         merge_rows(spark, "raw.snapshot_batches", batch, ["entity", "run_id"])

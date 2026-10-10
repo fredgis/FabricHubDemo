@@ -3,7 +3,7 @@ import json
 import unittest
 
 from services.publisher.access import (
-    POLICY, REQUIRED_SQL, identity_claims, validate_authorization, validate_sql_permissions,
+    POLICY, REQUIRED_SQL, REQUIRED_RELOAD_SQL, identity_claims, validate_authorization, validate_sql_permissions,
 )
 
 
@@ -32,6 +32,14 @@ class AccessTests(unittest.TestCase):
             wrong = {**permissions, field: 1 - REQUIRED_SQL[field]}
             with self.subTest(field=field), self.assertRaises(RuntimeError):
                 validate_sql_permissions(wrong)
+
+    def test_reload_grants_only_status_updates(self):
+        permissions = {"database_user": "msflix_demo_worker", **REQUIRED_SQL, **REQUIRED_RELOAD_SQL}
+        self.assertEqual(validate_sql_permissions(permissions, source_reload=True), permissions)
+        for field in REQUIRED_RELOAD_SQL:
+            wrong = {**permissions, field: 1 - REQUIRED_RELOAD_SQL[field]}
+            with self.subTest(field=field), self.assertRaises(RuntimeError):
+                validate_sql_permissions(wrong, source_reload=True)
 
     def test_missing_effective_permission_cannot_pass(self):
         with self.assertRaises(RuntimeError):

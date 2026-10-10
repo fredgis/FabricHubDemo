@@ -973,6 +973,49 @@ execute pipeline jobs, or publish Gold. Persistent publisher integration and
 live end-to-end qualification remain with the parent. This change ran only
 mocked/pure tests, not a live Demo scenario, and awaits the parent's deployment
 to the existing app.
+
+### Demo source reload requests
+
+The separate **Reload source chains** section adds **Reload Oracle** and
+**Reload Salesforce**. SAP remains a disabled gray button with an explicit
+unavailable reason. Existing Demo scenarios, Random Customer, receipts, and
+ALL Insights are unchanged. The section reuses the MSFlix dark palette,
+typography, native buttons and responsive `control-buttons` layout, with the
+existing focus treatment and live status announcements.
+
+Both actions use authenticated `requestControl` with `type: reload_oracle` or
+`reload_salesforce`, `limit: 1`, and one retained `idempotency_key`. The UDF
+checks the operator grant and persists `dbo.ControlCommands` in the existing
+serializable transaction. Both source types share the `UPDLOCK,HOLDLOCK`
+exclusion for `requested`, `running`, and `blocked`. SAP/unknown types and
+reload limits other than one are rejected. No schema migration is required.
+The table key is `id`; the function returns it as `entity_key` with empty
+`event_ids` and `status: requested`. Parameters remain `{ limit: 1, run_id }`.
+
+Queue acceptance is not completion. The worker may first finish its current
+propagation cycle. The worker contract keeps a request `running` through native
+source, Raw, Silver, Gold and graph verification, then reports `completed` or
+`blocked` with a sanitized error. It updates only `status`, `completed_at` and
+`error`. Oracle uses the continuous mirror without stopping or restarting CDC.
+Salesforce starts with native BPS extraction, then Silver, dimensions, facts
+and the consolidated chain. A blocked request requires operator investigation;
+the UI does not clear it or issue a replacement.
+
+The UI reads actual `ControlCommand` rows through the typed authenticated
+client. It fetches the latest request per source and any outstanding shared
+request, then polls only these status reads every ten seconds while work is
+requested/running, for at most sixty minutes per monitoring session. Checks
+stop on a read failure, completion, or unmount. Explicit **Refresh reload
+status** resumes reads without starting work. Older blocked rows still disable
+both source buttons even when a newer completed row exists. Uncertain calls
+retain their original input/key in tab-scoped `sessionStorage`, including
+across page reloads, and retries reuse that input. No credentials are stored.
+
+**Refresh receipts & publication** remains read-only; only the new explicit
+reload actions enqueue source-chain work. Local checks use mocked requests and
+status reads. Worker deployment, permissions and live source-chain validation
+remain with the parent; this UI work does not execute a real reload.
+
 # Published application update: 2026-10-07
 
 The deployed home restores the licensed Big Buck Bunny cinematic image above

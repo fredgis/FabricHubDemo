@@ -3,7 +3,8 @@ import type { Offer, Rental } from '../../data/schema.js';
 export type OrderInput = { customer_key: string; offer_key: string; idempotency_key: string };
 export type PlayInput = { order_id: string; idempotency_key: string };
 export type ProgressInput = { session_id: string; position_seconds: number; idempotency_key: string };
-export type ControlInput = { type: 'simulate' | 'start' | 'stop' | 'refresh'; limit: number; idempotency_key: string };
+export type ControlInput = { type: 'simulate' | 'start' | 'stop' | 'refresh' | 'reload_oracle' | 'reload_salesforce';
+  limit: number; idempotency_key: string };
 export type CommandResult = { entity_key: string; event_ids: string[]; status: string };
 export type Capabilities = { can_operate: boolean; reason: string };
 export type Health = { database: string; functions: string; outbox_pending: number; broker: string };
@@ -65,6 +66,9 @@ export function isExpired(order: Rental, now: Date): boolean {
 }
 
 export function controlLimit(type: string, limit: number): void {
-  if (!['simulate', 'start', 'stop', 'refresh'].includes(type)) throw new Error('Unsupported control.');
+  if (!['simulate', 'start', 'stop', 'refresh', 'reload_oracle', 'reload_salesforce'].includes(type))
+    throw new Error('Unsupported control.');
   if (!Number.isInteger(limit) || limit < 1 || limit > 100) throw new Error('Command limit must be 1-100.');
+  if ((type === 'reload_oracle' || type === 'reload_salesforce') && limit !== 1)
+    throw new Error('Source reload limit must be 1.');
 }

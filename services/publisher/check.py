@@ -24,7 +24,12 @@ def check(cfg):
     graph = runtime.graph_rows("MATCH (r:rental) RETURN r.order_id AS order_id LIMIT 1")
     with closing(runtime.analytics("gold")) as connection:
         gold = execute(connection, "SELECT COUNT_BIG(*) AS order_lines FROM gold.fact_order_line;")
-    return {"auth": "managed-identity", **access,
+    sources = {}
+    if cfg.get("source_reload_enabled"):
+        for source in ("oracle", "salesforce"):
+            plan = runtime.prepare_source_reload({"source": source})
+            sources[source] = {"bindings_verified": True, "native_pipelines": len(plan.get("source_pipelines", {}))}
+    return {"auth": "managed-identity", **access, "source_reload": sources,
             "workspace_id": runtime.ws, "capacity_id": workspace["capacityId"],
             "native_onelake_distinct_events": native["observed_distinct"],
             "graph_query_rows": len(graph), "gold": gold}

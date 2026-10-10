@@ -120,9 +120,15 @@ export async function expireRentals(store: Store): Promise<CommandResult> {
 
 export async function requestControl(store: Store, input: ControlInput): Promise<CommandResult> {
   controlLimit(input.type, input.limit);
+  const reload = input.type === 'reload_oracle' || input.type === 'reload_salesforce';
   const pending = await request(store).input('type', sql.NVarChar(24), input.type)
-    .query("SELECT id FROM dbo.ControlCommands WITH (UPDLOCK,HOLDLOCK) WHERE type=@type AND status IN ('requested','running')");
-  if (pending.recordset.length) throw new Error('A command of this type is already pending. Refresh its status before retrying.');
+    .query(reload
+      ? `SELECT id FROM dbo.ControlCommands WITH (UPDLOCK,HOLDLOCK)
+        WHERE type IN ('reload_oracle','reload_salesforce') AND status IN ('requested','running','blocked')`
+      : "SELECT id FROM dbo.ControlCommands WITH (UPDLOCK,HOLDLOCK) WHERE type=@type AND status IN ('requested','running')");
+  if (pending.recordset.length) throw new Error(reload
+    ? 'A source reload is already requested, running or blocked. Read its status before retrying.'
+    : 'A command of this type is already pending. Refresh its status before retrying.');
   const id = randomUUID();
   await request(store).input('id', sql.UniqueIdentifier, id)
     .input('key', sql.NVarChar(128), input.idempotency_key).input('type', sql.NVarChar(24), input.type)

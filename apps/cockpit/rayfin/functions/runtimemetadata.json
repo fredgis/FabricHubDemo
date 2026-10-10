@@ -64,6 +64,30 @@
       ]
     },
     {
+      "functionName": "businessInsights",
+      "delegateParameters": [
+        {
+          "name": "filtersJson",
+          "type": "string",
+          "optional": false,
+          "hasDefault": false,
+          "position": 0,
+          "isFabricParameter": false
+        },
+        {
+          "name": "ctx",
+          "type": "RayfinContext<AppSchema, AudienceType.Sql>",
+          "optional": false,
+          "hasDefault": false,
+          "position": 1,
+          "isFabricParameter": false
+        }
+      ],
+      "contextAudiences": [
+        "Sql"
+      ]
+    },
+    {
       "functionName": "businessPage",
       "delegateParameters": [
         {

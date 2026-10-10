@@ -2,8 +2,9 @@
 
 The deployed Demo's typed `placeOrder`, `startPlayback`, and `recordProgress`
 functions persist the business change and `dbo.Outboxes` in the same SQL
-transaction. This worker propagates those **existing** events. It creates no
-business transactions, exposes no HTTP endpoint, and does not implement Flixy.
+transaction. This worker propagates those **existing** events and, when explicitly
+enabled, consumes the Demo's native-source reload requests. It creates no business
+transactions, exposes no HTTP endpoint, and does not implement Flixy.
 
 ## Runtime and trigger contract
 
@@ -19,17 +20,56 @@ business transactions, exposes no HTTP endpoint, and does not implement Flixy.
 - Releases: `/opt/msflix-demo/releases/<sha256-prefix>`; `current` is an atomic
   symlink. Durable checkpoint, ACK receipts, and status:
   `/var/lib/msflix-demo/{state.sqlite3,status.json}`.
-- **Trigger:** an existing native command commits a new outbox row. The worker
-  checks every 30 seconds. No `requestRefresh` UDF or new Fabric pipeline ID is
-  required; the client remains a command caller and read-only status poller.
-- No new event IDs means no OneLake scan, notebook execution, Gold load, or graph
-  refresh. An initial deployment reconciles the already-published history once.
+- **Triggers:** an existing native command commits a new outbox row, or an
+  operator requests `reload_oracle` / `reload_salesforce` in `dbo.ControlCommands`.
+  The worker checks every 30 seconds. No new Fabric pipeline or HTTP endpoint is
+  required; the client submits typed commands and polls their persisted status.
+- With no new event IDs and no requested source reload, there is no OneLake scan,
+  notebook execution, Gold load, or graph refresh. An initial deployment
+  reconciles the already-published history once.
 
 The publisher retains the original bounded interface: default batch 128,
 maximum batch 512; maximum duration 600 seconds and maximum 20,000 messages per
 invocation. The service uses shorter 30-second/2,000-message passes. Kafka OAuth
 uses **`https://<namespace>.servicebus.windows.net/.default`**, never the generic
 Event Hubs audience.
+
+## Demo source reload buttons
+
+`source_reload_enabled: true` enables the two source commands. The configuration
+prepared by `scripts.demo_prepare` copies this flag from the Fabric configuration;
+existing configurations default to disabled. Apply the accompanying column-level
+ControlCommands permissions before deploying an enabled worker.
+
+- **Reload Oracle:** read the current native `MSFlix_OracleMirror` snapshot for
+  content, offers and distributors, then run the existing Raw, Silver, Gold and
+  graph chain. This does not restart continuous Oracle CDC or change source rows.
+- **Reload Salesforce:** run the existing BPS extraction, Silver, dimension and
+  fact pipelines in that order, then conform their current native CRM snapshots
+  through the same MSFlix Raw, Silver, Gold and graph chain. This is not an `sf`
+  CLI export, and BPS Gold is not a substitute for the consolidated MSFlixGold.
+- **SAP:** disabled in the cockpit; no SAP reload command is accepted.
+
+The typed operator-only UDF inserts a request with an idempotency key and rejects
+another Oracle or Salesforce reload while one is requested, running or blocked.
+The worker finishes its current propagation cycle before claiming the request.
+The existing SQL application lock and persisted job IDs serialize execution;
+restarting the worker polls already-submitted jobs instead of rerunning them.
+
+A request remains `running` through the entire chain. `completed` is written only
+after reference proofs in Raw, Silver, Gold and OneLake, plus successful graph
+refresh and a real graph query. A failed or ambiguous job becomes `blocked` with
+a sanitized error, not a false completion. After investigating the recorded phase,
+use the existing explicit `resume` command; a new button click is not a recovery
+mechanism. The service must be running: an offline host leaves a request queued.
+
+Snapshots are immutable per command under `Files/ingress/reloads/`. The Raw
+notebook receives its existing complete configuration with only the selected
+source paths and `snapshot_run_id` values overridden. Other reference snapshots,
+event identities, the main `run_id` and worker bindings are unchanged. Routine
+button reloads therefore need no notebook rebind or maintenance watermark reset.
+The full maintenance procedure below still applies to changes in bindings or
+source authority. Empty, truncated or duplicate-key native snapshots are refused.
 
 ## Publication gates
 
@@ -83,6 +123,9 @@ to restrict that inherited access:
 
 - `SELECT` on `dbo.Outboxes`.
 - Column-scoped `UPDATE (published_at)` only.
+- When source reloads are enabled, `SELECT` on `dbo.ControlCommands` and
+  `UPDATE (status, completed_at, error)` only. Command insertion/deletion and
+  changes to type, parameters, identity and idempotency keys remain denied.
 - Other outbox-column updates, outbox inserts/deletes, other business-table
   reads/writes, ownership and schema/user/role changes are denied.
 - Session application locks use the existing `public` principal; no

@@ -66,6 +66,14 @@ describe('permissions and bounded controls', () => {
     expect(() => assertOperator({ enabled: true, expires_at: new Date(now.getTime() + 1) }, now)).not.toThrow();
     expect(() => assertOperator({ enabled: true, expires_at: 'invalid' }, now)).toThrow();
   });
+  it.each(['reload_oracle', 'reload_salesforce'])('accepts exactly one %s reload', type => {
+    expect(() => controlLimit(type, 1)).not.toThrow();
+    for (const limit of [0, 2, 100, 101, 1.5, NaN]) expect(() => controlLimit(type, limit)).toThrow();
+  });
+  it('rejects SAP and unknown source controls', () => {
+    for (const type of ['reload_sap', 'sap', 'reload', 'reload_Oracle'])
+      expect(() => controlLimit(type, 1)).toThrow('Unsupported control');
+  });
   it('rejects privileged statuses and unbounded control types/counts', () => {
     expect(() => controlLimit('simulate', 100)).not.toThrow();
     for (const count of [0, 101, 1.5, NaN]) expect(() => controlLimit('start', count)).toThrow();
