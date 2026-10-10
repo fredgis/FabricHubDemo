@@ -81,6 +81,23 @@ def sql_permissions(connection, application_id, name="msflix_demo_worker", *, so
         WHERE p.name=? ORDER BY object_name,column_name,permission_name;""", (name,))
 
 
+def discover_ingress(client, workspace_id, name, kql_id):
+    base = f"/v1/workspaces/{workspace_id}/eventstreams"
+    matches = [row for row in client.list(base, "eventstream-cli") if row["displayName"] == name]
+    if len(matches) != 1:
+        raise DeploymentError("Expected one existing Demo Eventstream")
+    topology = client.request("GET", f"{base}/{matches[0]['id']}/topology", skill="eventstream-cli")[2]
+    sources, destinations = topology.get("sources", []), topology.get("destinations", [])
+    if (len(sources) != 1 or sources[0].get("type") != "AzureEventHubExtended" or
+            len(destinations) != 1 or destinations[0].get("type") != "Eventhouse" or
+            destinations[0].get("properties", {}).get("workspaceId") != workspace_id or
+            destinations[0].get("properties", {}).get("itemId") != kql_id or
+            destinations[0].get("properties", {}).get("tableName") != "RawEvents"):
+        raise DeploymentError("Existing Demo Eventstream does not target the configured RawEvents database")
+    return {"eventstream_id": matches[0]["id"], "source_id": sources[0]["id"],
+            "destination_id": destinations[0]["id"]}
+
+
 def prepare(args):
     source = json.loads(args.fabric_config.read_text(encoding="utf-8"))
     client = FabricClient(source["tenant_id"])
@@ -130,6 +147,7 @@ def prepare(args):
                vm_resource_id=args.vm_id, managed_identity_principal_id=principal,
                managed_identity_application_id=application_id,
                graph_id=graph["id"], items=items, notebooks=notebook_ids,
+               ingress=discover_ingress(client, ws, source["names"]["eventstream"], items["kql"]["id"]),
                poll_seconds=30, stage_timeout_seconds=1800,
                source_reload_enabled=source.get("source_reload_enabled", False),
                operational={"item_id": args.operational_item, "server": args.server, "database": args.database},

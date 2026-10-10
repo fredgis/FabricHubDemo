@@ -42,6 +42,9 @@ def validate_config(cfg):
         raise ValueError("Stage timeout must be 300..3600 seconds")
     if not isinstance(cfg.get("source_reload_enabled", False), bool):
         raise ValueError("source_reload_enabled must be boolean")
+    if "ingress" in cfg:
+        for key in ("eventstream_id", "source_id", "destination_id"):
+            uuid.UUID(cfg["ingress"][key])
     for layer in ("raw", "silver", "gold", "kql"):
         uuid.UUID(cfg["items"][layer]["id"])
     for value in cfg["notebooks"].values():
@@ -124,10 +127,14 @@ class Worker:
             sort_keys=True).encode()).hexdigest()
         if self.state.get("binding_hash") not in (None, identity):
             raise DeploymentError("Worker bindings changed; reconcile existing checkpoint before promoting")
+        if "ingress_binding" in self.state and self.state["ingress_binding"] != cfg.get("ingress"):
+            raise DeploymentError("Worker ingress bindings changed; reconcile existing checkpoint before promoting")
         self.binding_hash = identity
 
     def save(self):
         self.state["binding_hash"] = self.binding_hash
+        if self.cfg.get("ingress"):
+            self.state["ingress_binding"] = self.cfg["ingress"]
         self.store.save(self.state)
 
     def advance(self, phase):
@@ -160,10 +167,19 @@ class Worker:
         self.save()
 
     def run_pass(self):
-        """Retry only failed connects or confirmed, rolled-back Gold deadlocks."""
+        """Recover safe reads and known rollbacks without replaying ambiguous writes."""
         if self.state["phase"] == "blocked":
-            self._report_blocked_reload()
-            return
+            if (self.state.get("blocked_phase") == "waiting_native_onelake" and
+                    self.state.get("error") == "waiting_native_onelake exceeded bounded stage deadline; no success claimed"):
+                self.state["phase"] = "waiting_native_onelake"
+                self.state.pop("blocked_phase")
+                self.state.pop("error", None)
+                self.state.pop("error_kind", None)
+                self.state["native_deadline_recovered_at"] = self.clock()
+                self.save()
+            else:
+                self._report_blocked_reload()
+                return
         now = self.clock()
         retry = self.state.get("retry")
         if retry and now < retry["next_attempt_at"]:
@@ -325,11 +341,62 @@ class Worker:
         self.save()
         return False
 
+    def _ensure_ingress(self):
+        if not self.cfg.get("ingress"):
+            return True
+        cycle = self.state["cycle"]
+        nodes = self.runtime.ingress_status()
+        cycle["ingress_nodes"] = nodes
+        resumes = cycle.setdefault("ingress_resumes", {})
+        self.save()
+        for node in nodes:
+            resume = resumes.get(node["id"])
+            if resume and resume.get("operation") and not resume.get("operation_completed"):
+                if self.clock() < resume["not_before"]:
+                    return False
+                result = self.runtime.ingress_operation(resume["operation"])
+                status = result["status"]
+                if status == "Succeeded":
+                    resume["operation_completed"] = True
+                    self.save()
+                elif status in ("NotStarted", "Running", "Undefined") and self.clock() - resume["intent_at"] < 600:
+                    resume["not_before"] = self.clock() + result.get("retry_after", 30)
+                    self.save()
+                    return False
+                else:
+                    raise DeploymentError(f"Eventstream resume operation {status}; inspect before explicit resume")
+            if node["status"] == "Running":
+                if resume and not resume.get("running_at"):
+                    resume["running_at"] = self.clock()
+                    self.save()
+                continue
+            if resume:
+                if resume.get("running_at") or self.clock() - resume["intent_at"] >= 600:
+                    raise DeploymentError("Eventstream resume did not remain Running; inspect before another resume")
+                return False
+            if node["status"] != "Paused":
+                return False
+            # Persist intent before POST. A lost response is reconciled against
+            # topology, never retried as another start-position mutation.
+            resume = resumes[node["id"]] = {"intent_at": self.clock()}
+            self.save()
+            try:
+                resume.update(self.runtime.resume_ingress(node["group"], node["id"]))
+                resume["not_before"] = self.clock() + resume.pop("retry_after", 30)
+            except Exception as exc:
+                resume["error"] = safe_error_message(str(exc))
+                self.save()
+                if str(exc).startswith(tuple(f"Fabric HTTP {code} " for code in (400, 401, 403, 404))):
+                    raise
+            self.save()
+            return False
+        return True
+
     def tick(self):
         phase = self.state["phase"]
         if phase == "blocked":
             return
-        if phase != "idle" and self.clock() - self.state["stage_started_at"] > self.cfg.get("stage_timeout_seconds", 1800):
+        if phase not in ("idle", "waiting_native_onelake") and self.clock() - self.state["stage_started_at"] > self.cfg.get("stage_timeout_seconds", 1800):
             raise DeploymentError(f"{phase} exceeded bounded stage deadline; no success claimed")
         if phase == "idle":
             if self.cfg.get("source_reload_enabled"):
@@ -374,9 +441,16 @@ class Worker:
                 cycle.update(self.runtime.stage_source_reload(cycle))
                 self.advance("raw")
         elif phase == "waiting_native_onelake":
-            cycle["native_onelake"] = self.runtime.exact_ids("native", ids)
+            if self.clock() < cycle.get("native_probe_not_before", 0) or not self._ensure_ingress():
+                return
+            proof = self.runtime.exact_ids("native", ids)
+            proof["overdue"] = (not proof["complete"] and
+                self.clock() - self.state["stage_started_at"] > self.cfg.get("stage_timeout_seconds", 1800))
+            cycle["native_onelake"] = proof
+            if proof["overdue"]:
+                cycle["native_probe_not_before"] = self.clock() + 300
             self.save()
-            if cycle["native_onelake"]["complete"]:
+            if proof["complete"]:
                 self.advance("raw")
         elif phase == "raw":
             if self._job("raw"):

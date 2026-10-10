@@ -212,7 +212,26 @@ IDs. `resume` follows repair of a blocked stage; it does not discard job intent.
   before submitting. It stores submission intent before POST and the returned
   job ID immediately afterwards. A crash/lost response is reconciled against
   job history; it never blindly submits the same job again.
-- Each stage has a 30-minute deadline. SQL **connection-establishment** timeouts
+- While a Demo event cycle is pending, the worker verifies the pinned
+  Eventstream source and destination, not just the DefaultStream's status.
+  The `ingress` binding contains the discovered Eventstream, source and
+  destination IDs. Only the existing Event Hubs → `RawEvents` route can be
+  resumed; a changed topology or target is rejected. Paused nodes resume
+  destination-first with `startType: WhenLastStopped`, never `Now`. No
+  topology, connection or retention setting is changed. The operator's worker
+  pause still suppresses every tick and therefore every automatic resume.
+  Resume intent and operation IDs survive restart. A lost response is checked
+  against topology without another POST; an unresolved resume blocks after
+  ten minutes and requires inspection. Running nodes alone never unlock Raw:
+  every expected event ID must also exist in native OneLake.
+- A missing-ID result in `waiting_native_onelake` remains a read-only wait.
+  After 30 minutes, status exposes `native_onelake.overdue` and probes every
+  five minutes instead of permanently blocking. The same cycle and IDs are
+  retained across restart. Only the exact native-wait deadline error from
+  older workers is automatically recovered; other blocked errors are not.
+  This cannot recover messages that have expired from upstream retention:
+  persistent missing IDs still require investigation, not a new Start Demo.
+- Other stages have a 30-minute deadline. SQL **connection-establishment** timeouts
   (`HYT00`/`HYT01`) and unavailable connections (`08001`, including transient TLS
   handshake failures) from `SQLDriverConnect`, before any statement is submitted,
   keep the same cycle/phase and persist their error plus next retry time.
@@ -223,8 +242,8 @@ IDs. `resume` follows repair of a blocked stage; it does not discard job intent.
   Retry delays are 30, 60, 120, and 240 seconds; after the fifth failed
   connection the worker waits 900 seconds before another bounded burst.
   No attempts occur during the persisted backoff, including after restart.
-  Only time when SQL is unavailable is excluded from the stage deadline;
-  ordinary OneLake/job waits still have their original bound.
+  Only time when SQL is unavailable is excluded from bounded stage deadlines;
+  job and post-Gold OneLake waits still have their original bound.
 - Permission, configuration, invalid data, terminal failed Spark jobs, and
   statement/commit timeouts enter `blocked` immediately with the original
   phase, error and job intent preserved. Publishing and propagation stop until
@@ -371,6 +390,23 @@ receipts, Raw/Gold queries, and post-refresh GQL results in ignored
 `.state/demo-automation/`. Do not commit state, credentials, or live bindings.
 The existing app's client-side idempotency and native UDF integration are not
 changed by this worker.
+
+### Verified ingress recovery, 10 October 2026
+
+The incident had a Running DefaultStream but Paused source and destination
+nodes, followed by an older worker's permanent native-wait deadline block.
+The deployed recovery resumed the pinned nodes and the original checkpoint,
+without replaying events or creating a replacement Demo run. Verification
+found all 20 original event IDs in native OneLake, all 20 durable propagation
+receipts, and an idle worker without error. Gold contained the expected five
+orders, five sessions and five distinct customers, with exact values and no
+duplicate or missing records. The 48 targeted publisher tests passed.
+
+The published Insights function and the authenticated local UI showed those
+five orders and sessions on **10 October**, totaling **20.95 in ALL** (nominal
+EUR + CHF, no FX conversion), with BE/CH/FR on the map. A direct hosting check
+returned HTTP 401 with CLI credentials; the hosted SSO journey was not
+validated by this check and is not claimed as a successful browser smoke.
 
 References:
 [Notebook API unattended execution](https://learn.microsoft.com/fabric/data-engineering/notebook-public-api),

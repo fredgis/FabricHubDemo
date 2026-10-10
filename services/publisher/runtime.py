@@ -216,6 +216,57 @@ class Runtime:
                 rows.extend(r for r in values if not filters or r[filters[0]] in allowed)
         return rows
 
+    def ingress_status(self):
+        ingress = self.cfg["ingress"]
+        topology = self.client.request("GET",
+            f"/v1/workspaces/{self.ws}/eventstreams/{ingress['eventstream_id']}/topology",
+            skill="eventstream-cli")[2]
+        sources, destinations, streams = (topology.get(k, []) for k in ("sources", "destinations", "streams"))
+        if len(sources) != 1 or len(destinations) != 1 or len(streams) != 1 or topology.get("operators"):
+            raise DeploymentError("Demo ingress topology changed; automatic resume refused")
+        source, destination, stream = sources[0], destinations[0], streams[0]
+        properties = destination.get("properties", {})
+        if (source.get("id") != ingress["source_id"] or source.get("type") != "AzureEventHubExtended" or
+                destination.get("id") != ingress["destination_id"] or destination.get("type") != "Eventhouse" or
+                properties.get("workspaceId") != self.ws or properties.get("itemId") != self.cfg["items"]["kql"]["id"] or
+                properties.get("tableName") != "RawEvents" or stream.get("type") != "DefaultStream" or
+                stream.get("status") != "Running" or
+                stream.get("inputNodes") != [{"name": source.get("name")}] or
+                destination.get("inputNodes") != [{"name": stream.get("name")}]):
+            raise DeploymentError("Demo ingress no longer matches the pinned Event Hubs to RawEvents route")
+        nodes = [{"group": group, "id": node["id"], "status": node.get("status")}
+                 for group, node in (("destinations", destination), ("sources", source))]
+        for node in nodes:
+            if node["status"] not in ("Running", "Paused", "Starting", "Resuming", "Pausing"):
+                raise DeploymentError(f"Demo ingress {node['group']} node is {node['status']}; inspect Eventstream")
+        return nodes
+
+    def resume_ingress(self, group, node_id):
+        ingress = self.cfg["ingress"]
+        key = {"sources": "source_id", "destinations": "destination_id"}.get(group)
+        if key is None or node_id != ingress[key]:
+            raise DeploymentError("Refusing to resume an unbound Eventstream node")
+        status, headers, _ = self.client.request("POST",
+            f"/v1/workspaces/{self.ws}/eventstreams/{ingress['eventstream_id']}/{group}/{node_id}/resume",
+            {"startType": "WhenLastStopped"}, "eventstream-cli")
+        if status in (200, 204):
+            return {}
+        location = urlparse(headers.get("location", ""))
+        operation_id = headers.get("x-ms-operation-id")
+        if not operation_id and location.hostname == "api.fabric.microsoft.com" and location.path.startswith("/v1/operations/"):
+            operation_id = location.path.removeprefix("/v1/operations/")
+        if status != 202 or not operation_id:
+            raise DeploymentError("Eventstream resume outcome ambiguous; reconcile topology before retrying")
+        return {"operation": f"/v1/operations/{UUID(operation_id)}",
+                "retry_after": max(1, int(headers.get("retry-after", 30)))}
+
+    def ingress_operation(self, path):
+        if not path.startswith("/v1/operations/"):
+            raise DeploymentError("Invalid Eventstream resume operation")
+        UUID(path.removeprefix("/v1/operations/"))
+        _, headers, result = self.client.request("GET", path, skill="eventstream-cli")
+        return {"status": result.get("status"), "retry_after": max(1, int(headers.get("retry-after", 30)))}
+
     def exact_ids(self, kind, expected):
         item, path = ((self.cfg["items"]["kql"]["id"], "RawEvents") if kind == "native" else
                       (self.cfg["items"]["raw"]["id"], "raw/events_ingress"))
