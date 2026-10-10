@@ -4,18 +4,21 @@ import { DatabaseSync } from 'node:sqlite';
 import { describe, expect, it, vi } from 'vitest';
 
 const calls = vi.hoisted(() => ({ inputs: {} as Record<string, unknown>, query: '', sets: [] as unknown[], closed: false }));
-vi.mock('../../apps/cockpit/rayfin/functions/src/gold-dashboard', () => ({
-  connectGoldPool: vi.fn(),
-  goldPool: vi.fn(() => ({
-    close: async () => { calls.closed = true; },
-    request: () => {
-      const request = {
-        input: (name: string, _type: unknown, value: unknown) => { calls.inputs[name] = value; return request; },
-        query: async (query: string) => { calls.query = query; return { recordsets: calls.sets }; },
-      };
-      return request;
-    },
-  })),
+vi.mock('../../apps/cockpit/rayfin/functions/src/gold-connection', () => ({
+  assertGoldBinding: vi.fn(),
+  withGoldPool: vi.fn(async (_binding, _token, read) => {
+    try {
+      return await read({
+        request: () => {
+          const request = {
+            input: (name: string, _type: unknown, value: unknown) => { calls.inputs[name] = value; return request; },
+            query: async (query: string) => { calls.query = query; return { recordsets: calls.sets }; },
+          };
+          return request;
+        },
+      });
+    } finally { calls.closed = true; }
+  }),
 }));
 import { campaignFromRecordsets, GOLD_CAMPAIGN_QUERY, parseCampaignFilters, readCampaignImpact } from '../../apps/cockpit/rayfin/functions/src/gold-campaign-impact';
 import type { AnalyticsBinding } from '../../apps/cockpit/rayfin/data/schema';

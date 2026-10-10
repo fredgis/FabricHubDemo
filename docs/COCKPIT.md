@@ -1124,10 +1124,11 @@ the UI does not clear it or issue a replacement.
 
 The UI reads actual `ControlCommand` rows through the typed authenticated
 client. It fetches the latest request per source and any outstanding shared
-request, then polls only these status reads every ten seconds while work is
-requested/running, for at most sixty minutes per monitoring session. Checks
-stop on a read failure, completion, or unmount. Explicit **Refresh reload
-status** resumes reads without starting work. Older blocked rows still disable
+request, then polls only these status reads every ten seconds while Demo is
+visible and work is requested/running, for at most sixty minutes per monitoring
+session. Checks stop on a read failure, completion, or unmount, and pause when
+Demo is hidden. Returning to Demo refreshes the actual statuses immediately.
+Explicit **Refresh reload status** resumes reads without starting work. Older blocked rows still disable
 both source buttons even when a newer completed row exists. Uncertain calls
 retain their original input/key in tab-scoped `sessionStorage`, including
 across page reloads, and retries reuse that input. No credentials are stored.
@@ -1203,22 +1204,71 @@ reference rows. Catalogue, audiences and Demo use their own bounded read scopes;
 the existing full `businessViews` API remains available to authoring tools.
 Audience metrics reuse the same response rather than making a second query.
 
-Operational collections load only for Orders, Demo and Operations. Their
-paginated reads use batches of 5,000 rows instead of 500; the outbox remains a
-bounded 1,000-event recency window. Page results live only in the mounted user's
-session. A page revisit within 30 seconds reuses its last read, and **Refresh**
-always requests that page again. Duplicate concurrent refreshes are coalesced.
-Successful data and artwork stay visible during refresh or a read failure,
-with an explicit refreshing/error notice and the original source timestamp.
+The four native Gold readers reuse a short-lived SQL pool across consultations.
+The cache holds connections, never query results: every read still executes its
+full SQL batch with separate request parameters, publication gates and integrity
+checks. Binding reads remain caller-authorized on every native invocation; the
+external SQL token remains the platform-provided application identity token.
+Pools are isolated by exact-token hash and Warehouse/workspace/capacity coordinates.
+They expire after 60 seconds idle, five minutes total, or one minute before the
+token expires. At most four pools are cached per function-host process, with two
+SQL connections per pool. If all four are busy, a temporary pool handles the read
+and closes afterward. Failed pools retire without interrupting another active
+reader; opaque or nearly expired tokens use the temporary path. A cold host,
+a changed token or an expired pool still requires a new connection.
+
+Read-only A/B verification on 2026-10-10 compared readers from commit `52cc528`
+with the optimized compiled readers against the same live Gold publication
+(`published_at=2026-10-10T11:38:59.976Z`, 1,052 order lines). Two rounds reversed
+the old/new order and compared complete response hashes excluding `queried_at`.
+All six response pairs matched. Original readers opened six pools for six reads;
+optimized readers opened one. Combined reader time was 37.141 versus 19.371 seconds.
+
+| Reader | Original samples (seconds) | Optimized samples (seconds) |
+| --- | --- | --- |
+| Overview | 8.615 / 4.014 | 6.932 / 0.920 |
+| Insights | 5.246 / 5.914 | 3.012 / 2.871 |
+| Campaign Impact, after contact | 5.983 / 7.369 | 2.822 / 2.814 |
+
+These are local TDS reader measurements with subscription-scoped authoring
+credentials, not deployed end-user screen timings. They include SQL work and
+connection setup, but exclude native HTTP/runtime/binding overhead and React
+rendering. Warehouse cache and load also affect the samples. No SQL, source
+reload, Gold publication or Demo worker changed during this check.
+
+Operational collections load only for Orders, Demo and Operations, with a
+separate scope and cache for each screen. `loadSnapshot()` without a scope still
+loads all ten collections for existing callers.
+
+| Scope | Collections read | Before | Now |
+| --- | --- | ---: | ---: |
+| Orders | Content, Customer, Offer, Rental, Playback | 10 | 5 |
+| Demo | Content, Customer, Offer, Outbox, ControlCommand | 10 | 5 |
+| Operations | ControlCommand, IntegrationLink | 10 | 2 |
+
+Counts describe collection scans, not total HTTP requests: each collection still
+uses complete pagination. The unchanged projections, ordering and pagination
+errors apply to every included collection. Batches remain 5,000 rows, with a
+bounded 1,000-event outbox window.
+
+Page results live only in the mounted user's session. A page revisit within
+30 seconds reuses its scope's last read. **Refresh** requests the current page
+again and invalidates other operational scopes so their next activation reads
+fresh data. Superseded responses cannot overwrite a newer refresh, even after
+navigation or a command. Successful data and artwork stay visible during refresh
+or a read failure, with an explicit notice and the original source timestamp.
+Demo stays mounted across navigation: its scenario, command keys and retries
+survive while hidden. Only its source-status reads pause; returning to Demo
+resumes them without restarting ingestion or creating a new command.
 
 Business Graph initially requests **six actual source paths**, not 50 paths
 that are then hidden. Selecting 12, 24 or 50 loads the larger source sample;
 reducing the display count reuses the loaded sample. Search is limited to that
-sample. After the first successful Gold page read, the six-path graph is
-prefetched once in the background without mounting its canvas. Opening the
-graph tab reuses that actual result instead of waiting for a cold native query;
-there is no polling or fabricated graph. An immediate visit before the prefetch
-finishes can still wait for Fabric. Explicit refresh performs a fresh GQL query.
+sample. Graph data loads only when the Graph tab is opened, removing the native
+prefetch previously triggered by a successful Gold read on another screen.
+Returning to Graph reuses its actual cached result; explicit refresh performs
+a fresh GQL query. The first visit can still wait for a cold Fabric invocation.
+There is no graph polling or fabricated data.
 
 Interactive graph reads use the administrator-qualified `OntologyBinding` row;
 the native function requires its actual `verified=true` flag and the approved
@@ -1245,12 +1295,41 @@ sources. The normal `tools\artwork.mjs` generator also rebuilds these derivative
 `public\artwork-variants.json` preserves each original hash, license, attribution
 and the declared resize/re-encoding modification.
 
-Evening native read measurements: the Gold/home refresh went from **18.3 seconds
+Earlier native read measurements: the Gold/home refresh went from **18.3 seconds
 to 7.7 seconds**; the operational snapshot from **6.5 to 4.7 seconds**, and it is
-no longer needed for the initial home view. These are observed samples, not an
-SLA. A cold Fabric graph invocation can still take about **nine seconds**;
-the bounded background prefetch removes that wait when its result is ready
-before the user opens the graph tab.
+no longer needed for the initial home view. These are historical samples, not an
+SLA or a post-deployment measurement of the current connection/scoping changes.
+A cold Fabric graph invocation previously took about **nine seconds**. The
+current on-demand behavior avoids work on other screens rather than hiding that
+first Graph wait with background prefetch.
+
+The connection/scoping changes pass 164 focused tests across 14 files, the native
+TypeScript build and the Fabric frontend build. Tests cover request counts,
+pagination, scope isolation, late responses, explicit refresh, pool expiration
+and failures, hidden polling, and retaining Demo across navigation. Targeted
+frontend/helper lint passes. Lint of the two analysis readers still reports the
+pre-existing `no-control-regex` checks; this change does not alter those filters.
+The live TDS comparison above validates reader outputs, not a deployed browser
+session. The changes were published on 2026-10-10 with `rayfin up`; deployment
+status confirmed the existing MSFlix app and capacity, authenticated management
+health returned HTTP 200, and all five native Gold-backed reads returned `ready`.
+
+| Native read | Before publication (seconds) | After publication (seconds) |
+| --- | ---: | ---: |
+| Overview | 12.129 | 8.139 |
+| Catalogue | 7.154 | 5.408 |
+| Audiences | 6.273 | 1.347 |
+| Insights | 10.118 | 3.247 |
+| Campaign Impact, after contact | 10.240 | 3.315 |
+
+These are single sequential passes of the authenticated native APIs, excluding
+initial sign-in and React rendering. The baseline ran at 11:38 UTC and the
+post-deployment pass at 12:08-12:09 UTC. Gold publication, Warehouse load and
+connection warmth differ, so these samples are not a controlled attribution of
+the entire gain to pooling or an end-user latency guarantee. All five later
+reads reported publication time `2026-10-10T11:56:52.566Z`; the page reads reported
+1,052 order lines. A separate signed-out browser check retained the protected
+hosting sign-in gate; it does not substitute for an authenticated browser timing.
 
 The Demo worker's evening SQL connection-timeout incident was repaired without
 creating transactions or replaying Kafka. Its original blocked cycle processed

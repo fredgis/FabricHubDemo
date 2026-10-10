@@ -11,6 +11,7 @@ type Capabilities = AppFunctionsSchema['capabilities']['output'];
 type Health = AppFunctionsSchema['health']['output'];
 type Gold = AppFunctionsSchema['businessViews']['output'];
 export type DemoPageProps = {
+  active?: boolean;
   snapshot: Snapshot | null;
   capabilities: Capabilities;
   loading?: boolean;
@@ -25,7 +26,7 @@ export type DemoPageProps = {
 
 /** Explicitly initiated, real command journeys; delivery and publication are read-only evidence. */
 export function DemoPage({
-  snapshot, capabilities, loading = false, readError = '', busy = false, snapshotUpdatedAt,
+  active = true, snapshot, capabilities, loading = false, readError = '', busy = false, snapshotUpdatedAt,
   gold, goldLoading = false, goldError = '', onRefresh,
 }: DemoPageProps) {
   const [scenario, setScenario] = useState<DemoScenarioType>('rental');
@@ -226,7 +227,7 @@ export function DemoPage({
       </div>}
     </section>
 
-    <SourceReloadControls commands={snapshot?.commands} capabilities={capabilities} busy={busy || running} />
+    <SourceReloadControls active={active} commands={snapshot?.commands} capabilities={capabilities} busy={busy || running} />
 
     <section aria-labelledby="demo-propagation-heading">
       <div className="page-heading">

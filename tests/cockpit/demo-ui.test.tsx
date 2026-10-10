@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
+import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
 import type { Snapshot } from '../../apps/cockpit/src/services/business';
 import type { AppFunctionsSchema } from '../../apps/cockpit/rayfin/functions/src/types';
 
@@ -168,6 +168,31 @@ describe('dedicated Demo controls', () => {
     expect(sdk.functions.startPlayback.invoke).toHaveBeenCalledWith({
       input: { order_id: 'accepted-order', idempotency_key: expect.any(String) },
     });
+  });
+
+  it('continues an in-flight Demo while inactive and retains failed-command retry keys on return', async () => {
+    let accept!: (value: { entity_key: string; status: string; event_ids: string[] }) => void;
+    sdk.functions.placeOrder.invoke.mockReturnValueOnce(new Promise(resolve => { accept = resolve; }));
+    sdk.functions.startPlayback.invoke.mockRejectedValueOnce(new Error('Playback response lost'));
+    const capabilities = { can_operate: true, reason: 'Operator grant' };
+    const onRefresh = vi.fn();
+    const view = render(<DemoPage active snapshot={snapshot} capabilities={capabilities} onRefresh={onRefresh} />);
+    fireEvent.change(screen.getByRole('spinbutton', { name: 'Journey count' }), { target: { value: '1' } });
+    fireEvent.change(screen.getByRole('combobox', { name: 'Pace between commands' }), { target: { value: '0' } });
+    fireEvent.click(screen.getByRole('button', { name: 'Start demo' }));
+    view.rerender(<DemoPage active={false} snapshot={null} capabilities={capabilities} onRefresh={onRefresh} />);
+    await act(async () => { accept({ entity_key: 'persisted-order', status: 'booked', event_ids: ['persisted-event'] }); });
+    await screen.findByText('Demo paused on a command failure.');
+    expect(sdk.functions.startPlayback.invoke).toHaveBeenCalledOnce();
+    const firstPlayback = sdk.functions.startPlayback.invoke.mock.calls[0][0];
+    view.rerender(<DemoPage active snapshot={snapshot} capabilities={capabilities} onRefresh={onRefresh} />);
+    fireEvent.click(screen.getByRole('button', { name: 'Retry same run' }));
+    await screen.findByText('All 1 journeys completed.');
+    expect(sdk.functions.placeOrder.invoke).toHaveBeenCalledOnce();
+    expect(sdk.functions.startPlayback.invoke.mock.calls[1][0]).toEqual(firstPlayback);
+    expect(sdk.functions.recordProgress.invoke).toHaveBeenCalledOnce();
+    expect(sdk.functions.health.invoke).not.toHaveBeenCalled();
+    expect(onRefresh).not.toHaveBeenCalled();
   });
 
   it('shows native health errors and never treats the read-only refresh as event generation', async () => {

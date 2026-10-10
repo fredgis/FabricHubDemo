@@ -1,5 +1,7 @@
-import sql from 'mssql';
+import type sql from 'mssql';
 import type { AnalyticsBinding } from '../../data/schema.js';
+import { assertGoldBinding, withGoldPool } from './gold-connection.js';
+export { assertGoldBinding, connectGoldPool, goldPool, withGoldPool } from './gold-connection.js';
 
 export type GoldDashboard = {
   source:{name:string;workspace_id:string;item_id:string;views:string[]};
@@ -34,23 +36,6 @@ export function dashboardFromRows(source:{workspace_id:string;item_id:string;nam
     commercial:publication?commercial:[],playback:publication?playback:[],campaigns:publication?campaigns:[],
     dimensions:{customers:integer(rows.counts[0]?.customers??'0','customers'),content:integer(rows.counts[0]?.content??'0','content')}};
 }
-export function goldPool(binding:AnalyticsBinding,token:string):sql.ConnectionPool{
-  if(!binding.verified || binding.binding_key!=='business-gold' || binding.name!=='MSFlixGold' ||
-      !binding.sql_server.endsWith('.datawarehouse.fabric.microsoft.com') ||
-      binding.sql_database!==binding.item_id || !/^[a-f0-9-]{36}$/i.test(binding.item_id))
-    throw new Error('Gold Warehouse binding is not verified. Operational SQL will not substitute for Gold.');
-  return new sql.ConnectionPool({server:binding.sql_server,database:binding.sql_database,
-    options:{encrypt:true,trustServerCertificate:false},
-    authentication:{type:'azure-active-directory-access-token',options:{token}},
-    connectionTimeout:15000,requestTimeout:30000,pool:{min:0,max:1,idleTimeoutMillis:1000}});
-}
-export async function connectGoldPool(pool:sql.ConnectionPool):Promise<void>{
-  for(let attempt=0;;attempt++){
-      try{await pool.connect();break;}
-      catch(error){if(attempt>=2||!['ETIMEOUT','ESOCKET','ECONNRESET'].includes((error as {code?:string}).code??''))throw error;
-        await new Promise(resolve=>setTimeout(resolve,250*2**attempt));}
-  }
-}
 export const GOLD_DASHBOARD_QUERY=`
       SELECT currency,transaction_type,CONVERT(varchar(40),current_order_lines) AS current_order_lines,
         CONVERT(varchar(40),booked_amount_minor) AS booked_amount_minor,
@@ -72,11 +57,12 @@ export function dashboardFromRecordsets(binding:AnalyticsBinding,sets:sql.IRecor
       publication:sets[4] as unknown as GoldRows['publication']},new Date());
 }
 export async function readGoldDashboard(binding:AnalyticsBinding,token:string):Promise<GoldDashboard>{
-  const pool=goldPool(binding,token);
+  assertGoldBinding(binding);
   try{
-    await connectGoldPool(pool);
-    const result=await pool.request().query(GOLD_DASHBOARD_QUERY);
-    return dashboardFromRecordsets(binding,result.recordsets as sql.IRecordSet<unknown>[]);
+    return await withGoldPool(binding,token,async pool=>{
+      const result=await pool.request().query(GOLD_DASHBOARD_QUERY);
+      return dashboardFromRecordsets(binding,result.recordsets as sql.IRecordSet<unknown>[]);
+    });
   }catch(error){
     const failure=error as{code?:string;number?:number;originalError?:{info?:{number?:number}}};
     const code=failure.code??'GOLD_QUERY_FAILED';
@@ -84,5 +70,5 @@ export async function readGoldDashboard(binding:AnalyticsBinding,token:string):P
     const detail=number===208?'Required Gold curated view/table is missing.':
       number===229?'App-owner SELECT permission on Gold is missing.':`Gold SQL query failed${number?` (${number})`:''}.`;
     throw new Error(`MSFlixGold curated dashboard unavailable (${code}). ${detail} Verify Gold views/publication and app-owner SQL access. No operational fallback.`);
-  }finally{await pool.close();}
+  }
 }

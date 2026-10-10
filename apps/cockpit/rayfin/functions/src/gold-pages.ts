@@ -1,6 +1,6 @@
 import sql from 'mssql';
 import type{AnalyticsBinding}from'../../data/schema.js';
-import{connectGoldPool,dashboardFromRecordsets,GOLD_DASHBOARD_QUERY,goldPool,type GoldDashboard}from'./gold-dashboard.js';
+import{assertGoldBinding,dashboardFromRecordsets,GOLD_DASHBOARD_QUERY,withGoldPool,type GoldDashboard}from'./gold-dashboard.js';
 export type GoldView='all'|'overview'|'catalog'|'audiences'|'demo';
 export function goldView(value:string):GoldView{
   if(value==='all'||value==='overview'||value==='catalog'||value==='audiences'||value==='demo')return value;
@@ -21,9 +21,9 @@ export async function readGoldPages(binding:AnalyticsBinding,token:string,reques
   const view=goldView(requestedView);
   const activity=view==='overview'?6:1000;
   const window={orders:activity,sessions:activity,references:10000};
-  const pool=goldPool(binding,token);
+  assertGoldBinding(binding);
   try{
-    await connectGoldPool(pool);
+    return await withGoldPool(binding,token,async pool=>{
     const result=await pool.request().input('references',sql.Int,10001).input('activity',sql.Int,activity)
       .input('view',sql.VarChar(16),view).query(GOLD_DASHBOARD_QUERY+`
       SELECT TOP (@references) content_key,title,CONVERT(varchar(10),release_date,23) AS release_date,
@@ -63,6 +63,6 @@ export async function readGoldPages(binding:AnalyticsBinding,token:string,reques
       throw new Error('Gold reference collection exceeds safe read boundary; no partial totals are presented.');
     return{dashboard,catalog:sets[0],customers:sets[1],offers:sets[2],orders:sets[3],sessions:sets[4],campaigns:sets[5],
       window};
+    });
   }catch(error){throw new Error(`Gold business views unavailable (${(error as{code?:string}).code??'READ_ERROR'}). No operational fallback.`);}
-  finally{await pool.close();}
 }

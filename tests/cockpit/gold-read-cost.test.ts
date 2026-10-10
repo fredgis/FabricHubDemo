@@ -1,3 +1,4 @@
+// @vitest-environment node
 import { beforeEach, expect, it, vi } from 'vitest';
 import type { AnalyticsBinding } from '../../apps/cockpit/rayfin/data/schema';
 
@@ -9,6 +10,7 @@ vi.mock('../../apps/cockpit/rayfin/functions/node_modules/mssql', () => ({
     ConnectionPool: class {
       async connect() { calls.connections++; return this; }
       async close() {}
+      on() { return this; }
       request() {
         const request = {
           input: () => request,
@@ -43,6 +45,13 @@ it('reads Gold metrics and page details in one SQL connection and one batch', as
   expect(result.dashboard.freshness.order_lines).toBe('1003');
   expect(calls.connections).toBe(1);
   expect(calls.queries).toHaveLength(1);
+});
+it('reuses the authenticated connection on consecutive screens but executes every fresh read', async () => {
+  const token = `header.${Buffer.from(JSON.stringify({ exp: Math.floor(Date.now() / 1000) + 3600 })).toString('base64url')}.signature`;
+  await readGoldPages(binding, token, 'overview');
+  await readGoldPages(binding, token, 'catalog');
+  expect(calls.queries).toHaveLength(2);
+  expect(calls.connections).toBe(1);
 });
 it('bounds the initial home activity to six records without changing the full read contract', async () => {
   const result = await readGoldPages(binding, 'test-token', 'overview');

@@ -1,6 +1,6 @@
 import sql from 'mssql';
 import type { AnalyticsBinding } from '../../data/schema.js';
-import { connectGoldPool, goldPool } from './gold-dashboard.js';
+import { assertGoldBinding, withGoldPool } from './gold-connection.js';
 import type { GoldInsights, GoldInsightsFilters } from './gold-insights-contract.js';
 
 export type { GoldInsights, GoldInsightsFilters } from './gold-insights-contract.js';
@@ -403,22 +403,21 @@ export function insightsFromRecordsets(source: Source, filters: GoldInsightsFilt
 
 export async function readGoldInsights(binding: AnalyticsBinding, token: string, filtersJson: string): Promise<GoldInsights> {
   const filters = parseInsightsFilters(filtersJson);
-  const pool = goldPool(binding, token);
+  assertGoldBinding(binding);
   try {
-    await connectGoldPool(pool);
-    const result = await pool.request()
-      .input('from_date', sql.Date, filters.from ? new Date(`${filters.from}T00:00:00.000Z`) : null)
-      .input('to_date', sql.Date, filters.to ? new Date(`${filters.to}T00:00:00.000Z`) : null)
-      .input('territory', sql.VarChar(64), filters.territory)
-      .input('genre', sql.VarChar(128), filters.genre)
-      .input('transaction_type', sql.VarChar(4), filters.transactionType)
-      .input('currency', sql.VarChar(3), filters.currency)
-      .input('query_time', sql.DateTime2(6), new Date())
-      .query(GOLD_INSIGHTS_QUERY);
-    return insightsFromRecordsets(binding, filters, result.recordsets);
+    return await withGoldPool(binding, token, async pool => {
+      const result = await pool.request()
+        .input('from_date', sql.Date, filters.from ? new Date(`${filters.from}T00:00:00.000Z`) : null)
+        .input('to_date', sql.Date, filters.to ? new Date(`${filters.to}T00:00:00.000Z`) : null)
+        .input('territory', sql.VarChar(64), filters.territory)
+        .input('genre', sql.VarChar(128), filters.genre)
+        .input('transaction_type', sql.VarChar(4), filters.transactionType)
+        .input('currency', sql.VarChar(3), filters.currency)
+        .input('query_time', sql.DateTime2(6), new Date())
+        .query(GOLD_INSIGHTS_QUERY);
+      return insightsFromRecordsets(binding, filters, result.recordsets);
+    });
   } catch {
     throw new Error(UNAVAILABLE);
-  } finally {
-    try { await pool.close(); } catch { throw new Error(UNAVAILABLE); }
   }
 }

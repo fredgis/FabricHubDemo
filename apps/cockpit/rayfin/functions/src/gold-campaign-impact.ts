@@ -1,6 +1,6 @@
 import sql from 'mssql';
 import type { AnalyticsBinding } from '../../data/schema.js';
-import { connectGoldPool, goldPool } from './gold-dashboard.js';
+import { assertGoldBinding, withGoldPool } from './gold-connection.js';
 import type { CampaignImpact, CampaignImpactFilters, CampaignImpactMetrics } from './gold-campaign-contract.js';
 
 const DAY_MS = 86_400_000;
@@ -282,19 +282,19 @@ export function campaignFromRecordsets(source: Source, filters: CampaignImpactFi
 
 export async function readCampaignImpact(binding: AnalyticsBinding, token: string, json: string): Promise<CampaignImpact> {
   const filters = parseCampaignFilters(json);
-  const pool = goldPool(binding, token);
+  assertGoldBinding(binding);
   try {
-    await connectGoldPool(pool);
-    const result = await pool.request()
-      .input('analysis_mode', sql.VarChar(12), filters.analysisMode)
-      .input('from_date', sql.Date, filters.from ? new Date(`${filters.from}T00:00:00.000Z`) : null)
-      .input('to_date', sql.Date, filters.to ? new Date(`${filters.to}T00:00:00.000Z`) : null)
-      .input('territory', sql.VarChar(64), filters.territory)
-      .input('campaign_key', sql.VarChar(128), filters.campaignKey)
-      .input('currency', sql.VarChar(3), filters.currency)
-      .input('query_time', sql.DateTime2(6), new Date())
-      .query(GOLD_CAMPAIGN_QUERY);
-    return campaignFromRecordsets(binding, filters, result.recordsets);
+    return await withGoldPool(binding, token, async pool => {
+      const result = await pool.request()
+        .input('analysis_mode', sql.VarChar(12), filters.analysisMode)
+        .input('from_date', sql.Date, filters.from ? new Date(`${filters.from}T00:00:00.000Z`) : null)
+        .input('to_date', sql.Date, filters.to ? new Date(`${filters.to}T00:00:00.000Z`) : null)
+        .input('territory', sql.VarChar(64), filters.territory)
+        .input('campaign_key', sql.VarChar(128), filters.campaignKey)
+        .input('currency', sql.VarChar(3), filters.currency)
+        .input('query_time', sql.DateTime2(6), new Date())
+        .query(GOLD_CAMPAIGN_QUERY);
+      return campaignFromRecordsets(binding, filters, result.recordsets);
+    });
   } catch { throw new Error(UNAVAILABLE); }
-  finally { try { await pool.close(); } catch { throw new Error(UNAVAILABLE); } }
 }

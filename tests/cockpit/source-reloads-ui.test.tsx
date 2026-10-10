@@ -1,6 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { act, cleanup, fireEvent, render, screen, waitFor } from '@testing-library/react';
-import type { ReloadCommand, ReloadInput, ReloadType } from '../../apps/cockpit/src/services/source-reloads';
+import { restoreReloadRetry, retainReloadRetry, type ReloadCommand, type ReloadInput, type ReloadType } from '../../apps/cockpit/src/services/source-reloads';
 
 const native = vi.hoisted(() => ({ invoke: vi.fn(), read: vi.fn() }));
 vi.mock('../../apps/cockpit/src/services/rayfinClient', () => ({
@@ -129,6 +129,53 @@ describe('source reload controls', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Refresh reload status' })); await flush();
     expect(screen.getByText('Salesforce: completed')).toBeInTheDocument();
     expect(screen.queryByRole('alert')).not.toBeInTheDocument();
+    expect(native.invoke).not.toHaveBeenCalled();
+  });
+
+  it('does no reads while inactive and resumes pending status polling on entry', async () => {
+    vi.useFakeTimers();
+    native.read.mockResolvedValue([row('reload_oracle', 'running')]);
+    const view = render(<SourceReloadControls active={false} commands={commands} capabilities={capabilities} />);
+    await flush();
+    await act(() => vi.advanceTimersByTimeAsync(30_000));
+    expect(native.read).not.toHaveBeenCalled();
+    view.rerender(<SourceReloadControls active commands={commands} capabilities={capabilities} />);
+    await flush();
+    expect(native.read).toHaveBeenCalledOnce();
+    await act(() => vi.advanceTimersByTimeAsync(10_000));
+    expect(native.read).toHaveBeenCalledTimes(2);
+    view.rerender(<SourceReloadControls active={false} commands={[]} capabilities={capabilities} />);
+    await act(() => vi.advanceTimersByTimeAsync(30_000));
+    expect(native.read).toHaveBeenCalledTimes(2);
+    native.read.mockResolvedValue([row('reload_oracle', 'completed')]);
+    view.rerender(<SourceReloadControls active commands={commands} capabilities={capabilities} />);
+    await flush();
+    expect(screen.getByText('Oracle: completed')).toBeInTheDocument();
+    await act(() => vi.advanceTimersByTimeAsync(30_000));
+    expect(native.read).toHaveBeenCalledTimes(3);
+    expect(native.invoke).not.toHaveBeenCalled();
+  });
+
+  it('ignores an inactive response without clearing retry keys or restarting polling', async () => {
+    vi.useFakeTimers();
+    const input: ReloadInput = { type: 'reload_oracle', limit: 1, idempotency_key: 'original-retry-key' };
+    retainReloadRetry(input);
+    let finish!: (rows: ReloadCommand[]) => void;
+    native.read.mockImplementationOnce(() => new Promise(resolve => { finish = resolve; }));
+    const view = renderControls();
+    expect(native.read).toHaveBeenCalledWith(input.idempotency_key);
+    view.rerender(<SourceReloadControls active={false} commands={commands} capabilities={capabilities} />);
+    await act(async () => { finish([row('reload_oracle', 'requested', input.idempotency_key)]); });
+    expect(restoreReloadRetry()).toEqual(input);
+    await act(() => vi.advanceTimersByTimeAsync(30_000));
+    expect(native.read).toHaveBeenCalledOnce();
+    native.read.mockResolvedValue([row('reload_oracle', 'completed', input.idempotency_key)]);
+    view.rerender(<SourceReloadControls active commands={commands} capabilities={capabilities} />);
+    await flush();
+    expect(native.read).toHaveBeenLastCalledWith(input.idempotency_key);
+    expect(screen.getByText('Oracle: completed')).toBeInTheDocument();
+    expect(restoreReloadRetry()).toBeUndefined();
+    expect(screen.queryByRole('button', { name: 'Retry same Oracle request' })).not.toBeInTheDocument();
     expect(native.invoke).not.toHaveBeenCalled();
   });
 

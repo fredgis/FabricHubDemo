@@ -6,6 +6,7 @@ import { clearReloadRetry, readSourceReloads, reloadBlocks, reloadSources, resto
   retainReloadRetry, selectReloadCommands, type ReloadCommand, type ReloadInput, type ReloadType } from '../services/source-reloads';
 
 type Props = {
+  active?: boolean;
   commands: Snapshot['commands'] | undefined;
   capabilities: AppFunctionsSchema['capabilities']['output'];
   busy?: boolean;
@@ -19,7 +20,7 @@ const statusHelp: Record<string, string> = {
   blocked: 'Blocked. An operator must investigate before either source can be reloaded.',
 };
 
-export function SourceReloadControls({ commands, capabilities, busy = false }: Props) {
+export function SourceReloadControls({ active = true, commands, capabilities, busy = false }: Props) {
   const [restored] = useState(() => {
     try { return { input: restoreReloadRetry(), error: '' }; }
     catch (error) { return { input: undefined, error: safeError(error) }; }
@@ -43,8 +44,8 @@ export function SourceReloadControls({ commands, capabilities, busy = false }: P
   }, []);
 
   useEffect(() => {
-    if (!commands || submitting) return;
-    let active = true;
+    if (!active || !commands || submitting) { setReading(false); return; }
+    let current = true;
     let timer: ReturnType<typeof setTimeout> | undefined;
     const deadline = Date.now() + pollBudgetMs;
     setPaused(false);
@@ -54,7 +55,7 @@ export function SourceReloadControls({ commands, capabilities, busy = false }: P
       try {
         const pending = retryRef.current;
         const rows = await readSourceReloads(pending?.idempotency_key);
-        if (!active) return;
+        if (!current) return;
         const persisted = pending && rows.find(row => row.idempotency_key === pending.idempotency_key);
         if (persisted) {
           if (persisted.type !== pending.type) throw new Error('The retry key belongs to a different source. Ask an operator to inspect the request.');
@@ -66,14 +67,14 @@ export function SourceReloadControls({ commands, capabilities, busy = false }: P
         if (rows.some(row => row.status === 'requested' || row.status === 'running'))
           timer = setTimeout(() => void read(), pollIntervalMs);
       } catch (error) {
-        if (active) setReadError(safeError(error));
+        if (current) setReadError(safeError(error));
       } finally {
-        if (active) setReading(false);
+        if (current) setReading(false);
       }
     };
     void read();
-    return () => { active = false; if (timer) clearTimeout(timer); };
-  }, [commands, submitting, readRound]);
+    return () => { current = false; if (timer) clearTimeout(timer); };
+  }, [active, commands, submitting, readRound]);
 
   const ready = !!commands && observed?.snapshot === commands;
   const rows = observed?.rows ?? selectReloadCommands(commands ?? []);
@@ -82,7 +83,7 @@ export function SourceReloadControls({ commands, capabilities, busy = false }: P
   const latestIds = new Set(latestBySource.map(source => source.command?.id));
   const blocked = rows.some(reloadBlocks);
   const unknownStatus = rows.some(row => !Object.hasOwn(statusHelp, row.status));
-  const unavailable = !capabilities.can_operate || busy || !!submitting || !ready || reading
+  const unavailable = !active || !capabilities.can_operate || busy || !!submitting || !ready || reading
     || !!readError || !!restored.error || blocked || unknownStatus;
   const submit = async (type: ReloadType) => {
     if (invoking.current || unavailable || (retryRef.current && retryRef.current.type !== type)) return;
@@ -154,7 +155,7 @@ export function SourceReloadControls({ commands, capabilities, busy = false }: P
     {retry && <p className="permission-note">An unconfirmed {retry.type === 'reload_oracle' ? 'Oracle' : 'Salesforce'} request
       retains its original retry key in this tab. Read its status or retry that same request; do not create another.</p>}
     <div className="control-buttons">
-      <button type="button" style={{ minHeight: 44 }} disabled={!commands || reading || !!submitting}
+      <button type="button" style={{ minHeight: 44 }} disabled={!active || !commands || reading || !!submitting}
         onClick={() => setReadRound(round => round + 1)}>Refresh reload status</button>
       {retry && <button type="button" style={{ minHeight: 44 }} disabled={unavailable}
         onClick={() => void submit(retry.type)}>Retry same {retry.type === 'reload_oracle' ? 'Oracle' : 'Salesforce'} request</button>}

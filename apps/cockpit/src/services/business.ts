@@ -27,31 +27,41 @@ export async function allPages<T>(page: (cursor?: string) => Promise<Page<T>>): 
   throw new Error('Dataset exceeds this view’s safe read limit. No partial KPIs are displayed.');
 }
 
-export async function loadSnapshot(): Promise<Snapshot> {
+const operationalCollections = {
+  orders: ['content', 'customers', 'offers', 'rentals', 'playback'],
+  demo: ['content', 'customers', 'offers', 'outbox', 'commands'],
+  operations: ['commands', 'links'],
+} as const satisfies Record<string, readonly (keyof Snapshot)[]>;
+export type OperationalScope = keyof typeof operationalCollections;
+
+export async function loadSnapshot(scope?: OperationalScope): Promise<Snapshot> {
   const data = getRayfinClient().data;
+  const collections = scope ? new Set<keyof Snapshot>(operationalCollections[scope]) : undefined;
+  const read = <T>(key: keyof Snapshot, query: () => Promise<T[]>): Promise<T[]> =>
+    !collections || collections.has(key) ? query() : Promise.resolve([]);
   const [content, customers, offers, rentals, playback, outbox, commands, campaigns, members, links] =
     await Promise.all([
-      allPages(c => paged(data.Content.select(['id', 'content_key', 'title', 'release_date', 'duration_seconds',
+      read('content', () => allPages(c => paged(data.Content.select(['id', 'content_key', 'title', 'release_date', 'duration_seconds',
         'genre', 'image_url', 'source_url', 'license', 'attribution','metadata_license','metadata_date_precision',
-        'artwork_available','artwork_license','artwork_source_url','artwork_author']).orderBy({ title: 'asc' }).first(5000), c)),
-      allPages(c => paged(data.Customer.select(['id', 'customer_key', 'name', 'territory']).orderBy({ customer_key: 'asc' }).first(5000), c)),
-      allPages(c => paged(data.Offer.select(['id', 'offer_key', 'content_key', 'territory', 'currency', 'transaction_type',
-        'price_minor', 'start_window_hours', 'play_window_hours']).orderBy({ offer_key: 'asc' }).first(5000), c)),
-      allPages(c => paged(data.Rental.select(['id', 'order_id', 'customer_key', 'offer_key', 'status', 'amount_minor', 'currency',
-        'created_at', 'start_deadline', 'first_play_at', 'expires_at']).orderBy({ order_id: 'asc' }).first(5000), c)),
-      allPages(c => paged(data.Playback.select(['id', 'session_id', 'order_id', 'content_key', 'customer_key',
-        'position_seconds', 'status']).orderBy({ session_id: 'asc' }).first(5000), c)),
-      data.Outbox.select(['id', 'event_id', 'event_type', 'entity_key', 'source_sequence',
+        'artwork_available','artwork_license','artwork_source_url','artwork_author']).orderBy({ title: 'asc' }).first(5000), c))),
+      read('customers', () => allPages(c => paged(data.Customer.select(['id', 'customer_key', 'name', 'territory']).orderBy({ customer_key: 'asc' }).first(5000), c))),
+      read('offers', () => allPages(c => paged(data.Offer.select(['id', 'offer_key', 'content_key', 'territory', 'currency', 'transaction_type',
+        'price_minor', 'start_window_hours', 'play_window_hours']).orderBy({ offer_key: 'asc' }).first(5000), c))),
+      read('rentals', () => allPages(c => paged(data.Rental.select(['id', 'order_id', 'customer_key', 'offer_key', 'status', 'amount_minor', 'currency',
+        'created_at', 'start_deadline', 'first_play_at', 'expires_at']).orderBy({ order_id: 'asc' }).first(5000), c))),
+      read('playback', () => allPages(c => paged(data.Playback.select(['id', 'session_id', 'order_id', 'content_key', 'customer_key',
+        'position_seconds', 'status']).orderBy({ session_id: 'asc' }).first(5000), c))),
+      read('outbox', () => data.Outbox.select(['id', 'event_id', 'event_type', 'entity_key', 'source_sequence',
         'occurred_at', 'produced_at', 'run_id', 'correlation_id', 'schema_version', 'published_at'])
-        .orderBy({ occurred_at: 'desc' }).first(1000).execute(),
-      allPages(c => paged(data.ControlCommand.select(['id', 'idempotency_key', 'type', 'status', 'parameters', 'requested_at',
-        'completed_at', 'error']).orderBy({ requested_at: 'desc' }).first(500), c)),
-      allPages(c => paged(data.Campaign.select(['id', 'campaign_key', 'name', 'status', 'type', 'start_date',
-        'end_date']).orderBy({ campaign_key: 'asc' }).first(500), c)),
-      allPages(c => paged(data.CampaignMember.select(['id', 'member_key', 'campaign_key', 'customer_key',
-        'status']).orderBy({ member_key: 'asc' }).first(500), c)),
-      allPages(c => paged(data.IntegrationLink.select(['id', 'link_key', 'name', 'type', 'url',
-        'description']).orderBy({ link_key: 'asc' }).first(500), c)),
+        .orderBy({ occurred_at: 'desc' }).first(1000).execute()),
+      read('commands', () => allPages(c => paged(data.ControlCommand.select(['id', 'idempotency_key', 'type', 'status', 'parameters', 'requested_at',
+        'completed_at', 'error']).orderBy({ requested_at: 'desc' }).first(500), c))),
+      read('campaigns', () => allPages(c => paged(data.Campaign.select(['id', 'campaign_key', 'name', 'status', 'type', 'start_date',
+        'end_date']).orderBy({ campaign_key: 'asc' }).first(500), c))),
+      read('members', () => allPages(c => paged(data.CampaignMember.select(['id', 'member_key', 'campaign_key', 'customer_key',
+        'status']).orderBy({ member_key: 'asc' }).first(500), c))),
+      read('links', () => allPages(c => paged(data.IntegrationLink.select(['id', 'link_key', 'name', 'type', 'url',
+        'description']).orderBy({ link_key: 'asc' }).first(500), c))),
     ]);
   return { content, customers, offers, rentals, playback, outbox: outbox as AppSchema['Outbox'][],
     commands, campaigns, members, links };

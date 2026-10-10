@@ -66,7 +66,7 @@ export function HomePage({ route = '/', onNavigate }: {
   const [campaignVisited, setCampaignVisited] = useState(route === '/campaign-impact');
   const [campaignRefreshKey, setCampaignRefreshKey] = useState(0);
   const [campaignRead, setCampaignRead] = useState<CampaignImpactReadState>({ loading: false, queriedAt: null });
-  const { snapshot, loading, error, updated, refresh, gold, goldLoading, goldError, hasReadGold } = useCockpitReads(section);
+  const { snapshot, loading, error, updated, refresh, gold, goldLoading, goldError } = useCockpitReads(section);
   const [capabilities, setCapabilities] = useState<Capabilities>({ can_operate: false, reason: 'Checking command permissions…' });
   const [permissionError, setPermissionError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -167,13 +167,13 @@ export function HomePage({ route = '/', onNavigate }: {
             {section==='catalog'&&<Catalog data={gold.snapshot} navigate={selectSection}/>}
             {section==='audiences'&&<Audiences data={gold.snapshot} dashboard={gold.pages.dashboard}/>}
           </>}</>}
-        {(graphVisited||hasReadGold)&&<div hidden={section!=='graph'}><OntologyGraph active={section==='graph'}
-          prefetch={hasReadGold} renderCanvas={graphVisited} refreshKey={graphRefreshKey}/></div>}
+        {graphVisited&&<div hidden={section!=='graph'}><OntologyGraph active={section==='graph'}
+          refreshKey={graphRefreshKey}/></div>}
         {insightsVisited && <div hidden={section !== 'insights'}><InsightsPage active={section === 'insights'}
           refreshKey={insightsRefreshKey} onRead={setInsightsRead} /></div>}
         {(campaignVisited || section === 'campaign-impact') && <div hidden={section !== 'campaign-impact'}><CampaignImpactPage active={section === 'campaign-impact'}
           refreshKey={campaignRefreshKey} onRead={setCampaignRead} /></div>}
-        <div hidden={section !== 'demo'}><DemoPage snapshot={snapshot} capabilities={capabilities}
+        <div hidden={section !== 'demo'}><DemoPage active={section === 'demo'} snapshot={snapshot} capabilities={capabilities}
           loading={loading} readError={error} busy={busy} snapshotUpdatedAt={updated}
           gold={gold?.pages} goldLoading={goldLoading} goldError={goldError} onRefresh={refresh} /></div>
         {['orders','operations'].includes(section)&&(loading&&!snapshot?<LoadingState/>:snapshot&&<>
