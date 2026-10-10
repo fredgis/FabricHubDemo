@@ -2,9 +2,9 @@
 
 ## Delivered application
 
-An authenticated, charcoal entertainment-business app with eight sections:
+An authenticated, charcoal entertainment-business app with nine sections:
 Overview, Catalog, Rentals & Purchases, Audiences & Campaigns, Business Graph,
-MSFlix Insights, Demo, and Operations. It reads published Gold business views
+MSFlix Insights, Campaign Impact, Demo, and Operations. It reads published Gold business views
 through native read-only functions, operational entities through Rayfin
 `client.data`, and native commands through `client.functions`. Flixy connects
 the floating assistant to the native Fabric Data Agent.
@@ -22,6 +22,72 @@ reduced-motion handling, and explicit loading, empty, connection and command
 failure states. Revenue is calculated from persisted booked commercial rows,
 grouped by currency; no currencies are added together. Pagination reads every
 page or fails rather than showing partial KPIs.
+
+## Campaign Impact
+
+Open **Campaign Impact** immediately after **MSFlix Insights**. The native
+read-only function `getCampaignImpact({ filtersJson })` queries
+`gold.campaign_engaged_revenue` in MSFlixGold. Salesforce supplies campaign
+contacts and explicit conversion links, RTI supplies commercial orders and
+playback positions, and Oracle supplies film duration, genre and distributor.
+No operational SQL or sample response replaces an unavailable Gold read.
+
+The main measure is **engaged booked value per 100 contacted customers**:
+`100 × engaged amount / distinct contacted customers`, rounded to the nearest
+minor unit. A zero audience yields no ratio. A qualifying order line has a
+recorded playback position of at least 80% of its Oracle film duration.
+Position is a progression proxy, not proof of time watched. Unknown or invalid
+durations never qualify; the UI reports them separately. Booked value is not
+cash received, recognized revenue, incremental uplift or campaign ROI.
+
+Dates select each campaign/customer pair's **first-contact cohort**. Orders
+qualify only when an explicit, unique campaign link exists and that campaign's
+first contact is no later than the order. There is no estimated last-touch
+attribution or maximum post-contact window. Contacts alone never create a
+conversion. Duplicate links to the same campaign collapse; conflicting campaign
+links, missing prior contacts and unlinked orders are excluded. Playback is
+aggregated by order/customer/content before joining order lines, so repeated
+sessions do not multiply the booked amount.
+
+Filters cover the inclusive cohort dates (at most 366 days), campaign,
+**customer CRM territory**, and one currency. Contacts have no currency: the
+same contacted audience is the denominator for each selected currency. Unlike
+Insights, this indicator does not offer an ALL-currency sum. Money travels as
+exact minor-unit strings. Global customers and buyers are counted distinctly,
+not summed across campaign groups. The film ranking is limited to 12 titles;
+summary and campaign totals include every matching line.
+
+The exclusion panel uses **order creation dates**, rather than contact-cohort
+dates, with the selected territory, campaign and currency. Selecting a campaign
+does not assign anonymous or conflicting links to it. Exclusions remain visible
+even when the selected contact cohort is empty. Campaign comparison and cohort
+trend use the recorded attribution rules above. Query time and Gold publication
+time are shown separately; playback is the latest published state, so recent
+cohorts can still change.
+
+The screen continues MSFlix's charcoal cinema palette, Segoe UI and tabular
+numbers (**ENERGY 2 / RHYTHM 2 / MOTION 1**). The per-100 measure is the focal
+point; comparison, cohort trend, film detail and exclusions answer different
+questions. Vermilion identifies selection and analytical magnitude, not
+unsupported success claims. Explicit labels and exact-value tables keep the
+analysis usable without relying on chart color. No new artwork or looping
+animation is needed for this comparison screen.
+
+Backend verification on 2026-10-10: nine targeted tests passed, including the
+actual view joins exercised with in-memory SQL fixtures. The deployed view and
+the native query/parser returned all nine result sets from Gold for the default
+EUR cohort and a CHF/CH selection. The default read found 600 contacts, zero
+recorded campaign orders and 523 unlinked EUR orders. These are dated readback
+results, not seeded UI values or evidence that event delivery is current.
+
+Delivery verification on 2026-10-10: full `rayfin up` and authenticated endpoint
+health passed. Both builds and all 26 targeted Campaign Impact tests passed.
+An authenticated local browser invoked the deployed `getCampaignImpact`, then
+exercised cohort dates, CHF/CH (150 contacts), campaign selection, reset, film
+breakdowns and keyboard-operated disclosures. The 1440, 390 and 320px checks
+had no page overflow or browser errors. Evidence is kept in the ignored
+`.state/campaign-impact` directory. The hosting URL rejects anonymous HTTP reads;
+this check does not claim coverage of every hosted or embedded SSO path.
 
 ## MSFlix Insights
 

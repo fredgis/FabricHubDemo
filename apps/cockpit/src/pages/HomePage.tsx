@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { ArrowRight, ArrowsClockwise, Broadcast, ChartBar, FilmSlate, Graph, House,
-  Play, ShoppingBag, SignOut, UsersThree } from '@phosphor-icons/react';
+  Play, ShoppingBag, SignOut, Target, UsersThree } from '@phosphor-icons/react';
 import { useAuth } from '@/hooks/AuthContext';
 import { getRayfinClient } from '@/services/rayfinClient';
 import { dateLabel, money, safeError, safeUrl, type Snapshot } from '@/services/business';
@@ -12,6 +12,7 @@ import{catalogArt}from'@/assets/catalog-art.generated';
 import { catalogArtVariants } from '@/assets/catalog-art-variants.generated';
 import { DemoPage } from '@/pages/DemoPage';
 import { InsightsPage, type InsightsReadState } from '@/pages/InsightsPage';
+import { CampaignImpactPage, type CampaignImpactReadState } from '@/pages/CampaignImpactPage';
 import { FlixyAssistant } from '@/components/FlixyAssistant';
 import { Artwork } from '@/components/CatalogArtwork';
 import { askFlixy } from '@/services/flixy';
@@ -25,6 +26,7 @@ const sections = [
   { key: 'audiences', name: 'Audiences & Campaigns', icon: UsersThree },
   { key: 'graph', name: 'Business Graph', icon: Graph },
   { key: 'insights', name: 'MSFlix Insights', icon: ChartBar },
+  { key: 'campaign-impact', name: 'Campaign Impact', icon: Target },
   { key: 'demo', name: 'Demo', icon: Play },
   { key: 'operations', name: 'Operations', icon: Broadcast },
 ] as const;
@@ -50,14 +52,20 @@ function Status({ value }: { value: string }) {
 }
 export { Artwork } from '@/components/CatalogArtwork';
 
-export function HomePage() {
+export function HomePage({ route = '/', onNavigate }: {
+  route?: '/' | '/campaign-impact'; onNavigate?: (path: '/' | '/campaign-impact') => void;
+}) {
   const { user, signOut } = useAuth();
-  const [section, setSection] = useState<Section>('overview');
+  const [localSection, setSection] = useState<Section>('overview');
+  const section = route === '/campaign-impact' ? 'campaign-impact' : localSection;
   const [graphVisited, setGraphVisited] = useState(false);
   const [graphRefreshKey, setGraphRefreshKey] = useState(0);
   const [insightsVisited, setInsightsVisited] = useState(false);
   const [insightsRefreshKey, setInsightsRefreshKey] = useState(0);
   const [insightsRead, setInsightsRead] = useState<InsightsReadState>({ loading: false, queriedAt: null });
+  const [campaignVisited, setCampaignVisited] = useState(route === '/campaign-impact');
+  const [campaignRefreshKey, setCampaignRefreshKey] = useState(0);
+  const [campaignRead, setCampaignRead] = useState<CampaignImpactReadState>({ loading: false, queriedAt: null });
   const { snapshot, loading, error, updated, refresh, gold, goldLoading, goldError, hasReadGold } = useCockpitReads(section);
   const [capabilities, setCapabilities] = useState<Capabilities>({ can_operate: false, reason: 'Checking command permissions…' });
   const [permissionError, setPermissionError] = useState('');
@@ -91,12 +99,23 @@ export function HomePage() {
   const canOperate = capabilities.can_operate && !busy && !loading && !error;
   const context = { snapshot, canOperate, busy, command };
   const selected = sections.find(s => s.key === section)!;
-  const readAt = section === 'insights' ? insightsRead.queriedAt : gold?.pages.dashboard.freshness.queried_at ?? updated;
-  const refreshing = section === 'insights' ? insightsRead.loading : loading || goldLoading;
+  const readAt = section === 'campaign-impact' ? campaignRead.queriedAt : section === 'insights' ? insightsRead.queriedAt : gold?.pages.dashboard.freshness.queried_at ?? updated;
+  const refreshing = section === 'campaign-impact' ? campaignRead.loading : section === 'insights' ? insightsRead.loading : loading || goldLoading;
   const refreshSection = () => {
     if (section === 'graph') setGraphRefreshKey(value => value + 1);
     else if (section === 'insights') setInsightsRefreshKey(value => value + 1);
+    else if (section === 'campaign-impact') setCampaignRefreshKey(value => value + 1);
     else void refresh();
+  };
+  const selectSection = (next: Section) => {
+    if (next === 'graph') setGraphVisited(true);
+    if (next === 'insights') setInsightsVisited(true);
+    if (next === 'campaign-impact') {
+      setCampaignVisited(true);
+      if (onNavigate) { onNavigate('/campaign-impact'); return; }
+    }
+    setSection(next);
+    if (route === '/campaign-impact') onNavigate?.('/');
   };
   const heroVariants=catalogArtVariants.find(item=>item.content_key==='MSF-FILM-BUNNY')?.variants;
   return <div className="app-shell">
@@ -108,11 +127,7 @@ export function HomePage() {
       <a className="brand" href="/" aria-label="MSFlix home">MS<span>FLIX</span><small>BUSINESS CONTROL</small></a>
       <nav aria-label="Main navigation">{sections.map(({ key, name, icon: Icon }) =>
         <button key={key} aria-current={section === key ? 'page' : undefined}
-          onClick={() => {
-            if (key === 'graph') setGraphVisited(true);
-            if (key === 'insights') setInsightsVisited(true);
-            setSection(key);
-          }}><Icon size={20} weight={section === key ? 'fill' : 'regular'} aria-hidden="true" />{name}</button>)}</nav>
+          onClick={() => selectSection(key)}><Icon size={20} weight={section === key ? 'fill' : 'regular'} aria-hidden="true" />{name}</button>)}</nav>
       <div className="sidebar-bottom"><span className="workspace-label">MSFlix workspace</span>
         <strong>{user?.name}</strong><p>{capabilities.can_operate ? 'Operator' : 'Viewer'}</p>
         <button onClick={() => void signOut()}><SignOut aria-hidden="true" /> Sign out</button></div>
@@ -120,7 +135,7 @@ export function HomePage() {
     <div className="workspace">
       <header className="topbar"><span>MSFlix <span className="muted">/ {selected.name}</span></span>
         <button onClick={refreshSection} disabled={refreshing || busy}>
-          <ArrowsClockwise aria-hidden="true" />{refreshing ? 'Refreshing…' : section === 'graph' ? 'Refresh graph' : section === 'insights' ? 'Refresh insights' : 'Refresh data'}</button></header>
+          <ArrowsClockwise aria-hidden="true" />{refreshing ? 'Refreshing…' : section === 'graph' ? 'Refresh graph' : section === 'insights' ? 'Refresh insights' : section === 'campaign-impact' ? 'Refresh campaign impact' : 'Refresh data'}</button></header>
       <main id="main" tabIndex={-1}>
         <div className="page-heading"><div><p className="eyebrow">ENTERTAINMENT BUSINESS</p>
           <h1>{section === 'overview' ? 'The business behind the stories.' : selected.name}</h1>
@@ -129,6 +144,7 @@ export function HomePage() {
               : section === 'audiences' ? 'Fictional customer identities, stored in actual Salesforce CRM records.'
                 : section === 'graph' ? 'Read the actual consolidated business ontology.'
                   : section === 'insights' ? 'From catalogue to customer to screen. One connected view of published Gold data.'
+                  : section === 'campaign-impact' ? 'Campaign contacts, recorded orders and playback progression in one Gold view.'
                   : section === 'demo' ? 'Bounded real rental, purchase, and playback journeys. Delivery and publication are separate.'
                   : section === 'operations' ? 'Real connections, command receipts and delivery acknowledgements.'
                     : 'Sourced film metadata, explicit demo offers and traceable artwork rights.'}</p></div>
@@ -139,22 +155,24 @@ export function HomePage() {
         {commandError && <p className="notice" role="alert">{commandError} Retrying the same command reuses its idempotency key.</p>}
         {receipt && <div className="receipt" role="status"><strong>Command persisted: {receipt.status}</strong>
           <span>Entity {receipt.entity_key}</span><span>{receipt.event_ids.length} returned event receipts. Broker delivery is separate.</span></div>}
-        {section !== 'insights' && error && <ErrorState message={`${snapshot ? 'Refresh failed. The records below are from the last successful read. ' : ''}${error}`} retry={() => void refresh()} />}
+        {!['insights', 'campaign-impact'].includes(section) && error && <ErrorState message={`${snapshot ? 'Refresh failed. The records below are from the last successful read. ' : ''}${error}`} retry={() => void refresh()} />}
         {['overview','catalog','audiences'].includes(section)&&<>
           {goldLoading&&!gold&&<LoadingState/>}
           {goldError&&<ErrorState message={`Gold business read failed: ${goldError} ${gold?'The last successful Gold read remains visible.':'No operational fallback.'}`} retry={()=>void refresh()}/>}
           {goldLoading&&gold&&<p className="permission-note" role="status">Refreshing Gold. The last successful read remains visible.</p>}
           {gold&&<>{section!=='overview'&&<p className="permission-note">Source: MSFlixGold. Published {gold.pages.dashboard.freshness.published_at?dateLabel(gold.pages.dashboard.freshness.published_at):'not yet published'}.
             {section==='audiences'&&` Activity window: latest ${gold.pages.window.orders} order lines.`}</p>}
-            {section==='overview'&&<Overview data={gold.snapshot} navigate={setSection}
+            {section==='overview'&&<Overview data={gold.snapshot} navigate={selectSection}
               metrics={<GoldBusinessDashboard dashboard={gold.pages.dashboard} onRefresh={()=>void refresh()}/>}/>}
-            {section==='catalog'&&<Catalog data={gold.snapshot} navigate={setSection}/>}
+            {section==='catalog'&&<Catalog data={gold.snapshot} navigate={selectSection}/>}
             {section==='audiences'&&<Audiences data={gold.snapshot} dashboard={gold.pages.dashboard}/>}
           </>}</>}
         {(graphVisited||hasReadGold)&&<div hidden={section!=='graph'}><OntologyGraph active={section==='graph'}
           prefetch={hasReadGold} renderCanvas={graphVisited} refreshKey={graphRefreshKey}/></div>}
         {insightsVisited && <div hidden={section !== 'insights'}><InsightsPage active={section === 'insights'}
           refreshKey={insightsRefreshKey} onRead={setInsightsRead} /></div>}
+        {(campaignVisited || section === 'campaign-impact') && <div hidden={section !== 'campaign-impact'}><CampaignImpactPage active={section === 'campaign-impact'}
+          refreshKey={campaignRefreshKey} onRead={setCampaignRead} /></div>}
         <div hidden={section !== 'demo'}><DemoPage snapshot={snapshot} capabilities={capabilities}
           loading={loading} readError={error} busy={busy} snapshotUpdatedAt={updated}
           gold={gold?.pages} goldLoading={goldLoading} goldError={goldError} onRefresh={refresh} /></div>

@@ -1,4 +1,4 @@
-import { BrowserRouter, Navigate, Route, Routes } from 'react-router-dom';
+import { BrowserRouter, Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom';
 
 import { AuthPage } from '@/components/AuthPage';
 import { useAuth } from '@/hooks/AuthContext';
@@ -27,6 +27,12 @@ function AuthGuard({
   return <>{children}</>;
 }
 
+function CockpitRoute() {
+  const { pathname } = useLocation();
+  const navigate = useNavigate();
+  return <HomePage route={pathname === '/campaign-impact' ? '/campaign-impact' : '/'} onNavigate={navigate} />;
+}
+
 function App() {
   return (
     <BrowserRouter>
@@ -44,7 +50,15 @@ function App() {
           path="/"
           element={
             <AuthGuard requireAuth={true}>
-              <HomePage />
+              <CockpitRoute />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/campaign-impact"
+          element={
+            <AuthGuard requireAuth={true}>
+              <CockpitRoute />
             </AuthGuard>
           }
         />

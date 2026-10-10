@@ -8,6 +8,8 @@ import {readGoldDashboard,type GoldDashboard} from './gold-dashboard.js';
 import{goldView,readGoldPages,type GoldPages}from'./gold-pages.js';
 import { readGoldInsights } from './gold-insights.js';
 import type { GoldInsights } from './gold-insights-contract.js';
+import { readCampaignImpact } from './gold-campaign-impact.js';
+import type { CampaignImpact } from './gold-campaign-contract.js';
 import{readOntologyGraph,type OntologyGraph}from'./ontology-graph.js';
 import { askNativeFlixy, assertFlixyIdentity, flixyAgentId, type FlixyAnswer } from './flixy.js';
 
@@ -64,6 +66,10 @@ udf.func('businessViews',async(ctx:RayfinContext<AppSchema,AudienceType.Sql>):Pr
 udf.func('businessInsights', async (filtersJson: string,
   ctx: RayfinContext<AppSchema, AudienceType.Sql>): Promise<GoldInsights> => {
   return readGoldInsights(await analytics(ctx), ctx.Tokens.Sql, filtersJson);
+}, []);
+udf.func('getCampaignImpact', async (filtersJson: string,
+  ctx: RayfinContext<AppSchema, AudienceType.Sql>): Promise<CampaignImpact> => {
+  return readCampaignImpact(await analytics(ctx), ctx.Tokens.Sql, filtersJson);
 }, []);
 udf.func('businessPage',async(view:string,ctx:RayfinContext<AppSchema,AudienceType.Sql>):Promise<GoldPages>=>{
   const scope=goldView(view);
