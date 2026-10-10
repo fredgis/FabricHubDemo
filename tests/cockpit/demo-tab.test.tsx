@@ -44,7 +44,7 @@ beforeEach(() => {
     campaigns: [], members: [], links: [],
   } });
   reads.reloads.mockResolvedValue([]);
-  reads.graph.mockResolvedValue({ state: 'empty', limit: 6, nodes: [], edges: [], message: 'No test graph instances.' });
+  reads.graph.mockResolvedValue({ state: 'empty', limit: 12, queried_at: '2026-10-10T12:30:00Z', nodes: [], edges: [], message: 'No test graph instances.' });
 });
 afterEach(cleanup);
 
@@ -77,7 +77,8 @@ it('keeps hidden graph and reload reads idle, then reads the graph on entry and 
   }
   fireEvent.click(screen.getByRole('button', { name: 'Business Graph' }));
   await screen.findByText('No test graph instances.');
-  expect(reads.graph).toHaveBeenCalledExactlyOnceWith({ journeyLimit: 6 });
+  expect(reads.graph).toHaveBeenCalledExactlyOnceWith({ journeyLimit: 12 });
+  expect(await screen.findByText('Read Oct 10, 2026, 12:30 PM UTC')).toBeInTheDocument();
   await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Overview' })); });
   await act(async () => { fireEvent.click(screen.getByRole('button', { name: 'Business Graph' })); });
   expect(reads.graph).toHaveBeenCalledOnce();

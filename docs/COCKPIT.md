@@ -1261,14 +1261,49 @@ Demo stays mounted across navigation: its scenario, command keys and retries
 survive while hidden. Only its source-status reads pause; returning to Demo
 resumes them without restarting ingestion or creating a new command.
 
-Business Graph initially requests **six actual source paths**, not 50 paths
-that are then hidden. Selecting 12, 24 or 50 loads the larger source sample;
-reducing the display count reuses the loaded sample. Search is limited to that
-sample. Graph data loads only when the Graph tab is opened, removing the native
-prefetch previously triggered by a successful Gold read on another screen.
-Returning to Graph reuses its actual cached result; explicit refresh performs
-a fresh GQL query. The first visit can still wait for a cold Fabric invocation.
-There is no graph polling or fabricated data.
+Business Graph requests the **12 latest orders with complete customer, offer and
+film paths** in the published Ontology GraphModel. GQL orders by transaction
+`created_at DESC, order_id DESC` before applying the limit. The dated order list
+keeps that chronology visible; the canvas initially focuses on the newest order.
+Selecting another order shows its path, and **Show all orders** restores the
+combined graph. The available windows are 6, 12, 24 and 50 orders. Increasing the
+window beyond the loaded count issues another read; reducing it reuses the last
+response. Search applies only to the chosen recent-order window, including its
+linked entities and statuses. It does not search all historical transactions.
+The legacy `businessGraph` endpoint still returns up to 50 orders; the screen
+calls `businessGraphSlice` with an explicit limit.
+
+After selecting orders, two parallel GQL reads add only published relationships:
+film to distributor, and playback session to its order and film. Sessions cannot
+leak between orders that share a film. Their customer/order/film properties must
+agree with the selected path, but no customer-to-session edge is invented from
+those properties. Missing optional context does not remove an order. Each
+context branch requests 201 rows to detect a 200-row cap; a visible notice marks
+truncation. Pagination is accumulated and deduplicated. A pending context read
+makes the entire response pending instead of presenting partial results as
+complete. Graph queries share a 45-second budget after binding qualification;
+this does not cap authentication, qualification or native cold-start time.
+
+Data loads only on entering the Graph tab. There is no prefetch from other
+screens or graph polling. A revisit retains the last read; **Refresh graph**
+performs fresh GQL queries and the topbar reports that graph read's timestamp.
+A failed request retains the previous successful result with its timestamp and
+an error notice; a new pending response displays the pending state. Transaction
+dates are not Gold publication times. New Demo orders appear only after Gold
+publication and the subsequent GraphModel refresh, followed by an explicit
+screen refresh. The screen refresh starts neither publication nor model refresh.
+Sessions expose status and playback position, but no source timestamp, so the
+screen does not describe them as the latest session events.
+
+The graph retains the cockpit's charcoal, silver and vermilion direction
+(ENERGY 2 / RHYTHM 2 / MOTION 1). The list communicates chronology, while the
+focused canvas makes relationships readable. Equal entity-node dimensions
+reserve space for keys and labels; branching comes from real data. Segoe UI
+keeps the existing Microsoft-facing typography. Spacing separates the list,
+canvas and inspector. Film icons and the vermilion accent identify content;
+selection uses the same accent. The canvas dots provide a pan/zoom reference,
+and arrows express the actual relationship direction. No portraits, decorative
+illustrations, glow or entrance animations were added.
 
 Interactive graph reads use the administrator-qualified `OntologyBinding` row;
 the native function requires its actual `verified=true` flag and the approved

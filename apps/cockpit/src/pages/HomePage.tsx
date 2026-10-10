@@ -5,7 +5,7 @@ import { useAuth } from '@/hooks/AuthContext';
 import { getRayfinClient } from '@/services/rayfinClient';
 import { dateLabel, money, safeError, safeUrl, type Snapshot } from '@/services/business';
 import {GoldBusinessDashboard}from'@/components/GoldBusinessDashboard';
-import{OntologyGraph}from'@/components/OntologyGraph';
+import { OntologyGraph, type GraphReadState } from '@/components/OntologyGraph';
 import { useCockpitReads } from '@/hooks/useCockpitReads';
 import type{GoldPages}from'../../rayfin/functions/src/gold-pages';
 import{catalogArt}from'@/assets/catalog-art.generated';
@@ -60,6 +60,7 @@ export function HomePage({ route = '/', onNavigate }: {
   const section = route === '/campaign-impact' ? 'campaign-impact' : localSection;
   const [graphVisited, setGraphVisited] = useState(false);
   const [graphRefreshKey, setGraphRefreshKey] = useState(0);
+  const [graphRead, setGraphRead] = useState<GraphReadState>({ loading: false, queriedAt: null });
   const [insightsVisited, setInsightsVisited] = useState(false);
   const [insightsRefreshKey, setInsightsRefreshKey] = useState(0);
   const [insightsRead, setInsightsRead] = useState<InsightsReadState>({ loading: false, queriedAt: null });
@@ -99,8 +100,8 @@ export function HomePage({ route = '/', onNavigate }: {
   const canOperate = capabilities.can_operate && !busy && !loading && !error;
   const context = { snapshot, canOperate, busy, command };
   const selected = sections.find(s => s.key === section)!;
-  const readAt = section === 'campaign-impact' ? campaignRead.queriedAt : section === 'insights' ? insightsRead.queriedAt : gold?.pages.dashboard.freshness.queried_at ?? updated;
-  const refreshing = section === 'campaign-impact' ? campaignRead.loading : section === 'insights' ? insightsRead.loading : loading || goldLoading;
+  const readAt = section === 'graph' ? graphRead.queriedAt : section === 'campaign-impact' ? campaignRead.queriedAt : section === 'insights' ? insightsRead.queriedAt : gold?.pages.dashboard.freshness.queried_at ?? updated;
+  const refreshing = section === 'graph' ? graphRead.loading : section === 'campaign-impact' ? campaignRead.loading : section === 'insights' ? insightsRead.loading : loading || goldLoading;
   const refreshSection = () => {
     if (section === 'graph') setGraphRefreshKey(value => value + 1);
     else if (section === 'insights') setInsightsRefreshKey(value => value + 1);
@@ -155,7 +156,7 @@ export function HomePage({ route = '/', onNavigate }: {
         {commandError && <p className="notice" role="alert">{commandError} Retrying the same command reuses its idempotency key.</p>}
         {receipt && <div className="receipt" role="status"><strong>Command persisted: {receipt.status}</strong>
           <span>Entity {receipt.entity_key}</span><span>{receipt.event_ids.length} returned event receipts. Broker delivery is separate.</span></div>}
-        {!['insights', 'campaign-impact'].includes(section) && error && <ErrorState message={`${snapshot ? 'Refresh failed. The records below are from the last successful read. ' : ''}${error}`} retry={() => void refresh()} />}
+        {!['insights', 'campaign-impact', 'graph'].includes(section) && error && <ErrorState message={`${snapshot ? 'Refresh failed. The records below are from the last successful read. ' : ''}${error}`} retry={() => void refresh()} />}
         {['overview','catalog','audiences'].includes(section)&&<>
           {goldLoading&&!gold&&<LoadingState/>}
           {goldError&&<ErrorState message={`Gold business read failed: ${goldError} ${gold?'The last successful Gold read remains visible.':'No operational fallback.'}`} retry={()=>void refresh()}/>}
@@ -168,7 +169,7 @@ export function HomePage({ route = '/', onNavigate }: {
             {section==='audiences'&&<Audiences data={gold.snapshot} dashboard={gold.pages.dashboard}/>}
           </>}</>}
         {graphVisited&&<div hidden={section!=='graph'}><OntologyGraph active={section==='graph'}
-          refreshKey={graphRefreshKey}/></div>}
+          refreshKey={graphRefreshKey} onRead={setGraphRead}/></div>}
         {insightsVisited && <div hidden={section !== 'insights'}><InsightsPage active={section === 'insights'}
           refreshKey={insightsRefreshKey} onRead={setInsightsRead} /></div>}
         {(campaignVisited || section === 'campaign-impact') && <div hidden={section !== 'campaign-impact'}><CampaignImpactPage active={section === 'campaign-impact'}

@@ -47,11 +47,11 @@ export type AppFunctionsSchema = {
   };
   businessGraph: {
     input: Record<string, never>;
-    output: { source: { workspace_id: string; ontology_id: string; graph_model_id: string; gold_item_id: string; verified?: undefined | false | true }; state: 'ready' | 'empty' | 'pending' | 'binding-mismatch'; queried_at: string; generation: number; message: string; nodes: { key: string; type: string; label: string }[]; edges: { from: string; to: string; type: string }[]; limit: number };
+    output: { source: { workspace_id: string; ontology_id: string; graph_model_id: string; gold_item_id: string; verified?: undefined | false | true }; state: 'ready' | 'empty' | 'pending' | 'binding-mismatch'; queried_at: string; generation: number; message: string; nodes: { key: string; type: string; label: string; created_at?: undefined | string; status?: undefined | string; amount_minor?: undefined | number; currency?: undefined | string; position_seconds?: undefined | number }[]; edges: { from: string; to: string; type: string }[]; limit: number; context?: undefined | { playback_limit: number; playback_truncated: boolean; distributor_limit: number; distributors_truncated: boolean } };
   };
   businessGraphSlice: {
     input: { journeyLimit: number };
-    output: { source: { workspace_id: string; ontology_id: string; graph_model_id: string; gold_item_id: string; verified?: undefined | false | true }; state: 'ready' | 'empty' | 'pending' | 'binding-mismatch'; queried_at: string; generation: number; message: string; nodes: { key: string; type: string; label: string }[]; edges: { from: string; to: string; type: string }[]; limit: number };
+    output: { source: { workspace_id: string; ontology_id: string; graph_model_id: string; gold_item_id: string; verified?: undefined | false | true }; state: 'ready' | 'empty' | 'pending' | 'binding-mismatch'; queried_at: string; generation: number; message: string; nodes: { key: string; type: string; label: string; created_at?: undefined | string; status?: undefined | string; amount_minor?: undefined | number; currency?: undefined | string; position_seconds?: undefined | number }[]; edges: { from: string; to: string; type: string }[]; limit: number; context?: undefined | { playback_limit: number; playback_truncated: boolean; distributor_limit: number; distributors_truncated: boolean } };
   };
   flixyAsk: {
     input: { question: string; historyJson: string };

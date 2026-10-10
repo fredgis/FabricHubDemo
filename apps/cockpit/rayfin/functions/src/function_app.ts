@@ -86,7 +86,7 @@ async function ontologyBinding(ctx:RayfinContext<AppSchema>){
   return configured[0];
 }
 udf.func('businessGraph',async(ctx:RayfinContext<AppSchema,AudienceType.Fabric>):Promise<OntologyGraph>=>{
-  return readOntologyGraph(await ontologyBinding(ctx),ctx.Tokens.Fabric);
+  return readOntologyGraph(await ontologyBinding(ctx),ctx.Tokens.Fabric,50);
 },[]);
 udf.func('businessGraphSlice',async(journeyLimit:number,ctx:RayfinContext<AppSchema,AudienceType.Fabric>):Promise<OntologyGraph>=>{
   return readOntologyGraph(await ontologyBinding(ctx),ctx.Tokens.Fabric,journeyLimit);

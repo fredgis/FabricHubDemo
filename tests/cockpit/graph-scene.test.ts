@@ -39,4 +39,69 @@ describe('real ontology graph scene',()=>{
     expect(graphNodeTitle(result.nodes[2])).toBe('Rental / FR');
     expect(createGraphScene(result).nodes[2].data.key).toBe('offer:F1:FR:RENTAL');
   });
+  const extended = (): OntologyGraph => ({
+    ...result,
+    nodes: [
+      ...result.nodes.map(node => node.type === 'rental' ? { ...node, created_at: '2026-10-09T12:00:00Z', status: 'active' } : node),
+      { key: 'rental:R2', type: 'rental', label: 'R2', created_at: '2026-10-10T12:00:00.001Z', status: 'purchased' },
+      { key: 'distributor:D1', type: 'distributor', label: 'Fixture distributor' },
+      { key: 'playback:P1', type: 'playback', label: 'P1', status: 'playing' },
+      { key: 'playback:P2', type: 'playback', label: 'P2', status: 'completed' },
+    ],
+    edges: [
+      ...result.edges,
+      { from: 'customer:C1', to: 'rental:R2', type: 'customer_order' },
+      { from: 'rental:R2', to: 'offer:F1:FR:RENTAL', type: 'order_offer' },
+      { from: 'content:F1', to: 'distributor:D1', type: 'content_distributor' },
+      { from: 'playback:P1', to: 'rental:R1', type: 'playback_order' },
+      { from: 'playback:P1', to: 'content:F1', type: 'playback_content' },
+      { from: 'playback:P2', to: 'rental:R2', type: 'playback_order' },
+      { from: 'playback:P2', to: 'content:F1', type: 'playback_content' },
+    ],
+  });
+  it('orders by creation time and then identifier before applying the local search', () => {
+    const data = extended();
+    data.nodes.push({ key: 'rental:R3', type: 'rental', label: 'R3', created_at: '2026-10-10T12:00:00.001Z' });
+    data.edges.push({ from: 'customer:C1', to: 'rental:R3', type: 'customer_order' },
+      { from: 'rental:R3', to: 'offer:F1:FR:RENTAL', type: 'order_offer' });
+    expect(createGraphScene(data).orders.map(order => order.node.label)).toEqual(['R3', 'R2', 'R1']);
+    expect(createGraphScene(data, 'R1', 2).shownJourneys).toBe(0);
+    expect(createGraphScene(data, 'R1', 3).shownJourneys).toBe(1);
+    data.nodes.find(node => node.key === 'rental:R3')!.created_at = '2026-10-10T12:00:00Z';
+    expect(createGraphScene(data).orders[0].node.key).toBe('rental:R2');
+  });
+  it('focuses one order while retaining the chronological list and only that order’s sessions', () => {
+    const scene = createGraphScene(extended(), '', 12, 'rental:R2');
+    expect(scene.orders.map(order => order.node.key)).toEqual(['rental:R2', 'rental:R1']);
+    expect(scene.shownJourneys).toBe(1); expect(scene.matchingJourneys).toBe(2);
+    expect(scene.nodes.map(node => node.id)).toEqual(expect.arrayContaining(['rental:R2', 'playback:P2', 'distributor:D1']));
+    expect(scene.nodes.map(node => node.id)).not.toContain('playback:P1');
+    expect(scene.nodes.map(node => node.id)).not.toContain('rental:R1');
+    expect(scene.nodes.find(node => node.id === 'rental:R2')?.selected).toBe(true);
+  });
+  it('puts playback on the far side of films without reversing its actual arrows', () => {
+    const scene = createGraphScene(extended(), '', 12, 'rental:R2');
+    const film = scene.nodes.find(node => node.id === 'content:F1')!;
+    const playback = scene.nodes.find(node => node.id === 'playback:P2')!;
+    expect(playback.position.x).toBeGreaterThan(film.position.x);
+    expect(scene.nodes.find(node => node.id === 'distributor:D1')!.position.x).toBeGreaterThan(film.position.x);
+    expect(scene.edges.find(edge => edge.source === playback.id && edge.target === film.id)).toMatchObject({
+      sourceHandle: 'source-left', targetHandle: 'target-right', label: 'plays film',
+    });
+    expect(scene.nodes.every(node => Number.isFinite(node.position.x) && Number.isFinite(node.position.y))).toBe(true);
+  });
+  it('searches distributors and session states through their own complete order paths', () => {
+    expect(createGraphScene(extended(), 'Fixture distributor').shownJourneys).toBe(2);
+    const scene = createGraphScene(extended(), 'completed');
+    expect(scene.orders.map(order => order.node.key)).toEqual(['rental:R2']);
+    expect(scene.nodes).toHaveLength(6);
+  });
+  it('deduplicates source nodes and edges without adding a playback-to-customer link', () => {
+    const data = extended(); data.nodes.push(data.nodes[1]); data.edges.push(data.edges[0]);
+    const scene = createGraphScene(data);
+    expect(scene.orders).toHaveLength(2);
+    expect(new Set(scene.nodes.map(node => node.id)).size).toBe(scene.nodes.length);
+    expect(new Set(scene.edges.map(edge => edge.id)).size).toBe(scene.edges.length);
+    expect(scene.edges.some(edge => edge.source.startsWith('playback:') && edge.target.startsWith('customer:'))).toBe(false);
+  });
 });

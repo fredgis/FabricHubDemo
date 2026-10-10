@@ -12,6 +12,7 @@ export default defineConfig({
       'react/jsx-runtime': resolve(import.meta.dirname, 'node_modules/react/jsx-runtime.js'),
       react: resolve(import.meta.dirname, 'node_modules/react/index.js'),
       '@testing-library/react': resolve(import.meta.dirname, 'node_modules/@testing-library/react/dist/index.js'),
+      '@testing-library/user-event': resolve(import.meta.dirname, 'node_modules/@testing-library/user-event/dist/esm/index.js'),
     },
   },
   test: {
