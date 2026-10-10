@@ -1210,8 +1210,9 @@ full SQL batch with separate request parameters, publication gates and integrity
 checks. Binding reads remain caller-authorized on every native invocation; the
 external SQL token remains the platform-provided application identity token.
 Pools are isolated by exact-token hash and Warehouse/workspace/capacity coordinates.
-They expire after 60 seconds idle, five minutes total, or one minute before the
-token expires. At most four pools are cached per function-host process, with two
+They expire after five minutes idle, fifteen minutes total, or one minute before
+the token expires. The driver's physical-connection idle limit is also five minutes;
+there are no keepalive queries. At most four pools are cached per function-host process, with two
 SQL connections per pool. If all four are busy, a temporary pool handles the read
 and closes afterward. Failed pools retire without interrupting another active
 reader; opaque or nearly expired tokens use the temporary path. A cold host,
@@ -1260,6 +1261,14 @@ or a read failure, with an explicit notice and the original source timestamp.
 Demo stays mounted across navigation: its scenario, command keys and retries
 survive while hidden. Only its source-status reads pause; returning to Demo
 resumes them without restarting ingestion or creating a new command.
+
+Operations also retains a successful **health check for 30 seconds from completion**
+across tab visits. The panel displays its actual UTC check time and the reuse
+window. **Check health** bypasses a completed cache entry; simultaneous checks
+share the in-flight request. Failures stay visible and are not cached. The cache
+belongs to the authenticated cockpit, is replaced when its identity changes and
+is discarded on sign-out. It uses neither polling nor browser storage. This
+avoids a repeat health-panel call, not every read needed by the Operations page.
 
 Business Graph requests the **12 latest orders with complete customer, offer and
 film paths** in the published Ontology GraphModel. GQL orders by transaction
@@ -1316,6 +1325,35 @@ Standalone callers without a qualified binding still check the full definition.
 Only their successful definition qualification is cached for **two minutes**,
 in a bounded cache keyed by all coordinates and a hash of the exact access
 token. Failures and actual graph answers are never cached.
+
+Graph reads emit structured `event: "business_graph"` diagnostics correlated by
+`read_id`. They cover metadata, orders, the parallel distributor/playback branches
+and assembly, including HTTP headers/body durations, continuation waits/counts,
+statuses and failure stages. Records contain no tokens, query text, URLs,
+payloads or exception text. Coverage begins at `readOntologyGraph`; earlier
+binding, authentication and host failures are outside these records. The observed
+native HTTP 500 after 30.951 seconds has **no proven root cause or confirmed fix**.
+These traces support the next diagnosis; they do not claim a latency gain. The
+45-second shared query budget, eight-request bound and two-second waits are
+unchanged.
+
+The high-priority follow-up was published with full Rayfin 1.36.2 `up` on
+2026-10-10 after checking the existing MSFlix workspace and approved capacity.
+All 81 targeted tests across seven files, frontend/backend builds and changed-module
+lint passed. Post-deployment authenticated native checks returned successful
+Health, two ready Overview responses and a ready Graph with 60 nodes and 60 edges.
+The Graph check took 28.574 seconds; it is not evidence of an acceleration or a
+fix for the earlier intermittent 500. The Gold publication remained unchanged
+(`published_at=2026-10-10T12:15:40.884Z`, 1,062 order lines).
+
+A production-build browser check against the published APIs verified one Health
+call on entering Operations, a 68 ms cached revisit with no additional Health
+call and an unchanged UTC timestamp, then one successful forced check using
+Enter with a newer timestamp. No JavaScript errors or horizontal overflow at
+390 pixels were observed. This used loopback hosting, not the private site's
+login/CDN. These concurrent smoke checks were not a controlled before/after
+benchmark; the longer Gold retention is covered by regression tests, not a
+measured native-host latency guarantee.
 
 Licensed source images and their original hashes remain unchanged. The browser
 uses generated, content-hashed WebP display derivatives at up to **320, 640 and

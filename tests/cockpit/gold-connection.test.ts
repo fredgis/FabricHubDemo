@@ -6,13 +6,13 @@ import type { AnalyticsBinding } from '../../apps/cockpit/rayfin/data/schema';
 const calls = vi.hoisted(() => ({
   connections: 0, closes: 0, publication: 'first',
   queryError: null as Error | null, connectError: null as Error | null,
-  requests: [] as Record<string, unknown>[], instances: [] as EventEmitter[],
+  requests: [] as Record<string, unknown>[], instances: [] as EventEmitter[], configs: [] as unknown[],
 }));
 vi.mock('../../apps/cockpit/rayfin/functions/node_modules/mssql', () => ({
   default: {
     Int: 'Int', VarChar: () => 'VarChar',
     ConnectionPool: class extends EventEmitter {
-      constructor() { super(); calls.instances.push(this); }
+      constructor(config: unknown) { super(); calls.instances.push(this); calls.configs.push(config); }
       async connect() { calls.connections++; if (calls.connectError) throw calls.connectError; return this; }
       async close() { calls.closes++; }
       request() {
@@ -47,7 +47,7 @@ beforeEach(async () => {
   vi.useFakeTimers();
   vi.setSystemTime(new Date('2026-10-10T10:00:00Z'));
   vi.resetModules();
-  Object.assign(calls, { connections: 0, closes: 0, publication: 'first', queryError: null, connectError: null, requests: [], instances: [] });
+  Object.assign(calls, { connections: 0, closes: 0, publication: 'first', queryError: null, connectError: null, requests: [], instances: [], configs: [] });
   ({ readGoldPages: readPages } = await import('../../apps/cockpit/rayfin/functions/src/gold-pages'));
   ({ readGoldDashboard: readDashboard } = await import('../../apps/cockpit/rayfin/functions/src/gold-dashboard'));
   ({ withGoldPool: withPool } = await import('../../apps/cockpit/rayfin/functions/src/gold-connection'));
@@ -113,10 +113,26 @@ it('revalidates the binding before using a warm connection', async () => {
   await expect(readPages({ ...binding, verified: false }, credential)).rejects.toThrow('not verified');
   expect(calls.requests).toHaveLength(1);
 });
-it('closes idle pools and reconnects instead of retaining them indefinitely', async () => {
+it('reuses both the cached pool and physical connections after a two-minute pause without keepalive', async () => {
   const credential = token();
   await readPages(binding, credential);
-  await vi.advanceTimersByTimeAsync(60_000);
+  await vi.advanceTimersByTimeAsync(120_000);
+  expect(calls.closes).toBe(0);
+  expect(calls.requests).toHaveLength(1);
+  await readPages(binding, credential);
+  expect(calls.connections).toBe(1);
+  expect(calls.requests).toHaveLength(2);
+  expect(calls.configs[0]).toMatchObject({ pool: { min: 0, max: 2, idleTimeoutMillis: 300_000 } });
+});
+it('closes a pool after five minutes idle, measured from its last completed read', async () => {
+  const credential = token();
+  await readPages(binding, credential);
+  await vi.advanceTimersByTimeAsync(120_000);
+  await readPages(binding, credential);
+  await vi.advanceTimersByTimeAsync(299_999);
+  expect(calls.closes).toBe(0);
+  expect(calls.connections).toBe(1);
+  await vi.advanceTimersByTimeAsync(1);
   expect(calls.closes).toBe(1);
   await readPages(binding, credential);
   expect(calls.connections).toBe(2);
@@ -132,11 +148,12 @@ it('retires before token expiry and does not cache opaque or nearly expired cred
   expect(calls.connections).toBe(5);
   expect(calls.closes).toBe(5);
 });
-it('bounds connection lifetime even under repeated consultation', async () => {
+it('bounds connection lifetime to fifteen minutes even under repeated consultation', async () => {
   const credential = token();
-  for (let i = 0; i < 6; i++) {
+  for (let i = 0; i < 5; i++) {
     await readPages(binding, credential);
-    await vi.advanceTimersByTimeAsync(50_000);
+    expect(calls.connections).toBe(1);
+    await vi.advanceTimersByTimeAsync(180_000);
   }
   expect(calls.closes).toBe(1);
   await readPages(binding, credential);

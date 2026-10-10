@@ -2,8 +2,8 @@ import { createHash } from 'node:crypto';
 import sql from 'mssql';
 import type { AnalyticsBinding } from '../../data/schema.js';
 
-const IDLE_MS = 60_000;
-const MAX_AGE_MS = 5 * 60_000;
+const IDLE_MS = 5 * 60_000;
+const MAX_AGE_MS = 15 * 60_000;
 const MAX_POOLS = 4;
 
 type Entry = {

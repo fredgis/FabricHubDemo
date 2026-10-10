@@ -1,8 +1,9 @@
-import { useCallback, useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { ArrowRight, ArrowsClockwise, Broadcast, ChartBar, FilmSlate, Graph, House,
   Play, ShoppingBag, SignOut, Target, UsersThree } from '@phosphor-icons/react';
 import { useAuth } from '@/hooks/AuthContext';
 import { getRayfinClient } from '@/services/rayfinClient';
+import { createHealthReader, type HealthRead, type HealthReader } from '@/services/health';
 import { dateLabel, money, safeError, safeUrl, type Snapshot } from '@/services/business';
 import {GoldBusinessDashboard}from'@/components/GoldBusinessDashboard';
 import { OntologyGraph, type GraphReadState } from '@/components/OntologyGraph';
@@ -17,7 +18,7 @@ import { FlixyAssistant } from '@/components/FlixyAssistant';
 import { Artwork } from '@/components/CatalogArtwork';
 import { askFlixy } from '@/services/flixy';
 import type { Rental } from '../../rayfin/data/schema';
-import type { Capabilities, CommandResult, Health } from '../../rayfin/functions/src/domain';
+import type { Capabilities, CommandResult } from '../../rayfin/functions/src/domain';
 
 const sections = [
   { key: 'overview', name: 'Overview', icon: House },
@@ -56,6 +57,8 @@ export function HomePage({ route = '/', onNavigate }: {
   route?: '/' | '/campaign-impact'; onNavigate?: (path: '/' | '/campaign-impact') => void;
 }) {
   const { user, signOut } = useAuth();
+  // The auth guard unmounts this cache on sign-out; identity changes replace it too.
+  const healthReader = useMemo(() => ({ userId: user?.id, read: createHealthReader() }), [user?.id]);
   const [localSection, setSection] = useState<Section>('overview');
   const section = route === '/campaign-impact' ? 'campaign-impact' : localSection;
   const [graphVisited, setGraphVisited] = useState(false);
@@ -179,7 +182,7 @@ export function HomePage({ route = '/', onNavigate }: {
           gold={gold?.pages} goldLoading={goldLoading} goldError={goldError} onRefresh={refresh} /></div>
         {['orders','operations'].includes(section)&&(loading&&!snapshot?<LoadingState/>:snapshot&&<>
           {section === 'orders' && <Orders {...context} snapshot={snapshot} />}
-          {section === 'operations' && <Operations {...context} snapshot={snapshot} />}
+          {section === 'operations' && <Operations key={healthReader.userId} {...context} snapshot={snapshot} readHealth={healthReader.read} />}
         </>)}
       </main>
       <footer>MSFlix business demonstration. Sourced film metadata and licensed reference artwork; fictional CRM identities.
@@ -328,21 +331,31 @@ function Audiences({ data, dashboard }: { data: Snapshot; dashboard: GoldPages['
       : <p className="muted">No campaign records imported. Conversion rates and delivery results are not invented.</p>}</section></>;
 }
 
-function Operations({ snapshot: data, canOperate, busy, command }: CommandContext & { snapshot: Snapshot }) {
-  const [health, setHealth] = useState<Health>();
+function Operations({ snapshot: data, canOperate, busy, command, readHealth }: CommandContext & {
+  snapshot: Snapshot; readHealth: HealthReader;
+}) {
+  const [healthRead, setHealthRead] = useState<HealthRead>();
+  const health = healthRead?.health;
   const [error, setError] = useState('');
   const [checking, setChecking] = useState(false);
   const [limit, setLimit] = useState(10);
-  const check = useCallback(async () => {
-    setChecking(true); setError(''); setHealth(undefined);
-    try { setHealth(await getRayfinClient().functions.health.invoke()); }
-    catch (err) { setError(safeError(err)); }
-    finally { setChecking(false); }
-  }, []);
-  useEffect(() => { void check(); }, [check]);
+  const request = useRef(0);
+  const check = useCallback(async (force = false) => {
+    const checkId = ++request.current;
+    setChecking(true); setError(''); setHealthRead(undefined);
+    try {
+      const result = await readHealth(force);
+      if (checkId === request.current) setHealthRead(result);
+    } catch (err) { if (checkId === request.current) setError(safeError(err)); }
+    finally { if (checkId === request.current) setChecking(false); }
+  }, [readHealth]);
+  useEffect(() => { void check(); return () => { request.current += 1; }; }, [check]);
   return <><section className="operations-health"><h2>Connection verification</h2>
-    <button onClick={() => void check()} disabled={checking}>{checking ? 'Checking…' : 'Check health'}</button>
+    <button onClick={() => void check(true)} disabled={checking}>{checking ? 'Checking…' : 'Check health'}</button>
     {error && <p role="alert" className="notice">{error}</p>}
+    {healthRead && <p className="muted">Last checked <time dateTime={new Date(healthRead.checkedAt).toISOString()}>
+      {new Intl.DateTimeFormat('en', { dateStyle: 'medium', timeStyle: 'medium', timeZone: 'UTC' }).format(healthRead.checkedAt)} UTC
+    </time>. Reused for up to 30 seconds.</p>}
     {health && <dl><dt>Data</dt><dd>{health.database}</dd><dt>Functions</dt><dd>{health.functions}</dd>
       <dt>Outbox pending</dt><dd>{health.outbox_pending}</dd><dt>Event delivery</dt><dd>{health.broker}</dd></dl>}
     {!health && !error && <p role="status">Invoking native health function…</p>}</section>
