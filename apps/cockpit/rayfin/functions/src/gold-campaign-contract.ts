@@ -1,4 +1,5 @@
 export type CampaignImpactFilters = {
+  analysisMode: 'recorded' | 'post_contact';
   from: string;
   to: string;
   territory: string;
@@ -50,10 +51,11 @@ export type CampaignImpact = {
     excluded_minor: string;
   };
   methodology: {
-    attribution: 'recorded_only';
+    attribution: 'recorded_only' | 'observed_post_contact';
     cohort: 'first_campaign_contact';
     contact_window_days: null;
     engagement_percent: number;
     coverage_dates: 'order_created';
+    coverage_campaigns: 'all';
   };
 };

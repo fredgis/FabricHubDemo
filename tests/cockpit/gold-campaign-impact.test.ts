@@ -40,7 +40,9 @@ function fixture(amount = '9007199254740993'): Rows {
 
 describe('Campaign Impact API boundary', () => {
   it('validates dates, currency isolation and bounded JSON before SQL', () => {
-    expect(filters).toEqual({ from: '', to: '', currency: '', territory: '', campaignKey: '' });
+    expect(filters).toEqual({ analysisMode: 'recorded', from: '', to: '', currency: '', territory: '', campaignKey: '' });
+    expect(parseCampaignFilters('{"analysisMode":"post_contact"}').analysisMode).toBe('post_contact');
+    expect(() => parseCampaignFilters('{"analysisMode":"last_touch"}')).toThrow();
     for (const input of ['null', '[]', 'broken', '{"other":1}', '{"currency":"*"}', '{"currency":"eur"}',
       '{"from":"2026-02-29"}', '{"from":"2026-10-09","to":"2026-10-08"}', '{"from":"2024-01-01","to":"2025-01-01"}',
       '{"campaignKey":1}', JSON.stringify({ territory: 'x'.repeat(2050) })]) expect(() => parseCampaignFilters(input)).toThrow();
@@ -106,6 +108,15 @@ describe('Campaign Impact API boundary', () => {
     expect(calls.query).toContain('SET TRANSACTION ISOLATION LEVEL SNAPSHOT');
     expect(calls.query).toContain('FROM gold.campaign_engaged_revenue'); expect(calls.closed).toBe(true);
     expect(calls.query).not.toMatch(/(?:FROM|JOIN)\s+(dbo|silver|sap)\./i);
+    expect(calls.inputs.analysis_mode).toBe('recorded');
+    const observed = await readCampaignImpact(source as AnalyticsBinding, 'test-only', '{"analysisMode":"post_contact"}');
+    expect(calls.inputs.analysis_mode).toBe('post_contact');
+    expect(observed.source.view).toBe('gold.campaign_post_contact_revenue');
+    expect(observed.methodology.attribution).toBe('observed_post_contact');
+    expect(observed.methodology.coverage_campaigns).toBe('all');
+    const recorded = campaignFromRecordsets(source, filters, fixture());
+    expect(recorded.source.view).toBe('gold.campaign_engaged_revenue');
+    expect(recorded.methodology.attribution).toBe('recorded_only');
   });
 });
 
@@ -141,18 +152,61 @@ function database() {
     INSERT INTO gold.fact_playback_session VALUES ('O1','C1','A',50),('O1','C1','A',80),('O1','C2','A',100),
       ('O6','C1','B',10000),('O7','C1','A',80);
   `);
-  const sql = readFileSync(new URL('../../fabric/gold/kpis.sql', import.meta.url), 'utf8').split('-- @batch')
-    .find(s => s.includes('CREATE OR ALTER VIEW gold.campaign_engaged_revenue AS'))!;
-  // Only dialect spelling changes; the deployed view's joins, grain and attribution predicates stay intact.
-  const view = sql.replace('CREATE OR ALTER VIEW', 'CREATE VIEW').replaceAll('COUNT_BIG(', 'COUNT(')
-    .replaceAll('CAST(f.created_at AS date)', 'date(f.created_at)')
-    .replaceAll('CAST(a.first_contact_at AS date)', 'date(a.first_contact_at)')
-    .replaceAll('CAST(o.first_contact_at AS date)', 'date(o.first_contact_at)');
-  db.exec(view);
+  const views = readFileSync(new URL('../../fabric/gold/kpis.sql', import.meta.url), 'utf8').split('-- @batch')
+    .filter(s => /CREATE OR ALTER VIEW gold\.campaign_(engaged|post_contact)_revenue AS/.test(s));
+  for (const sql of views) {
+    // Only dialect spelling changes; the deployed joins, grain and matching predicates stay intact.
+    const view = sql.replace('CREATE OR ALTER VIEW', 'CREATE VIEW').replaceAll('COUNT_BIG(', 'COUNT(')
+      .replaceAll('CAST(f.created_at AS date)', 'date(f.created_at)')
+      .replaceAll('CAST(a.first_contact_at AS date)', 'date(a.first_contact_at)')
+      .replaceAll('CAST(o.first_contact_at AS date)', 'date(o.first_contact_at)')
+      .replaceAll('CAST(m.first_contact_at AS date)', 'date(m.first_contact_at)');
+    db.exec(view);
+  }
   return db;
 }
 
 describe('three-source Gold view semantics', () => {
+  it('reports actual post-contact purchases when explicit attribution is absent, without changing the strict view', () => {
+    const db = database();
+    try {
+      db.exec(`UPDATE gold.fact_order_line SET campaign_key=NULL; DELETE FROM gold.fact_campaign_conversion;
+        INSERT INTO gold.fact_playback_session VALUES ('O3','C2','A',79),('O3','C2','A',80);`);
+      expect(db.prepare("SELECT COUNT(*) AS n FROM gold.campaign_engaged_revenue WHERE attribution_status='recorded'").get()?.n).toBe(0);
+      expect(db.prepare(`SELECT order_id,campaign_key,amount_minor,engaged,cohort_date
+        FROM gold.campaign_post_contact_revenue WHERE attribution_status='post_contact' ORDER BY order_id`).all()).toEqual([
+        { order_id: 'O3', campaign_key: 'M1', amount_minor: 300, engaged: 1, cohort_date: '2026-10-07' },
+        { order_id: 'O4', campaign_key: 'M1', amount_minor: 400, engaged: 0, cohort_date: '2026-10-07' },
+      ]);
+      const cte = GOLD_CAMPAIGN_QUERY.match(/WITH cohort AS \([\s\S]*?\n\)/)![0];
+      const statement = db.prepare(`${cte} SELECT COUNT(DISTINCT CASE WHEN record_kind='contact' THEN customer_key END) AS audience,
+        COUNT(DISTINCT order_id) AS orders, SUM(amount_minor) AS booked,
+        SUM(CASE WHEN engaged=1 THEN amount_minor ELSE 0 END) AS engaged FROM cohort`);
+      const params = { '@StartDate': '2026-10-07', '@EndDate': '2026-10-07', '@SelectedCurrency': 'EUR',
+        '@territory': '', '@campaign_key': '', '@analysis_mode': 'post_contact' };
+      // Purchase on Oct 8 belongs to the Oct 7 contact cohort, even when To is Oct 7.
+      expect(statement.get(params)).toEqual({ audience: 2, orders: 2, booked: 700, engaged: 300 });
+      expect(statement.get({ ...params, '@campaign_key': 'M1' })).toEqual({ audience: 2, orders: 2, booked: 700, engaged: 300 });
+      expect(statement.get({ ...params, '@analysis_mode': 'recorded' })).toEqual({ audience: 2, orders: 0, booked: 0, engaged: 0 });
+      expect(statement.get({ ...params, '@SelectedCurrency': 'USD' })).toEqual({ audience: 2, orders: 0, booked: 0, engaged: 0 });
+    } finally { db.close(); }
+  });
+  it('excludes multi-campaign exposure before filtering and compares full purchase timestamps', () => {
+    const db = database();
+    try {
+      db.exec(`INSERT INTO gold.fact_campaign_touch VALUES ('M3','C3','2026-10-08T12:00:00');
+        UPDATE gold.fact_order_line SET created_at='2026-10-08T11:59:59' WHERE order_id='O5';`);
+      expect(db.prepare("SELECT attribution_status,campaign_key FROM gold.campaign_post_contact_revenue WHERE order_id='O1'").get())
+        .toEqual({ attribution_status: 'ambiguous', campaign_key: null });
+      expect(db.prepare("SELECT attribution_status FROM gold.campaign_post_contact_revenue WHERE order_id='O5'").get()?.attribution_status)
+        .toBe('without_contact');
+      db.exec("UPDATE gold.fact_order_line SET created_at='2026-10-08T12:00:00' WHERE order_id='O5'");
+      expect(db.prepare("SELECT attribution_status,campaign_key FROM gold.campaign_post_contact_revenue WHERE order_id='O5'").get())
+        .toEqual({ attribution_status: 'post_contact', campaign_key: 'M3' });
+      expect(db.prepare("SELECT order_id,line_number,COUNT(*) AS n FROM gold.campaign_post_contact_revenue WHERE record_kind='order' GROUP BY order_id,line_number HAVING COUNT(*)>1").all()).toEqual([]);
+      expect(db.prepare("SELECT COUNT(*) AS n FROM gold.campaign_post_contact_revenue WHERE order_id='O9'").get()?.n).toBe(0);
+    } finally { db.close(); }
+  });
   it('deduplicates recorded links and playback without multiplying booked value', () => {
     const db = database();
     try {
@@ -180,7 +234,7 @@ describe('three-source Gold view semantics', () => {
         COUNT(DISTINCT CASE WHEN record_kind='order' THEN customer_key END) AS buyers,
         SUM(amount_minor) AS booked, SUM(CASE WHEN engaged=1 THEN amount_minor ELSE 0 END) AS engaged,
         SUM(CASE WHEN record_kind='order' AND played=0 THEN amount_minor ELSE 0 END) AS not_started FROM cohort`);
-      const params = { '@StartDate': '2026-10-07', '@EndDate': '2026-10-08', '@SelectedCurrency': 'EUR', '@territory': '', '@campaign_key': '' };
+      const params = { '@StartDate': '2026-10-07', '@EndDate': '2026-10-08', '@SelectedCurrency': 'EUR', '@territory': '', '@campaign_key': '', '@analysis_mode': 'recorded' };
       expect(statement.get(params)).toEqual({ audience: 2, buyers: 1, booked: 1500, engaged: 100, not_started: 800 });
       expect(statement.get({ ...params, '@SelectedCurrency': 'USD' })).toEqual({ audience: 2, buyers: 1, booked: 700, engaged: 700, not_started: 0 });
       expect(statement.get({ ...params, '@StartDate': '2026-10-06', '@EndDate': '2026-10-09' })?.audience).toBe(2);

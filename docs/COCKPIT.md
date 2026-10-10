@@ -26,11 +26,21 @@ page or fails rather than showing partial KPIs.
 ## Campaign Impact
 
 Open **Campaign Impact** immediately after **MSFlix Insights**. The native
-read-only function `getCampaignImpact({ filtersJson })` queries
-`gold.campaign_engaged_revenue` in MSFlixGold. Salesforce supplies campaign
-contacts and explicit conversion links, RTI supplies commercial orders and
-playback positions, and Oracle supplies film duration, genre and distributor.
-No operational SQL or sample response replaces an unavailable Gold read.
+read-only function `getCampaignImpact({ filtersJson })` reads MSFlixGold.
+The **Analysis** selector offers two modes:
+
+- **After contact (observed)** is the UI default (`analysisMode: 'post_contact'`).
+  It reads `gold.campaign_post_contact_revenue` and associates a purchase with
+  a customer's sole prior campaign contact. This is an observed association,
+  not marketing attribution or evidence that the campaign caused the purchase.
+- **Recorded attribution only** (`analysisMode: 'recorded'`) reads
+  `gold.campaign_engaged_revenue`. Native callers omitting `analysisMode` retain
+  this original default. Orders need an explicit, unique campaign link.
+
+Salesforce supplies campaign contacts and explicit conversion links, RTI
+supplies commercial orders and playback positions, and Oracle supplies film
+duration, genre and distributor. No operational SQL or sample response replaces
+an unavailable Gold read.
 
 The main measure is **engaged booked value per 100 contacted customers**:
 `100 × engaged amount / distinct contacted customers`, rounded to the nearest
@@ -40,14 +50,22 @@ Position is a progression proxy, not proof of time watched. Unknown or invalid
 durations never qualify; the UI reports them separately. Booked value is not
 cash received, recognized revenue, incremental uplift or campaign ROI.
 
-Dates select each campaign/customer pair's **first-contact cohort**. Orders
-qualify only when an explicit, unique campaign link exists and that campaign's
-first contact is no later than the order. There is no estimated last-touch
-attribution or maximum post-contact window. Contacts alone never create a
-conversion. Duplicate links to the same campaign collapse; conflicting campaign
-links, missing prior contacts and unlinked orders are excluded. Playback is
-aggregated by order/customer/content before joining order lines, so repeated
-sessions do not multiply the booked amount.
+Dates select each campaign/customer pair's **first-contact cohort**, not an
+order-date window. Purchases after the selected To date remain included through
+the latest Gold publication. There is no maximum post-contact window.
+
+Observed mode compares full contact and purchase timestamps. Exactly one prior
+campaign qualifies; exposure to multiple prior campaigns or no prior contact
+excludes the purchase. Matching considers all campaigns and dates before report
+filters, so selecting a campaign cannot erase ambiguity. Repeated contacts with
+one campaign collapse to its first contact. No explicit conversion link is
+required, no last-touch allocation is inferred, and no conversion is written.
+
+Recorded mode still requires an explicit, unique campaign link and a contact
+no later than purchase. Duplicate links to the same campaign collapse;
+conflicting links, missing prior contacts and unlinked orders are excluded.
+Both modes aggregate playback by order/customer/content before joining order
+lines, so repeated sessions do not multiply booked value.
 
 Filters cover the inclusive cohort dates (at most 366 days), campaign,
 **customer CRM territory**, and one currency. Contacts have no currency: the
@@ -58,12 +76,14 @@ not summed across campaign groups. The film ranking is limited to 12 titles;
 summary and campaign totals include every matching line.
 
 The exclusion panel uses **order creation dates**, rather than contact-cohort
-dates, with the selected territory, campaign and currency. Selecting a campaign
-does not assign anonymous or conflicting links to it. Exclusions remain visible
-even when the selected contact cohort is empty. Campaign comparison and cohort
-trend use the recorded attribution rules above. Query time and Gold publication
+dates, with the selected territory and currency, **across all campaigns**
+(`methodology.coverage_campaigns: 'all'`). Selecting a campaign neither resolves
+ambiguous exposure nor hides orders with no prior contact. Exclusions remain
+visible even when the selected contact cohort is empty. Campaign comparison
+and cohort trend use the applied analysis mode. Query time and Gold publication
 time are shown separately; playback is the latest published state, so recent
-cohorts can still change.
+cohorts can still change. A failed filter request preserves the last successful
+figures and their applied-mode labels.
 
 The screen continues MSFlix's charcoal cinema palette, Segoe UI and tabular
 numbers (**ENERGY 2 / RHYTHM 2 / MOTION 1**). The per-100 measure is the focal
@@ -73,14 +93,14 @@ unsupported success claims. Explicit labels and exact-value tables keep the
 analysis usable without relying on chart color. No new artwork or looping
 animation is needed for this comparison screen.
 
-Backend verification on 2026-10-10: nine targeted tests passed, including the
+Initial recorded-mode verification on 2026-10-10: nine targeted tests passed, including the
 actual view joins exercised with in-memory SQL fixtures. The deployed view and
 the native query/parser returned all nine result sets from Gold for the default
 EUR cohort and a CHF/CH selection. The default read found 600 contacts, zero
 recorded campaign orders and 523 unlinked EUR orders. These are dated readback
 results, not seeded UI values or evidence that event delivery is current.
 
-Delivery verification on 2026-10-10: full `rayfin up` and authenticated endpoint
+Initial recorded-mode delivery on 2026-10-10: full `rayfin up` and authenticated endpoint
 health passed. Both builds and all 26 targeted Campaign Impact tests passed.
 An authenticated local browser invoked the deployed `getCampaignImpact`, then
 exercised cohort dates, CHF/CH (150 contacts), campaign selection, reset, film
@@ -88,6 +108,41 @@ breakdowns and keyboard-operated disclosures. The 1440, 390 and 320px checks
 had no page overflow or browser errors. Evidence is kept in the ignored
 `.state/campaign-impact` directory. The hosting URL rejects anonymous HTTP reads;
 this check does not claim coverage of every hosted or embedded SSO path.
+
+Post-contact readback on 2026-10-10: the new view was published to
+MSFlixGold without changing the recorded view or source facts. Its order-line
+grain had zero duplicates. The actual backend query/parser returned all nine
+result sets for both modes. The default EUR contact cohort (October 7–10)
+returned 600 contacted customers, 300 buyers, 454 eligible orders and 429
+engaged orders: EUR 2,603.46 booked, EUR 2,485.71 engaged, and EUR 414.29 engaged
+per 100 contacts. It excluded 72 orders without prior contact. Recorded mode
+still returned zero linked orders. CHF/CH and a Fantasy campaign selection also
+returned qualifying purchases. These are dated observations, not campaign
+attribution or seeded display values.
+
+Both builds and 29 focused Campaign Impact tests passed after regenerating the
+Rayfin types with the installed generator. Frontend lint passed; backend lint
+still reports two unchanged baseline findings (`no-control-regex` and
+`no-unsafe-finally`).
+
+Post-contact delivery on 2026-10-10: full `rayfin up` completed on the existing
+MSFlix Business Control app, with no excluded services or deployment warnings.
+The wrapper's default credential preflight was unavailable; the tenant,
+workspace name/ID, approved capacity and installed CLI version were verified
+with the existing subscription-scoped credentials before using the cached
+Rayfin tenant login. No global Azure context or deployment binding was changed.
+`rayfin up status` confirmed authenticated management health (HTTP 200).
+
+At 11:12 UTC, an authenticated local browser invoked the deployed native
+function and confirmed the same 454 orders in both its response and the UI.
+Keyboard selection of recorded mode returned zero explicitly linked orders;
+after-contact mode, CHF/CH, campaign selection, reset, contribution tabs and
+methodology disclosures worked. Desktop/mobile widths of 1440, 390 and 320px
+had no page overflow or browser errors. Muted text contrast was 7.99:1, the KPI
+accent 5.91:1 and keyboard focus 7.63:1; the chart baseline was 4.23:1 against
+its panel, above the 3:1 non-text threshold. Updated evidence remains in
+`.state/campaign-impact`. The browser used the local frontend against the
+published backend; hosted/embedded SSO coverage is not implied.
 
 ## MSFlix Insights
 

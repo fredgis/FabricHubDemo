@@ -10,6 +10,7 @@ import './CampaignImpactPage.css';
 
 const number = new Intl.NumberFormat('en');
 const rateLabel = 'Engaged revenue per 100 contacted customers';
+const modeLabels = { post_contact: 'After contact (observed)', recorded: 'Recorded attribution only' };
 export type CampaignImpactReadState = { loading: boolean; queriedAt: string | null };
 
 function Filters({ data, loading, onApply }: {
@@ -38,6 +39,8 @@ function Filters({ data, loading, onApply }: {
       <button type="button" disabled={loading} onClick={() => onApply({})}>Reset filters</button></div>
     <fieldset disabled={loading}><legend className="sr-only">First campaign contact filters</legend>
       <div className="insights-filter-fields">
+        <label htmlFor={`${id}-analysis`}>Analysis<select id={`${id}-analysis`} value={draft.analysisMode} onChange={event => change('analysisMode', event.target.value)}>
+          <option value="post_contact">{modeLabels.post_contact}</option><option value="recorded">{modeLabels.recorded}</option></select></label>
         <label htmlFor={`${id}-from`}>From (UTC)<input id={`${id}-from`} type="date" required value={draft.from} max={draft.to}
           onChange={event => change('from', event.target.value)} aria-invalid={!!validation} aria-describedby={validation ? `${id}-error` : undefined} /></label>
         <label htmlFor={`${id}-to`}>To (UTC)<input id={`${id}-to`} type="date" required value={draft.to} min={draft.from}
@@ -59,19 +62,25 @@ function Filters({ data, loading, onApply }: {
 
 function Spotlight({ data, money }: { data: CampaignImpact; money: CampaignMoney }) {
   const summary = data.summary;
+  const afterContact = data.filters.analysisMode === 'post_contact';
   const counts = [
     ['Contacted customers', summary.contacted_customers], ['Recorded contacts', summary.touches],
     ['Buyers', summary.buyers], ['All eligible orders', summary.orders],
     ['Started orders', summary.played_orders], ['Engaged orders', summary.engaged_orders],
   ] as const;
   return <section className="campaign-spotlight" aria-labelledby="campaign-rate-title">
-    <div className="campaign-rate-block"><h2 id="campaign-rate-title">{rateLabel}</h2>
+    <div className="campaign-rate-block"><p className="campaign-note">{afterContact
+      ? 'After-contact analysis. Observed association, not marketing attribution.'
+      : 'Recorded attribution only. Orders need an explicit campaign link.'}</p>
+      <h2 id="campaign-rate-title">{rateLabel}</h2>
       <p className="campaign-rate" aria-label={rateLabel}>{money(summary.engaged_per_100_minor)}</p>
       <p className="campaign-note">{summary.engaged_per_100_minor === null
         ? `The rate is not available. Denominator: ${number.format(summary.contacted_customers)} unique contacted customers.`
         : `100 × ${money(summary.engaged_minor)} engaged booked value / ${number.format(summary.contacted_customers)} unique contacted customers.`}</p>
-      <p className="campaign-note">Booked order value, not recognized revenue or ROI. Recent cohorts are provisional.</p>
-      {summary.contacted_customers > 0 && summary.orders === 0 && <p className="campaign-note">No eligible campaign-linked orders are recorded for this cohort. Unattributed purchases do not enter this rate.</p>}</div>
+      <p className="campaign-note">Booked order value, not recognized revenue or ROI. Purchases run through the latest Gold publication, including after the selected contact dates. Recent cohorts are provisional.</p>
+      {summary.contacted_customers > 0 && summary.orders === 0 && <p className="campaign-note">{afterContact
+        ? 'No purchases with a unique prior campaign contact qualify for this cohort. Check the excluded orders below.'
+        : 'No eligible campaign-linked orders are recorded for this cohort. Unattributed purchases do not enter this rate. This does not mean no purchases occurred after contact.'}</p>}</div>
     <dl className="campaign-money-ledger">
       <div><dt>All eligible booked value</dt><dd>{money(summary.booked_minor)}</dd></div>
       <div><dt>Engaged booked value</dt><dd>{money(summary.engaged_minor)}</dd></div>
@@ -86,7 +95,8 @@ function Spotlight({ data, money }: { data: CampaignImpact; money: CampaignMoney
 function CampaignComparison({ data, money }: { data: CampaignImpact; money: CampaignMoney }) {
   const maximum = largestMinor(data.campaigns.map(row => row.engaged_per_100_minor));
   return <section aria-labelledby="campaign-comparison-title">
-    <div className="insights-panel-heading"><div><h2 id="campaign-comparison-title">Which campaigns reach engaged orders?</h2>
+    <div className="insights-panel-heading"><div><h2 id="campaign-comparison-title">{data.filters.analysisMode === 'post_contact'
+      ? 'Which campaigns have engaged purchases after contact?' : 'Which campaigns have recorded engaged orders?'}</h2>
       <p>Compare the rate alongside each campaign's contact denominator. Contact counts are distinct within each scope, not additive.</p></div></div>
     {!data.campaigns.length ? <p className="campaign-note">No campaign rows were returned for this contact cohort.</p> :
       <div className="campaign-table-scroll" role="region" aria-label="Campaign comparison figures" tabIndex={0}>
@@ -170,17 +180,18 @@ function Contributions({ data, money }: { data: CampaignImpact; money: CampaignM
 }
 
 function Coverage({ data, money }: { data: CampaignImpact; money: CampaignMoney }) {
+  const afterContact = data.filters.analysisMode === 'post_contact';
   return <section className="campaign-coverage" aria-labelledby="campaign-coverage-title">
-    <h2 id="campaign-coverage-title">Outside the attribution boundary</h2>
-    <p className="campaign-note">Excluded orders created from {data.filters.from} to {data.filters.to}, inclusive UTC, with the same territory, currency and campaign filters.
+    <h2 id="campaign-coverage-title">{afterContact ? 'Outside the analysis boundary' : 'Outside the attribution boundary'}</h2>
+    <p className="campaign-note">Excluded orders created from {data.filters.from} to {data.filters.to}, inclusive UTC, with the same territory and currency, across all campaigns.
       {' '}This is an order-date scope, separate from the first-contact cohort. Their booked value does not enter the KPI.</p>
     <dl className="campaign-coverage-counts">
-      <div><dt>Unattributed orders</dt><dd>{number.format(data.coverage.unattributed_orders)}</dd></div>
-      <div><dt>Ambiguous campaign links</dt><dd>{number.format(data.coverage.ambiguous_orders)}</dd></div>
-      <div><dt>Linked without prior contact</dt><dd>{number.format(data.coverage.linked_without_touch_orders)}</dd></div>
+      {!afterContact && <div><dt>Unattributed orders</dt><dd>{number.format(data.coverage.unattributed_orders)}</dd></div>}
+      <div><dt>{afterContact ? 'Multiple prior campaigns' : 'Ambiguous campaign links'}</dt><dd>{number.format(data.coverage.ambiguous_orders)}</dd></div>
+      <div><dt>{afterContact ? 'No prior campaign contact' : 'Linked without prior contact'}</dt><dd>{number.format(data.coverage.linked_without_touch_orders)}</dd></div>
       <div><dt>Excluded booked value</dt><dd>{money(data.coverage.excluded_minor)}</dd></div>
     </dl>
-    <p className="campaign-note">Unattributed orders appear only with All campaigns.</p>
+    <p className="campaign-note">Selecting one campaign does not hide unassigned orders or resolve ambiguous matches.</p>
   </section>;
 }
 
@@ -191,13 +202,16 @@ function Sources({ data }: { data: CampaignImpact }) {
     <p>Gold published {data.freshness.published_at ? dateLabel(data.freshness.published_at) : 'not yet'}.
       {' '}Read {dateLabel(data.freshness.queried_at)}. This is the current Gold snapshot, not a direct Eventhouse real-time feed.</p>
     <ul className="insights-source-list">
-      <li><strong>Salesforce</strong><p>Campaign contacts and recorded order attribution.</p></li>
+      <li><strong>Salesforce</strong><p>Campaign contacts. Explicit conversion links are used only in recorded-attribution mode.</p></li>
       <li><strong>Oracle</strong><p>Film, genre, distributor and reference duration.</p></li>
       <li><strong>RTI</strong><p>Order facts and furthest recorded playback position.</p></li>
     </ul>
-    <details className="insights-method"><summary>Attribution and engagement methodology</summary><ul>
+    <details className="insights-method"><summary>Matching and engagement methodology</summary><ul>
       <li>The first contact for each campaign and customer sets the cohort date. Dates are inclusive UTC. The denominator counts unique contacted customers in the requested scope, including non-buyers, regardless of currency.</li>
-      <li>Only recorded campaign links with a contact at or before purchase qualify. There is no inferred last-touch attribution or contact-window cap. Later purchases can belong to an earlier contact cohort. These associations do not establish causality.</li>
+      <li>{data.filters.analysisMode === 'post_contact'
+        ? 'After-contact analysis matches the order customer to campaign contacts at or before purchase. Exactly one prior campaign must match, across all dates and campaigns, before report filters apply. Multiple prior campaigns are excluded, not assigned by last touch. An explicit conversion link is not required. This is an observed association, not marketing attribution or proof of campaign effect.'
+        : 'Recorded attribution requires an explicit, unique campaign link and a contact at or before purchase. Missing or conflicting links are excluded. No links are inferred, and these associations do not establish causality.'}</li>
+      <li>There is no maximum post-contact window. Purchases through the latest published Gold snapshot can belong to an earlier contact cohort, even after the selected To date. The date filters select contacts, not purchases.</li>
       <li>Engagement requires the furthest RTI playback position for that order, customer and film to reach at least {data.methodology.engagement_percent}% of the Oracle duration. It is a progression proxy, not watch time; missing duration is unknown.</li>
       <li>The KPI is 100 × engaged booked value / unique contacted customers, rounded to the currency's minor unit. Currencies remain separate. Booked value is not recognized revenue or ROI, and recent cohorts are provisional.</li>
     </ul></details>
@@ -223,6 +237,7 @@ export function CampaignImpactPage({ active, refreshKey, onRead }: {
     {published && <>
       <Filters data={data} loading={loading} onApply={applyFilters} />
       <div className="insights-selection" aria-label="Applied campaign filters">
+        <strong>{modeLabels[data.filters.analysisMode]}</strong>
         <strong>First contact: {data.filters.from} to {data.filters.to}, UTC</strong><span>{data.filters.territory || 'All territories'}</span>
         <span>{data.options.campaigns.find(campaign => campaign.campaign_key === data.filters.campaignKey)?.name || data.filters.campaignKey || 'All campaigns'}</span>
         <strong>{data.filters.currency ? `${currencyLabel(data.filters.currency)} only` : 'Currency not published'}</strong>

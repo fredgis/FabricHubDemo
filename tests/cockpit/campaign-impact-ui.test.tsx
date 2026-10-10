@@ -52,7 +52,7 @@ it('validates and forwards date, territory, campaign and single-currency filters
   expect(screen.getByLabelText('From (UTC)')).toHaveAccessibleDescription('Choose an inclusive date range of 1 to 366 days.');
   expect(screen.getByLabelText('To (UTC)')).toHaveAttribute('aria-invalid', 'true');
   expect(load).toHaveBeenCalledTimes(1);
-  const filters = { from: '2026-10-07', to: '2026-10-08', territory: 'FR', campaignKey: 'test-campaign-1', currency: 'JPY' };
+  const filters = { analysisMode: 'recorded' as const, from: '2026-10-07', to: '2026-10-08', territory: 'FR', campaignKey: 'test-campaign-1', currency: 'JPY' };
   fireEvent.change(screen.getByLabelText('From (UTC)'), { target: { value: filters.from } });
   fireEvent.change(screen.getByLabelText('To (UTC)'), { target: { value: filters.to } });
   fireEvent.change(screen.getByLabelText('Territory'), { target: { value: filters.territory } });
@@ -69,6 +69,38 @@ it('validates and forwards date, territory, campaign and single-currency filters
   fireEvent.click(screen.getByRole('button', { name: 'Reset filters' }));
   await waitFor(() => expect(load).toHaveBeenLastCalledWith({}));
   await waitFor(() => expect(rate()).toHaveTextContent(/^€0\.00$/));
+});
+
+it('switches to observed analysis explicitly and retains the successful mode when another read fails', async () => {
+  page();
+  await screen.findByRole('form', { name: 'Filter campaign impact' });
+  const fixture = campaignImpactFixture();
+  const filters = { ...fixture.filters, analysisMode: 'post_contact' as const };
+  load.mockResolvedValueOnce(campaignImpactFixture({
+    filters,
+    methodology: { ...fixture.methodology, attribution: 'observed_post_contact' },
+    coverage: { unattributed_orders: 0, ambiguous_orders: 12, linked_without_touch_orders: 3, excluded_minor: '1500' },
+  }));
+  fireEvent.change(screen.getByLabelText('Analysis'), { target: { value: 'post_contact' } });
+  expect(load).toHaveBeenCalledTimes(1);
+  fireEvent.click(screen.getByRole('button', { name: 'Apply filters' }));
+  await waitFor(() => expect(screen.getByLabelText('Applied campaign filters')).toHaveTextContent('After contact (observed)'));
+  expect(load).toHaveBeenLastCalledWith(filters);
+  expect(screen.getByRole('region', { name: rateLabel })).toHaveTextContent('Observed association, not marketing attribution');
+  expect(screen.getByText(/not marketing attribution or proof of campaign effect/)).toBeInTheDocument();
+  expect(screen.getByText(/even after the selected To date/)).toBeInTheDocument();
+  const exclusions = screen.getByRole('region', { name: 'Outside the analysis boundary' });
+  expect(exclusions).toHaveTextContent('across all campaigns');
+  expect(within(exclusions).getByText('Multiple prior campaigns').nextElementSibling).toHaveTextContent('12');
+  expect(within(exclusions).getByText('No prior campaign contact').nextElementSibling).toHaveTextContent('3');
+  expect(within(exclusions).queryByText('Unattributed orders')).not.toBeInTheDocument();
+  load.mockRejectedValueOnce(new Error('Test recorded-mode read failed'));
+  fireEvent.change(screen.getByLabelText('Analysis'), { target: { value: 'recorded' } });
+  fireEvent.click(screen.getByRole('button', { name: 'Apply filters' }));
+  await screen.findByRole('alert');
+  expect(load).toHaveBeenLastCalledWith({ ...filters, analysisMode: 'recorded' });
+  expect(screen.getByLabelText('Applied campaign filters')).toHaveTextContent('After contact (observed)');
+  expect(screen.getByRole('region', { name: rateLabel })).toHaveTextContent('Observed association, not marketing attribution');
 });
 
 it('offers real retries on first-read and refresh failures while retaining successful data', async () => {

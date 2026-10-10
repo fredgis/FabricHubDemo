@@ -8,14 +8,14 @@ import { campaignMoney, largestMinor, titleContributions } from '../../apps/cock
 
 beforeEach(() => { invoke.mockReset(); invoke.mockResolvedValue(campaignImpactFixture()); });
 
-it('uses the typed Functions invocation with server defaults and forwards only the requested filters', async () => {
+it('requests observed analysis by default and preserves explicit recorded-attribution selections', async () => {
   expect(await loadCampaignImpact()).toEqual(campaignImpactFixture());
-  expect(invoke).toHaveBeenLastCalledWith({ filtersJson: '{}' });
-  const filters = { from: '2026-10-07', to: '2026-10-08', territory: 'FR', campaignKey: 'test-campaign-1', currency: 'EUR' };
+  expect(invoke).toHaveBeenLastCalledWith({ filtersJson: '{"analysisMode":"post_contact"}' });
+  const filters = { analysisMode: 'recorded' as const, from: '2026-10-07', to: '2026-10-08', territory: 'FR', campaignKey: 'test-campaign-1', currency: 'EUR' };
   await loadCampaignImpact(filters);
   expect(invoke).toHaveBeenLastCalledWith({ filtersJson: JSON.stringify(filters) });
   await loadCampaignImpact({ currency: 'JPY' });
-  expect(invoke).toHaveBeenLastCalledWith({ filtersJson: '{"currency":"JPY"}' });
+  expect(invoke).toHaveBeenLastCalledWith({ filtersJson: '{"analysisMode":"post_contact","currency":"JPY"}' });
 });
 
 it('uses published currency exponents and preserves real zero and unavailable values', () => {

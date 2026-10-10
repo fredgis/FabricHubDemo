@@ -4,5 +4,5 @@ import type { CampaignImpact, CampaignImpactFilters, CampaignImpactMetrics } fro
 export type { CampaignImpact, CampaignImpactFilters, CampaignImpactMetrics };
 
 export async function loadCampaignImpact(filters: Partial<CampaignImpactFilters> = {}): Promise<CampaignImpact> {
-  return getRayfinClient().functions.getCampaignImpact.invoke({ filtersJson: JSON.stringify(filters) });
+  return getRayfinClient().functions.getCampaignImpact.invoke({ filtersJson: JSON.stringify({ analysisMode: 'post_contact', ...filters }) });
 }

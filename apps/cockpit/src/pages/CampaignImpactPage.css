@@ -57,7 +57,7 @@
   .campaign-counts { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 @media (min-width: 1120px) {
-  .campaign-filters .insights-filter-fields { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) minmax(0, .8fr) minmax(0, 1.3fr) minmax(0, .75fr); }
+  .campaign-filters .insights-filter-fields { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .campaign-filters :is(input, select) { font-size: .9rem; }
   .campaign-spotlight { grid-template-columns: minmax(0, 1.8fr) minmax(0, 1fr); gap: 2rem; }
   .campaign-counts, .campaign-spotlight > .campaign-note { grid-column: 1 / -1; }

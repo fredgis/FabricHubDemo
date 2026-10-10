@@ -85,3 +85,37 @@ FROM orders o
 LEFT JOIN gold.dim_customer u ON u.customer_key=o.customer_key
 LEFT JOIN gold.dim_content c ON c.content_key=o.content_key
 LEFT JOIN gold.dim_distributor d ON d.distributor_key=c.distributor_key;
+-- @batch
+CREATE OR ALTER VIEW gold.campaign_post_contact_revenue AS
+WITH contacts AS (
+    SELECT campaign_key, customer_key, MIN(occurred_at) AS first_contact_at
+    FROM gold.fact_campaign_touch GROUP BY campaign_key, customer_key
+), purchases AS (
+    SELECT order_id, customer_key, MIN(created_at) AS created_at
+    FROM gold.fact_order_line GROUP BY order_id, customer_key
+), matches AS (
+    -- Resolve exposure before report filters; narrowing a campaign cannot erase ambiguity.
+    SELECT f.order_id, f.customer_key, COUNT_BIG(a.campaign_key) AS campaign_count,
+           MIN(a.campaign_key) AS campaign_key, MIN(a.first_contact_at) AS first_contact_at
+    FROM purchases f
+    LEFT JOIN contacts a ON a.customer_key=f.customer_key AND a.first_contact_at<=f.created_at
+    GROUP BY f.order_id, f.customer_key
+)
+SELECT record_kind, campaign_key, customer_key, territory, cohort_date, created_date,
+       first_contact_at, currency, touches, order_id, line_number, content_key, title, genre,
+       distributor, amount_minor, attribution_status, played, engaged, unknown_duration
+FROM gold.campaign_engaged_revenue WHERE record_kind='contact'
+UNION ALL
+SELECT v.record_kind, CASE WHEN m.campaign_count=1 THEN m.campaign_key END,
+       v.customer_key, v.territory,
+       CASE WHEN m.campaign_count=1 THEN CAST(m.first_contact_at AS date) END,
+       v.created_date, CASE WHEN m.campaign_count=1 THEN m.first_contact_at END,
+       v.currency, v.touches, v.order_id, v.line_number, v.content_key, v.title, v.genre,
+       v.distributor, v.amount_minor,
+       CAST(CASE WHEN m.campaign_count=0 THEN 'without_contact'
+                 WHEN m.campaign_count>1 THEN 'ambiguous'
+                 ELSE 'post_contact' END AS varchar(16)),
+       v.played, v.engaged, v.unknown_duration
+FROM gold.campaign_engaged_revenue v
+JOIN matches m ON m.order_id=v.order_id AND m.customer_key=v.customer_key
+WHERE v.record_kind='order';

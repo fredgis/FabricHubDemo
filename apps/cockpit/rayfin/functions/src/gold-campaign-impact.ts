@@ -27,7 +27,7 @@ export function parseCampaignFilters(json: string): CampaignImpactFilters {
   try { value = JSON.parse(json); } catch { throw new Error('Campaign filters must be valid JSON.'); }
   if (!value || typeof value !== 'object' || Array.isArray(value)) throw new Error('Campaign filters must be a JSON object.');
   const input = value as Record<string, unknown>;
-  if (Object.keys(input).some(key => !['from', 'to', 'territory', 'campaignKey', 'currency'].includes(key)))
+  if (Object.keys(input).some(key => !['analysisMode', 'from', 'to', 'territory', 'campaignKey', 'currency'].includes(key)))
     throw new Error('Unsupported Campaign Impact filter.');
   const field = (key: string, max: number): string => {
     const v = input[key] === undefined ? '' : input[key];
@@ -39,13 +39,17 @@ export function parseCampaignFilters(json: string): CampaignImpactFilters {
   if (to) date(to);
   if (from && to) dateRange(from, to);
   if (currency && !/^[A-Z]{3}$/.test(currency)) throw new Error('Select one uppercase three-letter currency. Currencies are not combined.');
-  return { from, to, currency, territory: field('territory', 64), campaignKey: field('campaignKey', 128) };
+  const analysisMode = field('analysisMode', 12) || 'recorded';
+  if (analysisMode !== 'recorded' && analysisMode !== 'post_contact') throw new Error('Choose after-contact analysis or recorded attribution.');
+  return { analysisMode, from, to, currency, territory: field('territory', 64), campaignKey: field('campaignKey', 128) };
 }
 
+const ANALYSIS_ROWS = `SELECT * FROM gold.campaign_engaged_revenue WHERE @analysis_mode='recorded'
+    UNION ALL SELECT * FROM gold.campaign_post_contact_revenue WHERE @analysis_mode='post_contact'`;
 const COHORT = `WITH cohort AS (
-  SELECT v.* FROM gold.campaign_engaged_revenue v
+  SELECT v.* FROM (${ANALYSIS_ROWS}) v
   WHERE v.cohort_date BETWEEN @StartDate AND @EndDate
-    AND (v.record_kind='contact' OR (v.attribution_status='recorded' AND v.currency=@SelectedCurrency))
+    AND (v.record_kind='contact' OR (v.attribution_status IN ('recorded','post_contact') AND v.currency=@SelectedCurrency))
     AND (@territory='' OR v.territory=@territory)
     AND (@campaign_key='' OR v.campaign_key=@campaign_key)
 )`;
@@ -142,10 +146,10 @@ BEGIN TRY
     COUNT_BIG(DISTINCT CASE WHEN attribution_status='without_contact' THEN order_id END) AS linked_without_touch_orders,
     COUNT_BIG(DISTINCT CASE WHEN attribution_status='ambiguous' THEN order_id END) AS ambiguous_orders,
     CONVERT(varchar(40),COALESCE(SUM(CAST(amount_minor AS decimal(38,0))),0)) AS excluded_minor
-    FROM gold.campaign_engaged_revenue
-    WHERE record_kind='order' AND attribution_status<>'recorded'
+    FROM (${ANALYSIS_ROWS}) excluded
+    WHERE record_kind='order' AND attribution_status NOT IN ('recorded','post_contact')
       AND created_date BETWEEN @StartDate AND @EndDate AND currency=@SelectedCurrency
-      AND (@territory='' OR territory=@territory) AND (@campaign_key='' OR campaign_key=@campaign_key)
+      AND (@territory='' OR territory=@territory)
     OPTION (LABEL = 'MSFlix_CampaignImpact');
   COMMIT TRANSACTION;
 END TRY
@@ -221,14 +225,15 @@ export function campaignFromRecordsets(source: Source, filters: CampaignImpactFi
   const published = meta.run_id !== null;
   const result: CampaignImpact = {
     source: { name: source.name, workspace_id: source.workspace_id, item_id: source.item_id,
-      view: 'gold.campaign_engaged_revenue' }, state: 'unpublished',
+      view: filters.analysisMode === 'post_contact' ? 'gold.campaign_post_contact_revenue' : 'gold.campaign_engaged_revenue' }, state: 'unpublished',
     freshness: { queried_at: timestamp(meta.queried_at), published_at: published ? timestamp(meta.completed_at) : null,
       publication_run_id: published ? text(meta.run_id, 128) : null },
     filters: { ...filters, from, to, currency }, options: { currencies: [], territories: [], campaigns: [] },
     summary: zeroMetrics(), campaigns: [], trend: [], titles: [],
     coverage: { unattributed_orders: 0, linked_without_touch_orders: 0, ambiguous_orders: 0, excluded_minor: '0' },
-    methodology: { attribution: 'recorded_only', cohort: 'first_campaign_contact', contact_window_days: null,
-      engagement_percent: 80, coverage_dates: 'order_created' },
+    methodology: { attribution: filters.analysisMode === 'post_contact' ? 'observed_post_contact' : 'recorded_only',
+      cohort: 'first_campaign_contact', contact_window_days: null,
+      engagement_percent: 80, coverage_dates: 'order_created', coverage_campaigns: 'all' },
   };
   if (!published) return result;
   if (sets.length !== 9) invalid();
@@ -281,6 +286,7 @@ export async function readCampaignImpact(binding: AnalyticsBinding, token: strin
   try {
     await connectGoldPool(pool);
     const result = await pool.request()
+      .input('analysis_mode', sql.VarChar(12), filters.analysisMode)
       .input('from_date', sql.Date, filters.from ? new Date(`${filters.from}T00:00:00.000Z`) : null)
       .input('to_date', sql.Date, filters.to ? new Date(`${filters.to}T00:00:00.000Z`) : null)
       .input('territory', sql.VarChar(64), filters.territory)
