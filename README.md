@@ -14,6 +14,8 @@ audiences, actual demonstration rentals, purchases and playback. The cockpit
 executes transactions; the business model consolidates them; Ontology connects
 their customer, campaign, content and commercial relationships.
 
+https://github.com/user-attachments/assets/226308ce-ce07-4e5a-ba60-c2cd0478adc2
+
 ## Where the Gold business tables come from
 
 Overall MSFlix business architecture, with source-to-table lineage.
