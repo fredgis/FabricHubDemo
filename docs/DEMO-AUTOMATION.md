@@ -6,6 +6,36 @@ transaction. This worker propagates those **existing** events and, when explicit
 enabled, consumes the Demo's native-source reload requests. It creates no business
 transactions, exposes no HTTP endpoint, and does not implement Flixy.
 
+## Demo command response recovery
+
+The browser runs each Demo sequentially. It checks `capabilities`, then sends one
+`placeOrder`, `startPlayback`, and `recordProgress` per journey. Each invocation
+uses the native SDK's 60-second timeout. An SDK timeout triggers up to two retries,
+with waits of 2 and 5 seconds. This policy applies only to the Demo runner, not to
+Gold publication or other cockpit calls.
+
+Retries preserve the run ID, customer and offer selection, command parameters,
+and idempotency key. A timed-out response does not prove the SQL transaction
+rolled back. The server returns the original receipt for an already-committed
+command with the same key and fingerprint. The browser must receive a valid
+receipt before advancing; it never resends a confirmed command.
+
+After three timeouts, Demo pauses with the function name and an unconfirmed-result
+message. Use **Retry same run** to continue with the original keys. Authorization
+and business errors, other network errors, and invalid receipts stop immediately;
+they are not retried automatically. Cancellation stops retry waits and prevents
+another attempt. An in-flight command can still commit: a received receipt is
+kept, while an unconfirmed result leaves the run failed and recoverable.
+
+The plan and cursor remain in browser memory when switching cockpit pages. They
+are not durable across a browser reload or tab closure. Finish or recover the
+existing run before reloading to pick up a newly published frontend.
+
+Regression tests use the installed Rayfin SDK, a simulated HTTP transport and a
+controlled clock, including 100 mixed journeys and a response lost after commit.
+They validate recovery and idempotent replay, not the cause of the original
+production timeout. No live Demo run is needed for these tests.
+
 ## Runtime and trigger contract
 
 - Host: an **existing dedicated MSFlix Oracle Linux VM**, selected by explicit

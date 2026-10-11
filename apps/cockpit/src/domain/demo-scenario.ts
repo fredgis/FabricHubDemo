@@ -9,6 +9,8 @@ export type DemoFunctions = {
   [Name in FunctionName]: Pick<MSFlixClient['functions'][Name], 'invoke'>;
 };
 type CommandResult = AppFunctionsSchema['placeOrder']['output'];
+const INVOCATION_OPTIONS = { timeoutMs: 60_000 };
+const TIMEOUT_RETRY_DELAYS_MS = [2_000, 5_000];
 export type DemoConfig = { scenario: DemoScenarioType; count: number; paceMs: number } & (
   | { customerMode?: 'fixed'; customerKey: string }
   | { customerMode: 'random'; customerCount: number }
@@ -170,9 +172,27 @@ export class DemoScenario {
     return this.task;
   }
 
+  private async invokeWithRecovery<T>(name: FunctionName, invoke: () => Promise<T>): Promise<T> {
+    for (let retry = 0; ; retry++) {
+      try { return await invoke(); }
+      catch (error) {
+        // Rayfin reports client timeouts as an un-coded SdkError, not a function failure.
+        const timedOut = error instanceof Error && error.name === 'SdkError'
+          && (!('code' in error) || error.code === undefined)
+          && /^Request timed out after \d+ms$/.test(error.message);
+        if (!timedOut || this.cancelRequested) throw error;
+        if (retry === TIMEOUT_RETRY_DELAYS_MS.length)
+          throw new Error(`${name} did not respond after ${retry + 1} attempts. Its result is unconfirmed.`);
+        await pause(TIMEOUT_RETRY_DELAYS_MS[retry], this.paceController.signal);
+        if (this.cancelRequested) throw error;
+      }
+    }
+  }
+
   private async run(onChange?: (state: DemoRunState) => void): Promise<DemoRunState> {
     try {
-      const capability = await this.functions.capabilities.invoke();
+      const capability = await this.invokeWithRecovery('capabilities', () =>
+        this.functions.capabilities.invoke(undefined, INVOCATION_OPTIONS));
       if (capability.can_operate !== true) throw new Error(capability.reason || 'Operator permission required.');
       while (this.cursor < this.plan.transactions.length * 3) {
         if (this.cancelRequested) break;
@@ -184,20 +204,20 @@ export class DemoScenario {
         let result: CommandResult;
         if (step === 0) {
           command = 'placeOrder';
-          result = await this.functions.placeOrder.invoke({ input: {
+          result = await this.invokeWithRecovery(command, () => this.functions.placeOrder.invoke({ input: {
             customer_key: row.customerKey, offer_key: row.offerKey, idempotency_key: idempotencyKey,
-          } });
+          } }, INVOCATION_OPTIONS));
         } else if (step === 1) {
           command = 'startPlayback';
-          result = await this.functions.startPlayback.invoke({ input: {
+          result = await this.invokeWithRecovery(command, () => this.functions.startPlayback.invoke({ input: {
             order_id: this.receipts[this.cursor - 1].result.entity_key, idempotency_key: idempotencyKey,
-          } });
+          } }, INVOCATION_OPTIONS));
         } else {
           command = 'recordProgress';
-          result = await this.functions.recordProgress.invoke({ input: {
+          result = await this.invokeWithRecovery(command, () => this.functions.recordProgress.invoke({ input: {
             session_id: this.receipts[this.cursor - 1].result.entity_key, position_seconds: row.progressSeconds,
             idempotency_key: idempotencyKey,
-          } });
+          } }, INVOCATION_OPTIONS));
         }
         this.receipts.push({ transactionIndex, command, idempotencyKey, result: confirmedReceipt(result) });
         this.cursor++;

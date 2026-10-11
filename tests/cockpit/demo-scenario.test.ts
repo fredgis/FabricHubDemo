@@ -163,8 +163,8 @@ describe('bounded Demo typed command boundary', () => {
     expect(retried.status).toBe('completed');
     expect(functions.placeOrder.invoke).toHaveBeenCalledOnce();
     expect(vi.mocked(functions.startPlayback.invoke).mock.calls).toEqual([
-      [{ input: { order_id: 'actual-order', idempotency_key: 'demo:retry-a:0:play' } }],
-      [{ input: { order_id: 'actual-order', idempotency_key: 'demo:retry-a:0:play' } }],
+      [{ input: { order_id: 'actual-order', idempotency_key: 'demo:retry-a:0:play' } }, { timeoutMs: 60_000 }],
+      [{ input: { order_id: 'actual-order', idempotency_key: 'demo:retry-a:0:play' } }, { timeoutMs: 60_000 }],
     ]);
     expect(retried.receipts.flatMap(row => row.result.event_ids)).toEqual([
       'order-created', 'order-activated', 'playback-created', 'playback-updated',
@@ -212,6 +212,24 @@ describe('bounded Demo typed command boundary', () => {
     expect(functions.recordProgress.invoke).not.toHaveBeenCalled();
   });
 
+  it.each([
+    new Error('Request timed out after 60000ms'),
+    Object.assign(new Error('Request timed out after 60000ms'), { name: 'FunctionsError' }),
+    Object.assign(new Error('Request timed out after 60000ms'), { name: 'SdkError', code: 'UNAUTHORIZED' }),
+    Object.assign(new Error('Operator permission expired or revoked.'), { name: 'SdkError' }),
+    Object.assign(new Error('fetch failed'), { name: 'NetworkError' }),
+  ])('does not automatically retry non-timeout SDK, authorization or business errors: %s', async error => {
+    const functions = boundary();
+    vi.mocked(functions.placeOrder.invoke).mockRejectedValue(error);
+    const run = new DemoScenario(createDemoPlan({
+      scenario: 'rental', count: 1, paceMs: 0, customerKey: 'MSF-C0001',
+    }, references, 'no-retry'), functions);
+    expect(await run.execute()).toMatchObject({ status: 'failed', error: error.message, receipts: [] });
+    expect(functions.placeOrder.invoke).toHaveBeenCalledOnce();
+    expect(functions.startPlayback.invoke).not.toHaveBeenCalled();
+    expect(functions.recordProgress.invoke).not.toHaveBeenCalled();
+  });
+
   it('does not count or advance a malformed native command response as a persisted receipt', async () => {
     const functions = boundary();
     vi.mocked(functions.placeOrder.invoke).mockResolvedValue({
@@ -224,6 +242,7 @@ describe('bounded Demo typed command boundary', () => {
     expect(await run.execute()).toMatchObject({
       status: 'failed', error: 'Native function returned an invalid command receipt.', receipts: [],
     });
+    expect(functions.placeOrder.invoke).toHaveBeenCalledOnce();
     expect(functions.startPlayback.invoke).not.toHaveBeenCalled();
   });
 
@@ -268,7 +287,7 @@ describe('bounded Demo typed command boundary', () => {
     expect(functions.placeOrder.invoke).toHaveBeenCalledOnce();
     expect(functions.startPlayback.invoke).toHaveBeenCalledWith({ input: {
       order_id: 'committed-order', idempotency_key: 'demo:cancel-a:0:play',
-    } });
+    } }, { timeoutMs: 60_000 });
   });
 
   it('does not issue commands when the current actor capability is denied', async () => {
@@ -303,14 +322,15 @@ describe('bounded Demo typed command boundary', () => {
       { entity_key: 'actual-session', status: 'playing', event_ids: ['order-activated', 'playback-created'] },
       { entity_key: 'actual-session', status: 'playing', event_ids: ['playback-updated'] },
     ]);
+    expect(functions.capabilities.invoke).toHaveBeenCalledWith(undefined, { timeoutMs: 60_000 });
     expect(functions.placeOrder.invoke).toHaveBeenCalledWith({ input: {
       customer_key: 'MSF-C0001', offer_key: 'SINTEL:FR:RENTAL', idempotency_key: 'demo:demo-a:0:order',
-    } });
+    } }, { timeoutMs: 60_000 });
     expect(functions.startPlayback.invoke).toHaveBeenCalledWith({ input: {
       order_id: 'actual-order', idempotency_key: 'demo:demo-a:0:play',
-    } });
+    } }, { timeoutMs: 60_000 });
     expect(functions.recordProgress.invoke).toHaveBeenCalledWith({ input: {
       session_id: 'actual-session', position_seconds: 60, idempotency_key: 'demo:demo-a:0:progress',
-    } });
+    } }, { timeoutMs: 60_000 });
   });
 });

@@ -167,7 +167,7 @@ describe('dedicated Demo controls', () => {
     expect(sdk.functions.placeOrder.invoke).toHaveBeenCalledOnce();
     expect(sdk.functions.startPlayback.invoke).toHaveBeenCalledWith({
       input: { order_id: 'accepted-order', idempotency_key: expect.any(String) },
-    });
+    }, { timeoutMs: 60_000 });
   });
 
   it('continues an in-flight Demo while inactive and retains failed-command retry keys on return', async () => {
