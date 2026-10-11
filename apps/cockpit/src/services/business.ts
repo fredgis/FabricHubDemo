@@ -1,4 +1,5 @@
 import type { AppSchema } from '../../rayfin/data/schema';
+import type { OperationalOrdersPage } from '../../rayfin/functions/src/operational-orders';
 import { getRayfinClient } from './rayfinClient';
 
 export type Snapshot = {
@@ -7,7 +8,11 @@ export type Snapshot = {
   playback: AppSchema['Playback'][]; outbox: AppSchema['Outbox'][];
   commands: AppSchema['ControlCommand'][]; campaigns: AppSchema['Campaign'][];
   members: AppSchema['CampaignMember'][]; links: AppSchema['IntegrationLink'][];
+  pagination?: Pick<OperationalOrdersPage, 'orders' | 'sessions'>;
 };
+export type OrderReferences = Pick<Snapshot, 'content' | 'customers' | 'offers'>;
+export type OrdersPaging = { ordersPage: number; playbackPage: number };
+export type OrdersReadOptions = OrdersPaging & { references?: OrderReferences };
 
 export type Page<T> = { items: T[]; hasNextPage: boolean; endCursor?: string | null };
 function paged<T>(query: { after(cursor: string): { executePaginated(): Promise<Page<T>> };
@@ -28,24 +33,29 @@ export async function allPages<T>(page: (cursor?: string) => Promise<Page<T>>): 
 }
 
 const operationalCollections = {
-  orders: ['content', 'customers', 'offers', 'rentals', 'playback'],
+  orders: ['content', 'customers', 'offers'],
   demo: ['content', 'customers', 'offers', 'outbox', 'commands'],
   operations: ['commands', 'links'],
 } as const satisfies Record<string, readonly (keyof Snapshot)[]>;
 export type OperationalScope = keyof typeof operationalCollections;
 
-export async function loadSnapshot(scope?: OperationalScope): Promise<Snapshot> {
-  const data = getRayfinClient().data;
+export async function loadSnapshot(scope?: OperationalScope, options?: OrdersReadOptions): Promise<Snapshot> {
+  const client = getRayfinClient();
+  const data = client.data;
+  const ledger = scope === 'orders' ? client.functions.operationalOrders.invoke({
+    ordersPage: options?.ordersPage ?? 1, playbackPage: options?.playbackPage ?? 1,
+  }) : undefined;
+  const references = scope === 'orders' ? options?.references : undefined;
   const collections = scope ? new Set<keyof Snapshot>(operationalCollections[scope]) : undefined;
   const read = <T>(key: keyof Snapshot, query: () => Promise<T[]>): Promise<T[]> =>
     !collections || collections.has(key) ? query() : Promise.resolve([]);
-  const [content, customers, offers, rentals, playback, outbox, commands, campaigns, members, links] =
+  const [content, customers, offers, rentals, playback, outbox, commands, campaigns, members, links, page] =
     await Promise.all([
-      read('content', () => allPages(c => paged(data.Content.select(['id', 'content_key', 'title', 'release_date', 'duration_seconds',
+      references?.content ?? read('content', () => allPages(c => paged(data.Content.select(['id', 'content_key', 'title', 'release_date', 'duration_seconds',
         'genre', 'image_url', 'source_url', 'license', 'attribution','metadata_license','metadata_date_precision',
         'artwork_available','artwork_license','artwork_source_url','artwork_author']).orderBy({ title: 'asc' }).first(5000), c))),
-      read('customers', () => allPages(c => paged(data.Customer.select(['id', 'customer_key', 'name', 'territory']).orderBy({ customer_key: 'asc' }).first(5000), c))),
-      read('offers', () => allPages(c => paged(data.Offer.select(['id', 'offer_key', 'content_key', 'territory', 'currency', 'transaction_type',
+      references?.customers ?? read('customers', () => allPages(c => paged(data.Customer.select(['id', 'customer_key', 'name', 'territory']).orderBy({ customer_key: 'asc' }).first(5000), c))),
+      references?.offers ?? read('offers', () => allPages(c => paged(data.Offer.select(['id', 'offer_key', 'content_key', 'territory', 'currency', 'transaction_type',
         'price_minor', 'start_window_hours', 'play_window_hours']).orderBy({ offer_key: 'asc' }).first(5000), c))),
       read('rentals', () => allPages(c => paged(data.Rental.select(['id', 'order_id', 'customer_key', 'offer_key', 'status', 'amount_minor', 'currency',
         'created_at', 'start_deadline', 'first_play_at', 'expires_at']).orderBy({ order_id: 'asc' }).first(5000), c))),
@@ -62,9 +72,11 @@ export async function loadSnapshot(scope?: OperationalScope): Promise<Snapshot> 
         'status']).orderBy({ member_key: 'asc' }).first(500), c))),
       read('links', () => allPages(c => paged(data.IntegrationLink.select(['id', 'link_key', 'name', 'type', 'url',
         'description']).orderBy({ link_key: 'asc' }).first(500), c))),
+      ledger,
     ]);
-  return { content, customers, offers, rentals, playback, outbox: outbox as AppSchema['Outbox'][],
-    commands, campaigns, members, links };
+  return { content, customers, offers, rentals: page?.rentals ?? rentals, playback: page?.playback ?? playback,
+    outbox: outbox as AppSchema['Outbox'][], commands, campaigns, members, links,
+    ...(page ? { pagination: { orders: page.orders, sessions: page.sessions } } : {}) };
 }
 
 export function money(minor: number, currency: string): string {
@@ -80,6 +92,7 @@ export function money(minor: number, currency: string): string {
 }
 
 export function revenueByCurrency(snapshot: Snapshot): [string, number][] {
+  if (snapshot.pagination) throw new Error('Global sales totals require a complete snapshot.');
   const totals = new Map<string, number>();
   for (const row of snapshot.rentals) {
     // Expired rentals remain booked sales. No bank payment or margin is implied.

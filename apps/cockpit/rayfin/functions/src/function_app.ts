@@ -3,6 +3,8 @@ import type { AppSchema, OperatorGrant, RuntimeBinding } from '../../data/schema
 import { assertOperator, epoch, type Capabilities, type CommandResult, type ControlInput, type Health,
   type OrderInput, type PlayInput, type ProgressInput } from './domain.js';
 import { atomic, poolFor, type Store } from './storage.js';
+import { withOperationalPool } from './operational-connection.js';
+import { assertOrdersPage, readOperationalOrders, type OperationalOrdersPage } from './operational-orders.js';
 import * as commands from './commands.js';
 import {readGoldDashboard,type GoldDashboard} from './gold-dashboard.js';
 import{goldView,readGoldPages,type GoldPages}from'./gold-pages.js';
@@ -41,12 +43,19 @@ udf.func('capabilities', async (ctx: RayfinContext<AppSchema>): Promise<Capabili
   return { can_operate: allowed, reason: allowed ? 'Time-bounded operator grant' : 'Read-only viewer. Ask an administrator for an operator grant.' };
 }, []);
 udf.func('health', async (ctx: RayfinContext<AppSchema, AudienceType.Sql>): Promise<Health> => {
-  const pool = await poolFor(await binding(ctx), ctx.Tokens.Sql);
-  try {
+  return withOperationalPool(await binding(ctx), ctx.Tokens.Sql, async pool => {
     const count = await pool.request().query('SELECT COUNT(*) AS pending FROM dbo.Outboxes WHERE published_at IS NULL');
     return { database: 'App-linked SQL and expected tables verified', functions: 'Native UDF invocation verified',
       outbox_pending: count.recordset[0].pending, broker: 'Delivery is acknowledged by the external producer, not by this app.' };
-  } finally { await pool.close(); }
+  });
+}, []);
+udf.func('operationalOrders', async (ordersPage: number, playbackPage: number,
+  ctx: RayfinContext<AppSchema, AudienceType.Sql>): Promise<OperationalOrdersPage> => {
+  assertOrdersPage(ordersPage, 'ordersPage');
+  assertOrdersPage(playbackPage, 'playbackPage');
+  // Rental/Playback expose all rows to authenticated readers, with no field exclusions or row policy.
+  // Keep the binding lookup caller-scoped; SQL tokens represent the app identity, not the viewer.
+  return readOperationalOrders(await binding(ctx), ctx.Tokens.Sql, ordersPage, playbackPage);
 }, []);
 async function analytics(ctx:RayfinContext<AppSchema>){
   const[operational,configured]=await Promise.all([binding(ctx),ctx.getDataClient().AnalyticsBinding.select(['id','binding_key','name','sql_server',

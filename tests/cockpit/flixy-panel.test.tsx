@@ -1,8 +1,10 @@
-import { afterEach, expect, it, vi } from 'vitest';
+import { afterEach, beforeAll, expect, it, vi } from 'vitest';
 import { act, cleanup, fireEvent, render, screen, within } from '@testing-library/react';
 import { FlixyAssistant } from '../../apps/cockpit/src/components/FlixyAssistant';
 import type { FlixyAnswer, FlixyAsk } from '../../apps/cockpit/src/domain/flixy-chat';
+import { loadMarkdownCode } from '../../apps/cockpit/src/services/deferred';
 
+beforeAll(async () => { await loadMarkdownCode(); });
 afterEach(cleanup);
 
 function deferredAnswer() {

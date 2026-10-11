@@ -1,13 +1,14 @@
 import sql from 'mssql';
 import type{AnalyticsBinding}from'../../data/schema.js';
-import{assertGoldBinding,dashboardFromRecordsets,GOLD_DASHBOARD_QUERY,withGoldPool,type GoldDashboard}from'./gold-dashboard.js';
+import{assertGoldBinding,catalogDashboardFromRecordsets,dashboardFromRecordsets,GOLD_DASHBOARD_QUERY,GOLD_PUBLICATION_QUERY,
+  withGoldPool,type GoldDashboard,type GoldCatalogDashboard}from'./gold-dashboard.js';
 export type GoldView='all'|'overview'|'catalog'|'audiences'|'demo';
 export function goldView(value:string):GoldView{
   if(value==='all'||value==='overview'||value==='catalog'||value==='audiences'||value==='demo')return value;
   throw new Error('Unsupported Gold business page.');
 }
 export type GoldPages={
-  dashboard:GoldDashboard;
+  dashboard:GoldDashboard|GoldCatalogDashboard;
   catalog:Record<string,string|null>[];
   customers:Record<string,string|null>[];
   offers:Record<string,string|null>[];
@@ -25,7 +26,7 @@ export async function readGoldPages(binding:AnalyticsBinding,token:string,reques
   try{
     return await withGoldPool(binding,token,async pool=>{
     const result=await pool.request().input('references',sql.Int,10001).input('activity',sql.Int,activity)
-      .input('view',sql.VarChar(16),view).query(GOLD_DASHBOARD_QUERY+`
+      .input('view',sql.VarChar(16),view).query((view==='catalog'?GOLD_PUBLICATION_QUERY:GOLD_DASHBOARD_QUERY)+`
       SELECT TOP (@references) content_key,title,CONVERT(varchar(10),release_date,23) AS release_date,
         CONVERT(varchar(40),duration_seconds) AS duration_seconds,genre,image_url,source_url,license,attribution,distributor_key
       FROM gold.dim_content
@@ -56,9 +57,9 @@ export async function readGoldPages(binding:AnalyticsBinding,token:string,reques
       SELECT TOP (@references) campaign_key,name,territory,channel FROM gold.dim_campaign
       WHERE @view IN ('all','audiences') ORDER BY campaign_key;`);
     const allSets=result.recordsets as sql.IRecordSet<unknown>[];
-    const dashboard=dashboardFromRecordsets(binding,allSets);
+    const dashboard=view==='catalog'?catalogDashboardFromRecordsets(binding,allSets):dashboardFromRecordsets(binding,allSets);
     if(dashboard.state==='unpublished')return{dashboard,catalog:[],customers:[],offers:[],orders:[],sessions:[],campaigns:[],window};
-    const sets=allSets.slice(5) as sql.IRecordSet<Record<string,string|null>>[];
+    const sets=allSets.slice(view==='catalog'?1:5) as sql.IRecordSet<Record<string,string|null>>[];
     if([sets[0],sets[1],sets[2],sets[5]].some(rows=>rows.length>10000))
       throw new Error('Gold reference collection exceeds safe read boundary; no partial totals are presented.');
     return{dashboard,catalog:sets[0],customers:sets[1],offers:sets[2],orders:sets[3],sessions:sets[4],campaigns:sets[5],

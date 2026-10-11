@@ -1,7 +1,7 @@
-import { useCallback, useEffect, useId, useRef, useState } from 'react';
+import { lazy, useCallback, useEffect, useId, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
-import Markdown from 'react-markdown';
-import remarkGfm from 'remark-gfm';
+import { DeferredPanel } from '@/components/DeferredPanel';
+import { canPrefetch, loadMarkdownCode } from '@/services/deferred';
 import { ArrowCounterClockwise, ArrowUpRight, ChatCircleDots, PaperPlaneRight, Stop, Trash, X } from '@phosphor-icons/react';
 import {
   boundFlixyHistory,
@@ -24,6 +24,7 @@ type Attempt = { question: string } & (
   | { status: 'error'; message: string }
 );
 type ActiveRequest = { controller: AbortController; question: string };
+const Markdown = lazy(loadMarkdownCode);
 
 const SUGGESTIONS = [
   'Which films have the most rentals?',
@@ -36,25 +37,9 @@ function TranscriptItem({ role, text, sources = [] }: TranscriptMessage) {
     <span className="flixy-assistant__speaker">{role === 'user' ? 'You' : 'Flixy'}</span>
     {role === 'user' ? <p className="flixy-assistant__message-text">{text}</p>
       : <div className="flixy-assistant__markdown">
-        <Markdown remarkPlugins={[remarkGfm]} skipHtml
-          allowedElements={['p', 'br', 'strong', 'em', 'del', 'ul', 'ol', 'li', 'blockquote',
-            'pre', 'code', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'table', 'thead', 'tbody',
-            'tr', 'th', 'td', 'a', 'hr']}
-          urlTransform={url => safeFlixySourceUrl(url) ?? ''}
-          components={{
-            a: ({ href, children }) => href
-              ? <a href={href} target="_blank" rel="noopener noreferrer">{children}
-                <span className="flixy-assistant__sr-only"> (opens in a new tab)</span></a>
-              : <span>{children}</span>,
-            h1: ({ children }) => <h3>{children}</h3>,
-            h2: ({ children }) => <h3>{children}</h3>,
-            h3: ({ children }) => <h3>{children}</h3>,
-            h4: ({ children }) => <h4>{children}</h4>,
-            h5: ({ children }) => <h4>{children}</h4>,
-            h6: ({ children }) => <h4>{children}</h4>,
-            table: ({ children }) => <div className="flixy-assistant__table-scroll"
-              role="region" aria-label="Response table" tabIndex={0}><table>{children}</table></div>,
-          }}>{text}</Markdown>
+        <DeferredPanel label="Flixy formatting" fallback={<p className="flixy-assistant__message-text">{text}</p>}>
+          <Markdown text={text} />
+        </DeferredPanel>
       </div>}
     {sources.length > 0 && <div className="flixy-assistant__sources">
       <p>Sources</p>
@@ -106,6 +91,10 @@ function FlixySession({ ask }: Pick<FlixyAssistantProps, 'ask'>) {
     setOpen(false);
     triggerRef.current?.focus({ preventScroll: true });
   }, []);
+
+  useEffect(() => {
+    if (open && canPrefetch()) void loadMarkdownCode().catch(() => {});
+  }, [open]);
 
   useEffect(() => {
     if (!open) return;

@@ -2,7 +2,7 @@ import{useCallback,useEffect,useState}from'react';
 import{ArrowsClockwise}from'@phosphor-icons/react';
 import{getRayfinClient}from'@/services/rayfinClient';
 import{dateLabel,safeError}from'@/services/business';
-import type{GoldDashboard}from'../../rayfin/functions/src/gold-dashboard';
+import type{GoldDashboard,GoldCatalogDashboard}from'../../rayfin/functions/src/gold-dashboard';
 
 function exactMoney(value:string,currency:string):string{
   const minor=BigInt(value);
@@ -16,9 +16,9 @@ function sum(rows:{current_order_lines?:string;current_sessions?:string}[],field
   return rows.reduce((total,row)=>total+BigInt(row[field]??'0'),0n).toLocaleString('en');
 }
 export function GoldBusinessDashboard({refreshKey=0,dashboard,onRefresh}:{
-  refreshKey?:number;dashboard?:GoldDashboard;onRefresh?:()=>void;
+  refreshKey?:number;dashboard?:GoldDashboard|GoldCatalogDashboard;onRefresh?:()=>void;
 }){
-  const[data,setData]=useState<GoldDashboard>();
+  const[remote,setData]=useState<GoldDashboard>();
   const[error,setError]=useState('');
   const[loading,setLoading]=useState(true);
   const load=useCallback(async()=>{
@@ -27,9 +27,11 @@ export function GoldBusinessDashboard({refreshKey=0,dashboard,onRefresh}:{
     catch(err){setError(safeError(err));}finally{setLoading(false);}
   },[]);
   useEffect(()=>{
-    if(dashboard){setData(dashboard);setLoading(false);setError('');}
+    if(dashboard){setLoading(false);setError('');}
     else void load();
   },[load,refreshKey,dashboard]);
+  const data=dashboard??remote;
+  if(data&&'scope'in data)return null;
   const totals=new Map<string,bigint>();
   for(const row of data?.commercial??[])totals.set(row.currency,(totals.get(row.currency)??0n)+BigInt(row.booked_amount_minor));
   return <section className="gold-dashboard" aria-label="Gold Warehouse business dashboard" aria-busy={loading}

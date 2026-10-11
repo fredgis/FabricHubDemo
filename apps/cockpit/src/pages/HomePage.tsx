@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
+import { lazy, useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { ArrowRight, ArrowsClockwise, Broadcast, ChartBar, FilmSlate, Graph, House,
   Play, ShoppingBag, SignOut, Target, UsersThree } from '@phosphor-icons/react';
 import { useAuth } from '@/hooks/AuthContext';
@@ -6,19 +6,26 @@ import { getRayfinClient } from '@/services/rayfinClient';
 import { createHealthReader, type HealthRead, type HealthReader } from '@/services/health';
 import { dateLabel, money, safeError, safeUrl, type Snapshot } from '@/services/business';
 import {GoldBusinessDashboard}from'@/components/GoldBusinessDashboard';
-import { OntologyGraph, type GraphReadState } from '@/components/OntologyGraph';
+import type { GraphReadState } from '@/components/OntologyGraph';
+import { DeferredPanel } from '@/components/DeferredPanel';
+import { LedgerPagination } from '@/components/LedgerPagination';
+import { canPrefetch, duringIdle, loadGraphCode, loadInsightsCode, loadCampaignCode, loadMarkdownCode } from '@/services/deferred';
 import { useCockpitReads } from '@/hooks/useCockpitReads';
 import type{GoldPages}from'../../rayfin/functions/src/gold-pages';
 import{catalogArt}from'@/assets/catalog-art.generated';
 import { catalogArtVariants } from '@/assets/catalog-art-variants.generated';
 import { DemoPage } from '@/pages/DemoPage';
-import { InsightsPage, type InsightsReadState } from '@/pages/InsightsPage';
-import { CampaignImpactPage, type CampaignImpactReadState } from '@/pages/CampaignImpactPage';
+import type { InsightsReadState } from '@/pages/InsightsPage';
+import type { CampaignImpactReadState } from '@/pages/CampaignImpactPage';
 import { FlixyAssistant } from '@/components/FlixyAssistant';
 import { Artwork } from '@/components/CatalogArtwork';
 import { askFlixy } from '@/services/flixy';
 import type { Rental } from '../../rayfin/data/schema';
 import type { Capabilities, CommandResult } from '../../rayfin/functions/src/domain';
+
+const OntologyGraph = lazy(loadGraphCode);
+const InsightsPage = lazy(loadInsightsCode);
+const CampaignImpactPage = lazy(loadCampaignCode);
 
 const sections = [
   { key: 'overview', name: 'Overview', icon: House },
@@ -53,13 +60,22 @@ function Status({ value }: { value: string }) {
 }
 export { Artwork } from '@/components/CatalogArtwork';
 
-export function HomePage({ route = '/', onNavigate }: {
+type HomePageProps = {
   route?: '/' | '/campaign-impact'; onNavigate?: (path: '/' | '/campaign-impact') => void;
+};
+
+export function HomePage(props: HomePageProps) {
+  const { user } = useAuth();
+  const [localSection, setSection] = useState<Section>('overview');
+  return <CockpitHome key={user?.id} {...props} localSection={localSection} setSection={setSection} />;
+}
+
+function CockpitHome({ route = '/', onNavigate, localSection, setSection }: HomePageProps & {
+  localSection: Section; setSection: (section: Section) => void;
 }) {
   const { user, signOut } = useAuth();
   // The auth guard unmounts this cache on sign-out; identity changes replace it too.
   const healthReader = useMemo(() => ({ userId: user?.id, read: createHealthReader() }), [user?.id]);
-  const [localSection, setSection] = useState<Section>('overview');
   const section = route === '/campaign-impact' ? 'campaign-impact' : localSection;
   const [graphVisited, setGraphVisited] = useState(false);
   const [graphRefreshKey, setGraphRefreshKey] = useState(0);
@@ -70,7 +86,10 @@ export function HomePage({ route = '/', onNavigate }: {
   const [campaignVisited, setCampaignVisited] = useState(route === '/campaign-impact');
   const [campaignRefreshKey, setCampaignRefreshKey] = useState(0);
   const [campaignRead, setCampaignRead] = useState<CampaignImpactReadState>({ loading: false, queriedAt: null });
-  const { snapshot, loading, error, updated, refresh, gold, goldLoading, goldError } = useCockpitReads(section);
+  const { snapshot, loading, error, updated, refresh, prefetch, cancelPrefetch, setOrderPages,
+    gold, goldLoading, goldError } = useCockpitReads(section);
+  const [intent, setIntent] = useState<Section | null>(null);
+  const codePrepared = useRef(false);
   const [capabilities, setCapabilities] = useState<Capabilities>({ can_operate: false, reason: 'Checking command permissions…' });
   const [permissionError, setPermissionError] = useState('');
   const [busy, setBusy] = useState(false);
@@ -89,22 +108,56 @@ export function HomePage({ route = '/', onNavigate }: {
   }, []);
 
   const command = async (identity: string, action: Command) => {
-    if (inFlight.current || !capabilities.can_operate) return;
+    if (inFlight.current || !capabilities.can_operate || loading || error) return;
     inFlight.current = true; setBusy(true); setCommandError(''); setReceipt(undefined);
     const id = commandKeys.current.get(identity) ?? crypto.randomUUID();
     commandKeys.current.set(identity, id);
+    let persisted = false;
     try {
       const result = await action(id);
       setReceipt(result); commandKeys.current.delete(identity);
-      await refresh();
+      persisted = true;
     } catch (err) { setCommandError(safeError(err)); }
-    finally { inFlight.current = false; setBusy(false); }
+    finally {
+      setBusy(false);
+      if (!persisted) inFlight.current = false;
+    }
+    // A successful command is confirmed now; stale records stay locked until reconciliation ends.
+    if (persisted) void refresh().finally(() => { inFlight.current = false; });
   };
   const canOperate = capabilities.can_operate && !busy && !loading && !error;
   const context = { snapshot, canOperate, busy, command };
   const selected = sections.find(s => s.key === section)!;
   const readAt = section === 'graph' ? graphRead.queriedAt : section === 'campaign-impact' ? campaignRead.queriedAt : section === 'insights' ? insightsRead.queriedAt : gold?.pages.dashboard.freshness.queried_at ?? updated;
   const refreshing = section === 'graph' ? graphRead.loading : section === 'campaign-impact' ? campaignRead.loading : section === 'insights' ? insightsRead.loading : loading || goldLoading;
+  useEffect(() => {
+    if (!intent || intent === section || refreshing || busy || !canPrefetch()) return;
+    const timer = window.setTimeout(() => {
+      if (intent === 'catalog' || intent === 'audiences') void prefetch(intent);
+      const load = intent === 'graph' ? loadGraphCode : intent === 'insights' ? loadInsightsCode
+        : intent === 'campaign-impact' ? loadCampaignCode : undefined;
+      if (load) void load().catch(() => {});
+    }, 120);
+    return () => { window.clearTimeout(timer); cancelPrefetch(); };
+  }, [intent, section, refreshing, busy, prefetch, cancelPrefetch]);
+
+  useEffect(() => {
+    if (refreshing || busy || codePrepared.current || !canPrefetch()) return;
+    let stopped = false;
+    let cancel = () => {};
+    const loaders = [loadGraphCode, loadInsightsCode, loadCampaignCode, loadMarkdownCode];
+    const next = () => {
+      if (stopped) return;
+      const load = loaders.shift();
+      if (!load) { codePrepared.current = true; return; }
+      cancel = duringIdle(() => {
+        if (!stopped && canPrefetch()) void load().catch(() => {}).finally(next);
+      });
+    };
+    next();
+    return () => { stopped = true; cancel(); };
+  }, [refreshing, busy]);
+
   const refreshSection = () => {
     if (section === 'graph') setGraphRefreshKey(value => value + 1);
     else if (section === 'insights') setInsightsRefreshKey(value => value + 1);
@@ -112,6 +165,8 @@ export function HomePage({ route = '/', onNavigate }: {
     else void refresh();
   };
   const selectSection = (next: Section) => {
+    setIntent(null);
+    cancelPrefetch();
     if (next === 'graph') setGraphVisited(true);
     if (next === 'insights') setInsightsVisited(true);
     if (next === 'campaign-impact') {
@@ -131,6 +186,8 @@ export function HomePage({ route = '/', onNavigate }: {
       <a className="brand" href="/" aria-label="MSFlix home">MS<span>FLIX</span><small>BUSINESS CONTROL</small></a>
       <nav aria-label="Main navigation">{sections.map(({ key, name, icon: Icon }) =>
         <button key={key} aria-current={section === key ? 'page' : undefined}
+          onPointerEnter={() => setIntent(key)} onPointerLeave={() => setIntent(null)}
+          onFocus={() => setIntent(key)} onBlur={() => setIntent(null)}
           onClick={() => selectSection(key)}><Icon size={20} weight={section === key ? 'fill' : 'regular'} aria-hidden="true" />{name}</button>)}</nav>
       <div className="sidebar-bottom"><span className="workspace-label">MSFlix workspace</span>
         <strong>{user?.name}</strong><p>{capabilities.can_operate ? 'Operator' : 'Viewer'}</p>
@@ -171,17 +228,23 @@ export function HomePage({ route = '/', onNavigate }: {
             {section==='catalog'&&<Catalog data={gold.snapshot} navigate={selectSection}/>}
             {section==='audiences'&&<Audiences data={gold.snapshot} dashboard={gold.pages.dashboard}/>}
           </>}</>}
-        {graphVisited&&<div hidden={section!=='graph'}><OntologyGraph active={section==='graph'}
-          refreshKey={graphRefreshKey} onRead={setGraphRead}/></div>}
-        {insightsVisited && <div hidden={section !== 'insights'}><InsightsPage active={section === 'insights'}
-          refreshKey={insightsRefreshKey} onRead={setInsightsRead} /></div>}
-        {(campaignVisited || section === 'campaign-impact') && <div hidden={section !== 'campaign-impact'}><CampaignImpactPage active={section === 'campaign-impact'}
-          refreshKey={campaignRefreshKey} onRead={setCampaignRead} /></div>}
+        {graphVisited && <div hidden={section !== 'graph'}><DeferredPanel label="Business Graph">
+          <OntologyGraph active={section === 'graph'} refreshKey={graphRefreshKey} onRead={setGraphRead} />
+        </DeferredPanel></div>}
+        {insightsVisited && <div hidden={section !== 'insights'}><DeferredPanel label="MSFlix Insights">
+          <InsightsPage active={section === 'insights'} refreshKey={insightsRefreshKey} onRead={setInsightsRead} />
+        </DeferredPanel></div>}
+        {(campaignVisited || section === 'campaign-impact') && <div hidden={section !== 'campaign-impact'}><DeferredPanel label="Campaign Impact">
+          <CampaignImpactPage active={section === 'campaign-impact'} refreshKey={campaignRefreshKey} onRead={setCampaignRead} />
+        </DeferredPanel></div>}
         <div hidden={section !== 'demo'}><DemoPage active={section === 'demo'} snapshot={snapshot} capabilities={capabilities}
           loading={loading} readError={error} busy={busy} snapshotUpdatedAt={updated}
           gold={gold?.pages} goldLoading={goldLoading} goldError={goldError} onRefresh={refresh} /></div>
         {['orders','operations'].includes(section)&&(loading&&!snapshot?<LoadingState/>:snapshot&&<>
-          {section === 'orders' && <Orders {...context} snapshot={snapshot} />}
+          {section === 'orders' && <Orders {...context} snapshot={snapshot} loading={loading}
+            paginationDisabled={loading || busy || Boolean(error)}
+            onOrdersPage={page => setOrderPages(current => ({ ...current, ordersPage: page }))}
+            onPlaybackPage={page => setOrderPages(current => ({ ...current, playbackPage: page }))} />}
           {section === 'operations' && <Operations key={healthReader.userId} {...context} snapshot={snapshot} readHealth={healthReader.read} />}
         </>)}
       </main>
@@ -246,7 +309,10 @@ function Catalog({ data, navigate }: { data: Snapshot; navigate: (section: Secti
 
 type CommandContext = { snapshot: Snapshot | null; canOperate: boolean; busy: boolean;
   command: (identity: string, action: Command) => Promise<void> };
-function Orders({ snapshot: data, canOperate, busy, command }: CommandContext & { snapshot: Snapshot }) {
+function Orders({ snapshot: data, canOperate, busy, command, loading, paginationDisabled, onOrdersPage, onPlaybackPage }: CommandContext & {
+  snapshot: Snapshot; loading: boolean; paginationDisabled: boolean;
+  onOrdersPage: (page: number) => void; onPlaybackPage: (page: number) => void;
+}) {
   const [customer, setCustomer] = useState('');
   const [offerKey, setOfferKey] = useState('');
   const selectedCustomer = data.customers.find(c => c.customer_key === customer);
@@ -272,12 +338,19 @@ function Orders({ snapshot: data, canOperate, busy, command }: CommandContext & 
     {offer && <p className="offer-confirmation">{money(offer.price_minor, offer.currency)} recorded.
       {offer.transaction_type === 'TVOD' ? ` Start within ${offer.start_window_hours}h; ${offer.play_window_hours}h from first playback.` : ' Purchase entitlement has no rental expiry.'}</p>}
   </form></section>
-    <section><h2>Orders & entitlements</h2><OrderTable data={data} renderAction={order =>
+    {loading && <p className="permission-note" role="status">Reading orders and playback. Commands are paused until this read finishes.</p>}
+    <section id="orders-ledger" aria-busy={loading}><h2>Orders & entitlements</h2>
+      {data.pagination && <LedgerPagination label="Orders" {...data.pagination.orders}
+        disabled={paginationDisabled} onPage={onOrdersPage} />}
+      <OrderTable data={data} renderAction={order =>
       <button disabled={!canOperate || !['booked', 'active', 'purchased'].includes(order.status)}
         onClick={() => void command(`play:${order.order_id}`, id => getRayfinClient().functions.startPlayback.invoke({ input: {
           order_id: order.order_id, idempotency_key: id,
         } }))}><Play aria-hidden="true" /> Start playback</button>} /></section>
-    <section className="playback-section"><h2>Playback ledger</h2>{data.playback.length ?
+    <section id="playback-ledger" className="playback-section" aria-busy={loading}><h2>Playback ledger</h2>
+      {data.pagination && <LedgerPagination label="Playback" {...data.pagination.sessions}
+        disabled={paginationDisabled} onPage={onPlaybackPage} />}
+      {data.playback.length ?
       <div className="playback-grid">{data.playback.map(session => <PlaybackControl key={session.session_id}
         data={data} session={session} canOperate={canOperate} command={command} />)}</div>
       : <p className="muted">No playback sessions. Start an eligible persisted entitlement above.</p>}</section>

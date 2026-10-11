@@ -95,7 +95,9 @@ it('caches each operational screen separately and revalidates only after stale r
     expect(result.current.snapshot).toBeNull();
     await waitFor(() => expect(result.current.snapshot).toBe(snapshots[scope]));
   }
-  expect(readers.operational.mock.calls).toEqual([['orders'], ['demo'], ['operations']]);
+  expect(readers.operational.mock.calls).toEqual([
+    ['orders', { ordersPage: 1, playbackPage: 1 }], ['demo'], ['operations'],
+  ]);
   rerender({ section: 'orders' });
   expect(result.current.snapshot).toBe(snapshots.orders);
   const updated = result.current.updated;
@@ -107,7 +109,7 @@ it('caches each operational screen separately and revalidates only after stale r
   rerender({ section: 'orders' });
   await waitFor(() => expect(result.current.loading).toBe(false));
   expect(readers.operational).toHaveBeenCalledTimes(4);
-  expect(readers.operational).toHaveBeenLastCalledWith('orders');
+  expect(readers.operational).toHaveBeenLastCalledWith('orders', { ordersPage: 1, playbackPage: 1 });
   expect(result.current.updated).not.toEqual(updated);
 });
 
@@ -149,7 +151,10 @@ it('reloads the currently selected scope after a command and invalidates other f
   expect(result.current.snapshot).toBe(authoritative);
   rerender({ section: 'orders' });
   await waitFor(() => expect(result.current.loading).toBe(false));
-  expect(readers.operational.mock.calls).toEqual([['orders'], ['operations'], ['operations'], ['orders']]);
+  expect(readers.operational.mock.calls).toEqual([
+    ['orders', { ordersPage: 1, playbackPage: 1 }], ['operations'], ['operations'],
+    ['orders', { ordersPage: 1, playbackPage: 1 }],
+  ]);
 });
 
 it.each(['demo', 'operations'])('coalesces scope reads on return and keeps a late Orders response out of %s', async scope => {
@@ -161,7 +166,7 @@ it.each(['demo', 'operations'])('coalesces scope reads on return and keeps a lat
     { initialProps: { section: 'orders' } });
   rerender({ section: scope });
   rerender({ section: 'orders' });
-  expect(readers.operational.mock.calls).toEqual([['orders'], [scope]]);
+  expect(readers.operational.mock.calls).toEqual([['orders', { ordersPage: 1, playbackPage: 1 }], [scope]]);
   rerender({ section: scope });
   const selectedSnapshot = { ...snapshot };
   await act(async () => { finishSelected(selectedSnapshot); });

@@ -2,6 +2,7 @@ import { createHash, randomUUID } from 'node:crypto';
 import sql from 'mssql';
 import type { RuntimeBinding, OperatorGrant } from '../../data/schema.js';
 import { canonical, key, type CommandResult } from './domain.js';
+import { connectOperationalPool, operationalPool, validateOperationalPool } from './operational-connection.js';
 
 export type Store = { tx: sql.Transaction; now: Date; runId: string; correlationId: string };
 export type StoredEvent = { event_id: string; event_type: string; schema_version: number;
@@ -17,39 +18,13 @@ export function input(req: sql.Request, name: string, value: unknown): sql.Reque
   return req.input(name, sql.NVarChar(4000), String(value));
 }
 
-// Identifiers are closed constants from server source, never supplied by a caller.
-const TABLES = ['Contents', 'Customers', 'Offers', 'Rentals', 'Playbacks', 'Outboxes', 'ControlCommands',
-  'OperatorGrants', 'RuntimeBindings', 'CommandReceipts', 'EventSequences'] as const;
+// Commands deliberately keep a dedicated pool until their SERIALIZABLE transaction has ended.
+// Sharing is limited to health/paging reads; mutation retry and cleanup semantics stay unchanged.
 export async function poolFor(binding: RuntimeBinding, token: string): Promise<sql.ConnectionPool> {
-  if (!binding.verified || binding.binding_key !== 'app-linked-operational'
-    || !binding.sql_server.endsWith('.database.fabric.microsoft.com'))
-    throw new Error('App-linked operational SQL binding is not verified.');
-  const pool = new sql.ConnectionPool({
-    server: binding.sql_server, database: binding.sql_database,
-    options: { encrypt: true, trustServerCertificate: false, abortTransactionOnError: true },
-    authentication: { type: 'azure-active-directory-access-token', options: { token } },
-    connectionTimeout: 15000, requestTimeout: 30000,
-    pool: { max: 2, min: 0, idleTimeoutMillis: 1000 },
-  });
-  // Retry connection establishment only. Never retry a mutation with a new key.
+  const pool = operationalPool(binding, token);
   try {
-    for (let attempt = 0; ; attempt++) {
-      try { await pool.connect(); break; }
-      catch (error) {
-        if (attempt === 2 || !['ETIMEOUT', 'ESOCKET', 'ECONNRESET'].includes((error as { code?: string }).code ?? '')) throw error;
-        await new Promise(resolve => setTimeout(resolve, 250 * 2 ** attempt));
-      }
-    }
-    const matched = await pool.request().input('id', sql.UniqueIdentifier, binding.id)
-      .input('item', sql.NVarChar(128), binding.fabric_item_id)
-      .input('workspace', sql.NVarChar(128), binding.workspace_id)
-      .input('capacity', sql.NVarChar(128), binding.capacity_id)
-      .query(`SELECT id FROM dbo.RuntimeBindings WHERE id=@id AND fabric_item_id=@item
-        AND workspace_id=@workspace AND capacity_id=@capacity AND verified=1`);
-    if (matched.recordset.length !== 1) throw new Error('Connected database is not bound to this app.');
-    const tables = await pool.request().query("SELECT name FROM sys.tables WHERE schema_id=SCHEMA_ID('dbo')");
-    const names = new Set(tables.recordset.map((row: { name: string }) => row.name));
-    if (TABLES.some(name => !names.has(name))) throw new Error('Expected operational tables are missing.');
+    await connectOperationalPool(pool);
+    await validateOperationalPool(pool, binding);
     return pool;
   } catch (error) { await pool.close(); throw error; }
 }

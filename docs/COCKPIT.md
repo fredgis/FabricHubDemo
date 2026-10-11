@@ -1203,6 +1203,12 @@ The home page requests only its six latest orders/sessions and their related
 reference rows. Catalogue, audiences and Demo use their own bounded read scopes;
 the existing full `businessViews` API remains available to authoring tools.
 Audience metrics reuse the same response rather than making a second query.
+Catalog skips the four unused commercial, playback, campaign and dimension
+aggregates: its batch returns seven resultsets instead of eleven. Its dashboard
+contract carries `scope: 'catalog'`, source/publication metadata and null metric
+fields. The screen neither displays these fields as KPIs nor requests a second
+dashboard. Publication gates, binding checks and reference validations remain
+in the Catalog batch; its `ready` state means a completed publication exists.
 
 The four native Gold readers reuse a short-lived SQL pool across consultations.
 The cache holds connections, never query results: every read still executes its
@@ -1241,16 +1247,42 @@ Operational collections load only for Orders, Demo and Operations, with a
 separate scope and cache for each screen. `loadSnapshot()` without a scope still
 loads all ten collections for existing callers.
 
-| Scope | Collections read | Before | Now |
+| Scope | SDK collections read | Original scans | Current scans |
 | --- | --- | ---: | ---: |
-| Orders | Content, Customer, Offer, Rental, Playback | 10 | 5 |
+| Orders | Content, Customer, Offer | 10 | 3, plus one paged UDF |
 | Demo | Content, Customer, Offer, Outbox, ControlCommand | 10 | 5 |
 | Operations | ControlCommand, IntegrationLink | 10 | 2 |
 
-Counts describe collection scans, not total HTTP requests: each collection still
-uses complete pagination. The unchanged projections, ordering and pagination
-errors apply to every included collection. Batches remain 5,000 rows, with a
-bounded 1,000-event outbox window.
+Counts describe collection scans, not total HTTP requests. Reference collections
+still use complete pagination and retain their existing projections and error
+checks. Reference batches remain 5,000 rows, with a bounded 1,000-event outbox
+window for Demo. Orders reuses its Content/Customer/Offer references for 30 seconds
+from the original successful read; page changes do not extend that expiry.
+
+`operationalOrders({ ordersPage, playbackPage })` replaces the Rental and Playback
+collection scans on the Orders screen. Each ledger has an independent 50-row
+page and a global count, with parameterized SQL OFFSET/FETCH. Orders sort by
+`created_at DESC, order_id DESC`; sessions sort by `session_id ASC`. Positive safe
+integer page numbers are required. The server clamps pages after deletions; an
+empty ledger is page 1 of 1, total 0. Counts and rows share a short transaction,
+using SNAPSHOT when available, otherwise SERIALIZABLE, which can briefly delay
+writes. Reads remain available to authenticated viewers with caller-scoped binding
+access. Complete-snapshot revenue calculations reject paginated input rather than
+mistaking a page subtotal for a global KPI.
+
+Previous and Next controls expose each ledger's global total and current page.
+The order form retains its selections while pages load. A failed page read keeps
+the last successful records and timestamp, disables commands and paging, and
+allows Refresh to retry the requested page. Successful server clamping updates
+both the UI and cache key without issuing a second read.
+
+Health and paged operational reads share a dedicated pool, never the Gold pool.
+It is keyed by the exact token and binding, with at most four live pools including
+connecting/draining/closing pools, two physical connections per pool, a bounded
+acquisition wait, five minutes idle and fifteen minutes maximum age. Token expiry
+also retires the pool. Binding and table checks run for each lease; retiring a
+pool does not interrupt another active lease. Mutation commands keep their
+dedicated pools, existing transactions and idempotency, with no new write retry.
 
 Page results live only in the mounted user's session. A page revisit within
 30 seconds reuses its scope's last read. **Refresh** requests the current page
@@ -1262,6 +1294,32 @@ Demo stays mounted across navigation: its scenario, command keys and retries
 survive while hidden. Only its source-status reads pause; returning to Demo
 resumes them without restarting ingestion or creating a new command.
 
+Hover or keyboard focus on Catalog/Audiences for 120 ms signals navigation
+intent. The cockpit preloads only those Gold scopes, deduplicates requests and
+lets active reads finish first. Hidden documents, Save-Data and 2G/slow-2G
+connections skip preloading. A preload advances server work; it does not eliminate
+that work. Caches, forms and Flixy state remount when the authenticated identity
+changes, while the selected section is retained. Stale responses cannot populate
+a different identity's view.
+
+Graph, Insights, Campaign Impact and Flixy's Markdown renderer use separate
+JavaScript chunks. Analytical-panel code can warm during idle time; Flixy warms
+its renderer on opening. Graph data is never prefetched. Mounted analytical
+panels retain their state between visits. Deferred panels expose loading and
+module-load errors; a failed chunk offers a real cockpit reload. Flixy keeps the
+plain answer text visible while its renderer loads or fails. The production entry
+chunk changed from 403.94 to 191.42 kB gzip in the local build. This measures the
+initial chunk, not all JavaScript eventually downloaded after preloading or visits.
+
+Cockpit command receipts appear as soon as the mutation confirms persistence,
+before the background reconciliation finishes. The command lock stays held until
+reconciliation ends; loading or failed reads also block further writes. A read
+failure keeps the successful receipt and reports a separate refresh error. A
+mutation failure keeps the idempotency key for retry. Demo's own executor is
+unchanged. Pagination uses the existing charcoal/silver/vermilion palette and
+Segoe UI; wrapping spacing separates the totals from native 44px-minimum buttons
+without changing the cockpit's ENERGY 2 / RHYTHM 2 / MOTION 1 direction.
+
 Operations also retains a successful **health check for 30 seconds from completion**
 across tab visits. The panel displays its actual UTC check time and the reuse
 window. **Check health** bypasses a completed cache entry; simultaneous checks
@@ -1269,6 +1327,24 @@ share the in-flight request. Failures stay visible and are not cached. The cache
 belongs to the authenticated cockpit, is replaced when its identity changes and
 is discarded on sign-out. It uses neither polling nor browser storage. This
 avoids a repeat health-panel call, not every read needed by the Operations page.
+
+The 2026-10-11 follow-up passed 373 targeted tests across 29 files, both production
+builds and lint of the changed application modules. Browser checks used the real
+HomePage, read services and production CSS with an explicit mock SDK: independent
+pages, loading/error/empty states, preserved selections, Tab/Enter/Escape, no page
+overflow at 320/390/1440px and 44px pagination targets. Pagination text contrast was
+8.72:1 against its painted background; the browser reported no JavaScript errors
+or external requests. This local check does not validate native Fabric execution,
+the hosted CDN or login. The approved capacity was `Inactive` at 09:07:50 UTC.
+The full `rayfin up` publication attempt at 09:15 UTC failed with
+`CapacityNotActive`; this follow-up is not published. The capacity must be active
+before retrying the full deployment and native read-only checks.
+
+No cohort SQL rewrite was retained: the live comparison was rejected before SQL
+execution while the capacity was inactive. No supported native OPTIONS cache
+setting was found in the installed Rayfin 1.36.2 guide, types and CLI surfaces
+consulted. Static-site response headers cannot configure native API preflights;
+authentication, SDK transport and API CORS behavior remain unchanged.
 
 Business Graph requests the **12 latest orders with complete customer, offer and
 film paths** in the published Ontology GraphModel. GQL orders by transaction

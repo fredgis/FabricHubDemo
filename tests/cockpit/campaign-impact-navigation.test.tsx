@@ -55,7 +55,7 @@ it('opens the real route directly and preserves the existing Insights section wh
   expect(screen.getByRole('form', { name: 'Filter campaign impact' })).toBeInTheDocument();
   window.history.back();
   await waitFor(() => expect(window.location.pathname).toBe('/'));
-  expect(screen.getByRole('form', { name: 'Filter Gold analysis' })).toBeInTheDocument();
+  expect(await screen.findByRole('form', { name: 'Filter Gold analysis' })).toBeInTheDocument();
   expect(screen.getByLabelText('Genre')).toHaveValue('Animation');
   expect(load).toHaveBeenCalledTimes(1);
   expect(insights).toHaveBeenCalledTimes(1);

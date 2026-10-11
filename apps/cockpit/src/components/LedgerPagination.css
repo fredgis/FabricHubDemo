@@ -1,0 +1,12 @@
+.ledger-pagination {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 24px;
+  margin: 16px 0 24px;
+}
+.ledger-pagination p { margin: 0; color: var(--muted); font-size: 12px; }
+.ledger-pagination p span { display: block; font-variant-numeric: tabular-nums; }
+.ledger-pagination > div { display: flex; flex-wrap: wrap; gap: 8px; }
+.ledger-pagination button { min-height: 44px; }
