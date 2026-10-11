@@ -430,7 +430,13 @@ commits covered all 80 events; native OneLake and Raw also contained all 80.
 A read-only Warehouse check found the latest event IDs and sequences for all
 20 original orders and 20 original sessions, with no missing or duplicate keys.
 The 109 publisher regression tests passed, including recovery of the same job
-after simulated interruptions of 8 and 24 hours.
+after simulated interruptions of 8 and 24 hours. The same cycle completed its
+Gold OneLake and Graph gates, recorded all 80 IDs in the durable propagation
+checkpoint, then reached a subsequent idle pass without error.
+An actual restart of `msflix-demo-worker.service` while idle preserved that
+completed cycle, all 80 propagated IDs and the original Kafka/SQL receipt.
+The new process reached another idle pass; the service remained active and
+enabled at boot. This check restarted only the worker service, not the VM.
 
 This validates recovery, not real-time Gold latency. Kafka acknowledged this
 batch at 11:55:54 UTC and Gold published it at 12:10:58 UTC, about 15 minutes
