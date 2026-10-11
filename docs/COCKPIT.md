@@ -1334,17 +1334,48 @@ HomePage, read services and production CSS with an explicit mock SDK: independen
 pages, loading/error/empty states, preserved selections, Tab/Enter/Escape, no page
 overflow at 320/390/1440px and 44px pagination targets. Pagination text contrast was
 8.72:1 against its painted background; the browser reported no JavaScript errors
-or external requests. This local check does not validate native Fabric execution,
-the hosted CDN or login. The approved capacity was `Inactive` at 09:07:50 UTC.
-The full `rayfin up` publication attempt at 09:15 UTC failed with
-`CapacityNotActive`; this follow-up is not published. The capacity must be active
-before retrying the full deployment and native read-only checks.
+or external requests. This local check does not validate the hosted CDN or login.
+The first full `rayfin up` attempt failed with `CapacityNotActive` at 09:15 UTC.
+After the user restarted the capacity, Fabric confirmed `Active` at 09:48:09 UTC.
+The full deployment of `1439f7a` then succeeded on the existing MSFlix application,
+without `--force` or excluded services. `up status` confirmed deployment,
+authentication and a management endpoint responding HTTP 200.
 
-No cohort SQL rewrite was retained: the live comparison was rejected before SQL
-execution while the capacity was inactive. No supported native OPTIONS cache
-setting was found in the installed Rayfin 1.36.2 guide, types and CLI surfaces
-consulted. Static-site response headers cannot configure native API preflights;
-authentication, SDK transport and API CORS behavior remain unchanged.
+All 11 authenticated native read checks passed after deployment: Health twice,
+independent Orders/Playback pages, server-side page clamping, Catalog, Overview,
+Audiences, Insights and Campaign Impact. Every function response was HTTP 200.
+The first ledger page returned 50 orders and 50 sessions; totals were 1,062 and
+1,063. Oversized requests clamped to page 22 with 12 orders and 13 sessions.
+All Gold readers were `ready` with the original publication timestamp and run ID;
+the three dashboard scopes also retained the 1,062 published order count.
+Insights and Campaign freshness contracts do not expose `order_lines`: two
+initial smoke assertions were corrected in the external harness only. No business
+mutation, Demo scenario, SAP suite, Graph query or Gold publication was run.
+These checks verify native behavior, not before/after latency gains or hosted UI.
+
+R9 was measured after the temporary TDS connectivity failure cleared. The
+materialized-cohort candidates returned exactly equal recordsets and DTOs on all
+six comparisons but were slower in every run. Median complete local TDS batch
+time rose from 3,360 to 8,337 ms for Insights and from 2,843 to 5,916 ms for
+Campaign. These are local batch measurements including temporary-object costs,
+not native API latencies. Both candidates were rejected; no reader changed.
+The unchanged analytical code passed 80 targeted tests and the backend build.
+
+No supported native OPTIONS cache setting was found in the installed Rayfin
+1.36.2 guide, types and CLI surfaces consulted. Static-site response headers
+cannot configure native API preflights; authentication, SDK transport and API
+CORS behavior remain unchanged.
+
+| Follow-up | Delivery status | Verification |
+|---|---|---|
+| R3 Intent prefetch | Published | Priority, deduplication and identity-isolation tests |
+| R10 Catalog aggregates | Published | Native Catalog contract and publication preserved |
+| R16 Orders/Playback pagination | Published | Independent pages, totals and clamp checked natively |
+| R4 Command confirmation | Published | Reconciliation tests; no real business mutation |
+| R12 Operational pool | Published | Pool tests and native reads; latency gain not quantified |
+| R14 Deferred JavaScript | Published | Production build and loading/error tests; initial gzip down 52.6% |
+| R9 Cohorts | Measured and rejected | Equivalent results, consistently slower candidate batches |
+| R17 CORS preflight cache | Not applied | No supported native setting found |
 
 Business Graph requests the **12 latest orders with complete customer, offer and
 film paths** in the published Ontology GraphModel. GQL orders by transaction
