@@ -9,6 +9,8 @@
 
 # MSFlix Business Control
 
+*For demonstration purposes only; all business data is fictional.*
+
 A shared view of the entertainment business: films and offers, fictional CRM
 audiences, actual demonstration rentals, purchases and playback. The cockpit
 executes transactions; the business model consolidates them; Ontology connects
@@ -161,3 +163,8 @@ data into this Warehouse. SAP uses its own
 the operational refresh neither replaces SAP tables nor advances `gold.sap_publication`.
 
 </details>
+
+## License
+
+This project is licensed under the [MIT License](LICENSE).
+Third-party code and assets retain their respective licenses.
