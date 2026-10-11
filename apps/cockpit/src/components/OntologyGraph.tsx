@@ -7,6 +7,8 @@ import {
 import '@xyflow/react/dist/style.css';
 import './OntologyGraph.css';
 import { getRayfinClient } from '@/services/rayfinClient';
+import { useReadCache } from '@/hooks/ReadCacheContext';
+import type { ReadCache } from '@/services/readCache';
 import { dateLabel, money, safeError } from '@/services/business';
 import { createGraphScene, graphNodeTitle, kindLabels, relationshipLabels, type BusinessNode, type GraphScene } from '@/domain/graph-scene';
 import type { OntologyGraph as Result } from '../../rayfin/functions/src/ontology-graph';
@@ -31,6 +33,13 @@ const BusinessNodeCard = memo(function BusinessNodeCard({ data, selected }: Node
 });
 const nodeTypes = { business: BusinessNodeCard };
 export type GraphReadState = { loading: boolean; queriedAt: string | null };
+type GraphPreferences = { limit: number; search: string; focusedOrder?: string; selectedId?: string };
+function cachedGraph(cache: ReadCache, limit: number): Result | undefined {
+  for (const size of [limit, ...[6, 12, 24, 50].filter(size => size > limit)]) {
+    const result = cache.get<Result>(`read:graph:${size}`);
+    if (result && Array.isArray(result.nodes) && Array.isArray(result.edges)) return result;
+  }
+}
 
 export function GraphCanvas({ scene, onSelect }: { scene: GraphScene; onSelect: (id: string | undefined) => void }) {
   const [nodes, setNodes, onNodesChange] = useNodesState<BusinessNode>(scene.nodes);
@@ -59,35 +68,58 @@ export function OntologyGraph({ active = true, refreshKey = 0, prefetch = false,
   active?: boolean; refreshKey?: number; prefetch?: boolean; renderCanvas?: boolean;
   onRead?: (state: GraphReadState) => void;
 }) {
-  const [data, setData] = useState<Result>();
+  const { cache, revision } = useReadCache();
+  const [preferences] = useState(() => cache.get<GraphPreferences>('ui:graph'));
+  const [limit, setLimit] = useState(() => preferences && [6, 12, 24, 50].includes(preferences.limit) ? preferences.limit : 12);
+  const [data, setData] = useState<Result | undefined>(() => cachedGraph(cache, limit));
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
-  const [search, setSearch] = useState('');
-  const [limit, setLimit] = useState(12);
-  const [focusedOrder, setFocusedOrder] = useState<string>();
-  const [selectedId, setSelectedId] = useState<string>();
-  const loaded = useRef(false);
+  const [search, setSearch] = useState(() => typeof preferences?.search === 'string' ? preferences.search : '');
+  const [focusedOrder, setFocusedOrder] = useState<string | undefined>(() => preferences
+    ? preferences.focusedOrder : data?.nodes.find(node => node.type === 'rental')?.key);
+  const [selectedId, setSelectedId] = useState<string | undefined>(() => preferences ? preferences.selectedId : focusedOrder);
   const refreshed = useRef(refreshKey);
-  const inFlight = useRef(false);
-  const load = useCallback(async () => {
-    if (inFlight.current) return;
-    inFlight.current = true;
+  const inFlight = useRef<number | undefined>(undefined);
+  const sequence = useRef(0);
+  const mounted = useRef(true);
+  useEffect(() => {
+    mounted.current = true;
+    return () => { mounted.current = false; sequence.current = sequence.current + 1; inFlight.current = undefined; };
+  }, []);
+  useEffect(() => {
+    cache.set('ui:graph', { limit, search, focusedOrder, selectedId });
+  }, [cache, limit, search, focusedOrder, selectedId]);
+  const load = useCallback(async (force = true) => {
+    if (!mounted.current || inFlight.current === cache.getVersion()) return;
+    if (!force) {
+      const cached = cachedGraph(cache, limit);
+      if (cached) { setData(cached); setLoading(false); setError(''); return; }
+    } else cache.invalidate('read:graph:');
+    const key = `read:graph:${limit}`;
+    const request = ++sequence.current;
+    inFlight.current = cache.getVersion();
     setLoading(true); setError('');
     try {
-      const result = await getRayfinClient().functions.businessGraphSlice.invoke({ journeyLimit: limit });
-      setData(result); loaded.current = true;
+      const result = await cache.load(key, () => getRayfinClient().functions.businessGraphSlice.invoke({ journeyLimit: limit }));
+      if (!mounted.current || request !== sequence.current || cache.get(key) !== result) return;
+      setData(result);
       const newest = result.nodes.find(node => node.type === 'rental')?.key;
       setFocusedOrder(newest); setSelectedId(newest);
-    } catch (err) { setError(safeError(err)); }
-    finally { setLoading(false); inFlight.current = false; }
-  }, [limit]);
-  useEffect(() => {
-    if ((!active && !prefetch) || loading) return;
-    if (refreshed.current !== refreshKey || (!error && (!loaded.current || (data?.limit ?? 0) < limit))) {
-      refreshed.current = refreshKey;
-      void load();
+    } catch (err) {
+      if (mounted.current && request === sequence.current && inFlight.current === cache.getVersion()) setError(safeError(err));
+    } finally {
+      if (mounted.current && request === sequence.current) { setLoading(false); inFlight.current = undefined; }
     }
-  }, [active, prefetch, load, data?.limit, limit, loading, error, refreshKey]);
+  }, [limit, cache]);
+  useEffect(() => {
+    if ((!active && !prefetch) || (loading && inFlight.current === revision)) return;
+    const force = refreshed.current !== refreshKey;
+    const cached = cachedGraph(cache, limit);
+    if (force || (!error && (!cached || cached !== data))) {
+      refreshed.current = refreshKey;
+      void load(force);
+    }
+  }, [active, prefetch, load, data, limit, loading, error, refreshKey, revision, cache]);
   useEffect(() => { onRead?.({ loading, queriedAt: data?.queried_at ?? null }); }, [loading, data?.queried_at, onRead]);
   const scene = useMemo(() => {
     if (data?.state !== 'ready') return undefined;

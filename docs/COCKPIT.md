@@ -1256,8 +1256,8 @@ loads all ten collections for existing callers.
 Counts describe collection scans, not total HTTP requests. Reference collections
 still use complete pagination and retain their existing projections and error
 checks. Reference batches remain 5,000 rows, with a bounded 1,000-event outbox
-window for Demo. Orders reuses its Content/Customer/Offer references for 30 seconds
-from the original successful read; page changes do not extend that expiry.
+window for Demo. Orders reuses its Content/Customer/Offer references until an
+explicit refresh or a successful business command invalidates them.
 
 `operationalOrders({ ordersPage, playbackPage })` replaces the Rental and Playback
 collection scans on the Orders screen. Each ledger has an independent 50-row
@@ -1284,12 +1284,14 @@ also retires the pool. Binding and table checks run for each lease; retiring a
 pool does not interrupt another active lease. Mutation commands keep their
 dedicated pools, existing transactions and idempotency, with no new write retry.
 
-Page results live only in the mounted user's session. A page revisit within
-30 seconds reuses its scope's last read. **Refresh** requests the current page
-again and invalidates other operational scopes so their next activation reads
-fresh data. Superseded responses cannot overwrite a newer refresh, even after
-navigation or a command. Successful data and artwork stay visible during refresh
-or a read failure, with an explicit notice and the original source timestamp.
+Successful page reads have no time-based expiry. Revisiting a loaded screen,
+returning to the application or reloading it reuses the stored data and its
+original timestamp. **Refresh** reloads the selected screen and clears its other
+cached filter/page variants. A successful business command invalidates all
+business reads; inactive screens reload when next activated. Superseded responses
+cannot overwrite a newer refresh, even after navigation or a command. Successful
+data and artwork stay visible during refresh or a read failure, with an explicit
+notice and the original source timestamp.
 Demo stays mounted across navigation: its scenario, command keys and retries
 survive while hidden. Only its source-status reads pause; returning to Demo
 resumes them without restarting ingestion or creating a new command.
@@ -1299,8 +1301,8 @@ intent. The cockpit preloads only those Gold scopes, deduplicates requests and
 lets active reads finish first. Hidden documents, Save-Data and 2G/slow-2G
 connections skip preloading. A preload advances server work; it does not eliminate
 that work. Caches, forms and Flixy state remount when the authenticated identity
-changes, while the selected section is retained. Stale responses cannot populate
-a different identity's view.
+changes. The last selected section is stored per identity. Stale responses cannot
+populate a different identity's view.
 
 Graph, Insights, Campaign Impact and Flixy's Markdown renderer use separate
 JavaScript chunks. Analytical-panel code can warm during idle time; Flixy warms
@@ -1320,15 +1322,44 @@ unchanged. Pagination uses the existing charcoal/silver/vermilion palette and
 Segoe UI; wrapping spacing separates the totals from native 44px-minimum buttons
 without changing the cockpit's ENERGY 2 / RHYTHM 2 / MOTION 1 direction.
 
-Operations also retains a successful **health check for 30 seconds from completion**
-across tab visits. The panel displays its actual UTC check time and the reuse
-window. **Check health** bypasses a completed cache entry; simultaneous checks
-share the in-flight request. Failures stay visible and are not cached. The cache
-belongs to the authenticated cockpit, is replaced when its identity changes and
-is discarded on sign-out. It uses neither polling nor browser storage. This
-avoids a repeat health-panel call, not every read needed by the Operations page.
+Operations retains a successful health check and its actual UTC check time until
+**Check health**, **Refresh data** on Operations, or a successful business command
+invalidates it. Simultaneous checks share the in-flight request. Failures stay
+visible and are not cached. No timer or focus handler refreshes these reads.
 
-The 2026-10-11 follow-up passed 373 targeted tests across 29 files, both production
+The browser cache uses versioned localStorage entries isolated by API endpoint,
+workspace, Fabric app and authenticated user. It covers Gold screens, operational
+snapshots and ledger pages, Insights, Campaign Impact, Business Graph and Health.
+Previously loaded filter/page variants remain reusable; new variants load once.
+The selected section, ledger pages, successful analytical filters and graph
+search/window are restored after reload. Authentication must succeed before any
+stored business data is exposed. Capabilities, permissions and tokens are not
+stored in this cache; authorization checks remain unchanged. Sign-out or a change
+of user purges the previous identity's entries without clearing unrelated browser
+storage. If storage is blocked, malformed or full, reads still work in memory;
+persistence across reload is then not guaranteed. There is no live cross-tab sync.
+External source changes require Refresh to become visible. Browser read timestamps
+and Gold publication timestamps retain their separate meanings.
+
+Manual-cache verification passed 233 distinct targeted tests across 16 files,
+including reload restoration, isolation, sign-out, storage failure, explicit
+Refresh, command reconciliation, filter/page variants and obsolete responses.
+The Graph file was rerun with its additional StrictMode regression: 17/17 passed.
+The production frontend build passed; source lint had no errors and retained the
+existing AuthContext Fast Refresh warning. These are local tests with mocked
+services, not evidence of hosted browser behavior or a measured latency gain.
+
+The manual-cache build was published on 2026-10-11 to the existing MSFlix Fabric
+app using the existing Rayfin authoring login. Full deployment succeeded without
+`--force` or excluded services, with `configUpdated: false`. `up status` confirmed
+deployment, authentication and HTTP 200 on the management endpoint. Six native
+read checks passed: Health, Orders/Playback page 1, Catalog, Overview, Insights and
+Campaign Impact, all HTTP 200. Gold publication identity and timestamps were
+unchanged. The hosted static origin correctly returned HTTP 401 without a browser
+session, so no signed-in hosted UI or asset-byte verification is claimed. No real
+business mutation, Graph query, Demo/SAP scenario or Gold publication was run.
+
+The earlier 2026-10-11 performance follow-up passed 373 targeted tests across 29 files, both production
 builds and lint of the changed application modules. Browser checks used the real
 HomePage, read services and production CSS with an explicit mock SDK: independent
 pages, loading/error/empty states, preserved selections, Tab/Enter/Escape, no page
@@ -1431,7 +1462,7 @@ this managed binding, as with the Warehouse binding.
 Standalone callers without a qualified binding still check the full definition.
 Only their successful definition qualification is cached for **two minutes**,
 in a bounded cache keyed by all coordinates and a hash of the exact access
-token. Failures and actual graph answers are never cached.
+token. Failures and actual graph answers are never cached on the server.
 
 Graph reads emit structured `event: "business_graph"` diagnostics correlated by
 `read_id`. They cover metadata, orders, the parallel distributor/playback branches

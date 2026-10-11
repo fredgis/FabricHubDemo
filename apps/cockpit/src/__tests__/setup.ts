@@ -5,6 +5,12 @@ import { beforeEach } from 'vitest';
 // inside jsdom without crashing.
 const localStorageMock = {
   store: {} as Record<string, string>,
+  get length() {
+    return Object.keys(this.store).length;
+  },
+  key(index: number) {
+    return Object.keys(this.store)[index] ?? null;
+  },
   getItem(key: string) {
     return this.store[key] ?? null;
   },

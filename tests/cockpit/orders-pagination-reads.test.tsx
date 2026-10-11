@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import type { OrdersReadOptions, Snapshot } from '../../apps/cockpit/src/services/business';
@@ -6,6 +7,12 @@ const read = vi.hoisted(() => vi.fn());
 vi.mock('../../apps/cockpit/src/services/business', () => ({ loadSnapshot: read, safeError: (error: Error) => error.message }));
 vi.mock('../../apps/cockpit/src/services/goldViews', () => ({ loadGoldViews: vi.fn() }));
 import { useCockpitReads } from '../../apps/cockpit/src/hooks/useCockpitReads';
+import { ReadCacheContext } from '../../apps/cockpit/src/hooks/ReadCacheContext';
+import { createReadCache } from '../../apps/cockpit/src/services/readCache';
+const withCache = (namespace: string) => {
+  const cache = createReadCache(namespace);
+  return ({ children }: { children: ReactNode }) => <ReadCacheContext.Provider value={cache}>{children}</ReadCacheContext.Provider>;
+};
 
 function page(ordersPage = 1, playbackPage = 1, ordersTotal = 151, playbackTotal = 101): Snapshot {
   return {
@@ -27,7 +34,7 @@ beforeEach(() => {
 });
 afterEach(() => { cleanup(); vi.restoreAllMocks(); });
 
-it('keeps pages independent and expires reference data from its original read, not the last page change', async () => {
+it('keeps pages independent and reuses reference data until explicit refresh', async () => {
   let now = Date.parse('2026-10-11T08:00:00Z');
   vi.spyOn(Date, 'now').mockImplementation(() => now);
   const { result } = renderHook(() => useCockpitReads('orders'));
@@ -39,10 +46,10 @@ it('keeps pages independent and expires reference data from its original read, n
   act(() => { result.current.setOrderPages(current => ({ ...current, ordersPage: 2 })); });
   await waitFor(() => expect(result.current.loading).toBe(false));
   expect(read).toHaveBeenLastCalledWith('orders', { ordersPage: 2, playbackPage: 1, references });
-  now += 11_000;
+  now += 6 * 60_000;
   act(() => { result.current.setOrderPages(current => ({ ...current, playbackPage: 2 })); });
   await waitFor(() => expect(result.current.loading).toBe(false));
-  expect(read).toHaveBeenLastCalledWith('orders', { ordersPage: 2, playbackPage: 2 });
+  expect(read).toHaveBeenLastCalledWith('orders', { ordersPage: 2, playbackPage: 2, references });
   await act(async () => { await result.current.refresh(); });
   expect(read).toHaveBeenLastCalledWith('orders', { ordersPage: 2, playbackPage: 2 });
   expect(read).toHaveBeenCalledTimes(4);
@@ -126,4 +133,27 @@ it('does not refresh a disposed identity and gives a new identity fresh pages an
   await waitFor(() => expect(second.result.current.loading).toBe(false));
   expect(read).toHaveBeenLastCalledWith('orders', { ordersPage: 1, playbackPage: 1 });
   expect(read).toHaveBeenCalledTimes(3);
+});
+
+it('restores the last page after remount and reuses every previously loaded page', async () => {
+  const first = renderHook(() => useCockpitReads('orders'), { wrapper: withCache('orders-user') });
+  await waitFor(() => expect(first.result.current.loading).toBe(false));
+  act(() => { first.result.current.setOrderPages({ ordersPage: 2, playbackPage: 2 }); });
+  await waitFor(() => expect(first.result.current.loading).toBe(false));
+  const updated = first.result.current.updated;
+  first.unmount();
+  const restored = renderHook(() => useCockpitReads('orders'), { wrapper: withCache('orders-user') });
+  expect(restored.result.current.snapshot?.pagination?.orders.page).toBe(2);
+  expect(restored.result.current.snapshot?.pagination?.sessions.page).toBe(2);
+  expect(restored.result.current.updated).toEqual(updated);
+  expect(restored.result.current.loading).toBe(false);
+  expect(read).toHaveBeenCalledTimes(2);
+  act(() => { restored.result.current.setOrderPages({ ordersPage: 1, playbackPage: 1 }); });
+  expect(restored.result.current.snapshot?.pagination?.orders.page).toBe(1);
+  expect(restored.result.current.loading).toBe(false);
+  expect(read).toHaveBeenCalledTimes(2);
+  await act(async () => { await restored.result.current.refresh(); });
+  act(() => { restored.result.current.setOrderPages({ ordersPage: 2, playbackPage: 2 }); });
+  await waitFor(() => expect(restored.result.current.loading).toBe(false));
+  expect(read).toHaveBeenCalledTimes(4);
 });

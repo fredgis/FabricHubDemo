@@ -1,4 +1,5 @@
-import { cleanup, render, screen, waitFor, within } from '@testing-library/react';
+import { StrictMode, type ReactNode } from 'react';
+import { act, cleanup, render, screen, waitFor, within } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import type { OntologyGraph as Result } from '../../apps/cockpit/rayfin/functions/src/ontology-graph';
@@ -8,6 +9,10 @@ vi.mock('../../apps/cockpit/src/services/rayfinClient', () => ({
   getRayfinClient: () => ({ functions: { businessGraphSlice: { invoke } } }),
 }));
 import { OntologyGraph } from '../../apps/cockpit/src/components/OntologyGraph';
+import { ReadCacheContext } from '../../apps/cockpit/src/hooks/ReadCacheContext';
+import { createReadCache, type ReadCache } from '../../apps/cockpit/src/services/readCache';
+const withCache = (cache: ReadCache) => ({ children }: { children: ReactNode }) =>
+  <ReadCacheContext.Provider value={cache}>{children}</ReadCacheContext.Provider>;
 const fixture = (): Result => ({
   state: 'ready', limit: 12, queried_at: '2026-10-10T12:30:00Z', generation: 2,
   source: { workspace_id: 'fixture', ontology_id: 'fixture', graph_model_id: 'fixture', gold_item_id: 'fixture' }, message: 'Fixture',
@@ -129,4 +134,79 @@ it('announces an initial load without inventing an empty graph', () => {
   invoke.mockReturnValue(new Promise(() => {})); render(<OntologyGraph renderCanvas={false} />);
   expect(screen.getByRole('status')).toHaveTextContent('Reading the newest orders');
   expect(screen.getByRole('button', { name: 'Reading graph…' })).toBeDisabled();
+});
+
+it('restores graph data, search and limit after a full remount without another query', async () => {
+  const user = userEvent.setup();
+  const first = render(<OntologyGraph renderCanvas={false} />, { wrapper: withCache(createReadCache('graph-user')) });
+  await ready();
+  await user.selectOptions(screen.getByRole('combobox'), '6');
+  await user.type(screen.getByRole('searchbox'), 'Fixture');
+  first.unmount();
+  render(<OntologyGraph renderCanvas={false} />, { wrapper: withCache(createReadCache('graph-user')) });
+  expect(screen.getByRole('combobox')).toHaveValue('6');
+  expect(screen.getByRole('searchbox')).toHaveValue('Fixture');
+  expect(screen.getByRole('list', { name: 'Orders, newest first' })).toBeInTheDocument();
+  expect(screen.getByRole('button', { name: 'Refresh graph' })).toBeEnabled();
+  expect(invoke).toHaveBeenCalledOnce();
+  await user.click(screen.getByRole('button', { name: 'Refresh graph' }));
+  await waitFor(() => expect(invoke).toHaveBeenCalledTimes(2));
+});
+
+it('waits until an invalidated hidden graph becomes active before reloading it', async () => {
+  const cache = createReadCache('inactive-graph');
+  const view = render(<OntologyGraph renderCanvas={false} />, { wrapper: withCache(cache) });
+  await ready();
+  view.rerender(<OntologyGraph active={false} renderCanvas={false} />);
+  act(() => { cache.invalidate('read:'); });
+  expect(invoke).toHaveBeenCalledOnce();
+  view.rerender(<OntologyGraph active renderCanvas={false} />);
+  await waitFor(() => expect(invoke).toHaveBeenCalledTimes(2));
+  await waitFor(() => expect(screen.getByRole('button', { name: 'Refresh graph' })).toBeEnabled());
+});
+
+it.each(['success', 'failure'])('ignores a late graph %s from before business invalidation', async outcome => {
+  const cache = createReadCache('graph-race');
+  let finishOld!: (value: Result) => void;
+  let failOld!: (error: Error) => void;
+  let finishNew!: (value: Result) => void;
+  invoke.mockImplementationOnce(() => new Promise((resolve, reject) => { finishOld = resolve; failOld = reject; }))
+    .mockImplementationOnce(() => new Promise(resolve => { finishNew = resolve; }));
+  const onRead = vi.fn();
+  render(<OntologyGraph renderCanvas={false} onRead={onRead} />, { wrapper: withCache(cache) });
+  await act(async () => { cache.invalidate('read:'); });
+  const latest = { ...fixture(), queried_at: '2026-10-11T12:00:00Z' };
+  await act(async () => { finishNew(latest); });
+  await act(async () => {
+    if (outcome === 'success') finishOld(fixture());
+    else failOld(new Error('Obsolete graph failure'));
+  });
+  expect(onRead).toHaveBeenLastCalledWith({ loading: false, queriedAt: latest.queried_at });
+  expect(cache.get('read:graph:12')).toBe(latest);
+  expect(screen.queryByRole('alert')).toBeNull();
+  expect(invoke).toHaveBeenCalledTimes(2);
+});
+
+it('retries on activation after an obsolete request failed while the graph was hidden', async () => {
+  const cache = createReadCache('graph-hidden-race');
+  let failOld!: (error: Error) => void;
+  invoke.mockImplementationOnce(() => new Promise((_resolve, reject) => { failOld = reject; }))
+    .mockResolvedValueOnce(fixture());
+  const view = render(<OntologyGraph renderCanvas={false} active />, { wrapper: withCache(cache) });
+  view.rerender(<OntologyGraph renderCanvas={false} active={false} />);
+  await act(async () => { cache.invalidate('read:'); });
+  await act(async () => { failOld(new Error('Obsolete hidden graph error')); });
+  expect(screen.queryByRole('alert')).toBeNull();
+  view.rerender(<OntologyGraph renderCanvas={false} active />);
+  await waitFor(() => expect(screen.getByRole('button', { name: 'Refresh graph' })).toBeEnabled());
+  expect(invoke).toHaveBeenCalledTimes(2);
+  expect(cache.get('read:graph:12')).toEqual(fixture());
+});
+
+it('finishes its deduplicated initial read under StrictMode', async () => {
+  const onRead = vi.fn();
+  render(<StrictMode><OntologyGraph renderCanvas={false} onRead={onRead} /></StrictMode>);
+  await waitFor(() => expect(screen.getByRole('button', { name: 'Refresh graph' })).toBeEnabled());
+  expect(onRead).toHaveBeenLastCalledWith({ loading: false, queriedAt: fixture().queried_at });
+  expect(invoke).toHaveBeenCalledOnce();
 });

@@ -2,6 +2,7 @@ import { lazy, useCallback, useEffect, useMemo, useRef, useState, type FormEvent
 import { ArrowRight, ArrowsClockwise, Broadcast, ChartBar, FilmSlate, Graph, House,
   Play, ShoppingBag, SignOut, Target, UsersThree } from '@phosphor-icons/react';
 import { useAuth } from '@/hooks/AuthContext';
+import { useReadCache } from '@/hooks/ReadCacheContext';
 import { getRayfinClient } from '@/services/rayfinClient';
 import { createHealthReader, type HealthRead, type HealthReader } from '@/services/health';
 import { dateLabel, money, safeError, safeUrl, type Snapshot } from '@/services/business';
@@ -66,7 +67,12 @@ type HomePageProps = {
 
 export function HomePage(props: HomePageProps) {
   const { user } = useAuth();
-  const [localSection, setSection] = useState<Section>('overview');
+  const { cache } = useReadCache();
+  const [localSection, setSection] = useState<Section>(() => {
+    const saved = cache.get<Section>('ui:section');
+    return sections.some(section => section.key === saved) ? saved! : 'overview';
+  });
+  useEffect(() => { cache.set('ui:section', localSection); }, [cache, localSection]);
   return <CockpitHome key={user?.id} {...props} localSection={localSection} setSection={setSection} />;
 }
 
@@ -74,13 +80,13 @@ function CockpitHome({ route = '/', onNavigate, localSection, setSection }: Home
   localSection: Section; setSection: (section: Section) => void;
 }) {
   const { user, signOut } = useAuth();
-  // The auth guard unmounts this cache on sign-out; identity changes replace it too.
-  const healthReader = useMemo(() => ({ userId: user?.id, read: createHealthReader() }), [user?.id]);
+  const { cache, revision: readRevision } = useReadCache();
+  const healthReader = useMemo(() => ({ userId: user?.id, read: createHealthReader(cache) }), [user?.id, cache]);
   const section = route === '/campaign-impact' ? 'campaign-impact' : localSection;
-  const [graphVisited, setGraphVisited] = useState(false);
+  const [graphVisited, setGraphVisited] = useState(section === 'graph');
   const [graphRefreshKey, setGraphRefreshKey] = useState(0);
   const [graphRead, setGraphRead] = useState<GraphReadState>({ loading: false, queriedAt: null });
-  const [insightsVisited, setInsightsVisited] = useState(false);
+  const [insightsVisited, setInsightsVisited] = useState(section === 'insights');
   const [insightsRefreshKey, setInsightsRefreshKey] = useState(0);
   const [insightsRead, setInsightsRead] = useState<InsightsReadState>({ loading: false, queriedAt: null });
   const [campaignVisited, setCampaignVisited] = useState(route === '/campaign-impact');
@@ -88,6 +94,7 @@ function CockpitHome({ route = '/', onNavigate, localSection, setSection }: Home
   const [campaignRead, setCampaignRead] = useState<CampaignImpactReadState>({ loading: false, queriedAt: null });
   const { snapshot, loading, error, updated, refresh, prefetch, cancelPrefetch, setOrderPages,
     gold, goldLoading, goldError } = useCockpitReads(section);
+  const reconcileReads = useCallback(() => refresh(true), [refresh]);
   const [intent, setIntent] = useState<Section | null>(null);
   const codePrepared = useRef(false);
   const [capabilities, setCapabilities] = useState<Capabilities>({ can_operate: false, reason: 'Checking command permissions…' });
@@ -123,7 +130,7 @@ function CockpitHome({ route = '/', onNavigate, localSection, setSection }: Home
       if (!persisted) inFlight.current = false;
     }
     // A successful command is confirmed now; stale records stay locked until reconciliation ends.
-    if (persisted) void refresh().finally(() => { inFlight.current = false; });
+    if (persisted) void refresh(true).finally(() => { inFlight.current = false; });
   };
   const canOperate = capabilities.can_operate && !busy && !loading && !error;
   const context = { snapshot, canOperate, busy, command };
@@ -239,13 +246,14 @@ function CockpitHome({ route = '/', onNavigate, localSection, setSection }: Home
         </DeferredPanel></div>}
         <div hidden={section !== 'demo'}><DemoPage active={section === 'demo'} snapshot={snapshot} capabilities={capabilities}
           loading={loading} readError={error} busy={busy} snapshotUpdatedAt={updated}
-          gold={gold?.pages} goldLoading={goldLoading} goldError={goldError} onRefresh={refresh} /></div>
+          gold={gold?.pages} goldLoading={goldLoading} goldError={goldError} onRefresh={reconcileReads} /></div>
         {['orders','operations'].includes(section)&&(loading&&!snapshot?<LoadingState/>:snapshot&&<>
           {section === 'orders' && <Orders {...context} snapshot={snapshot} loading={loading}
             paginationDisabled={loading || busy || Boolean(error)}
             onOrdersPage={page => setOrderPages(current => ({ ...current, ordersPage: page }))}
             onPlaybackPage={page => setOrderPages(current => ({ ...current, playbackPage: page }))} />}
-          {section === 'operations' && <Operations key={healthReader.userId} {...context} snapshot={snapshot} readHealth={healthReader.read} />}
+          {section === 'operations' && <Operations key={healthReader.userId} {...context} snapshot={snapshot}
+            readHealth={healthReader.read} readRevision={readRevision} />}
         </>)}
       </main>
       <footer>MSFlix business demonstration. Sourced film metadata and licensed reference artwork; fictional CRM identities.
@@ -404,8 +412,8 @@ function Audiences({ data, dashboard }: { data: Snapshot; dashboard: GoldPages['
       : <p className="muted">No campaign records imported. Conversion rates and delivery results are not invented.</p>}</section></>;
 }
 
-function Operations({ snapshot: data, canOperate, busy, command, readHealth }: CommandContext & {
-  snapshot: Snapshot; readHealth: HealthReader;
+function Operations({ snapshot: data, canOperate, busy, command, readHealth, readRevision }: CommandContext & {
+  snapshot: Snapshot; readHealth: HealthReader; readRevision: number;
 }) {
   const [healthRead, setHealthRead] = useState<HealthRead>();
   const health = healthRead?.health;
@@ -422,13 +430,13 @@ function Operations({ snapshot: data, canOperate, busy, command, readHealth }: C
     } catch (err) { if (checkId === request.current) setError(safeError(err)); }
     finally { if (checkId === request.current) setChecking(false); }
   }, [readHealth]);
-  useEffect(() => { void check(); return () => { request.current += 1; }; }, [check]);
+  useEffect(() => { void check(); return () => { request.current += 1; }; }, [check, readRevision]);
   return <><section className="operations-health"><h2>Connection verification</h2>
     <button onClick={() => void check(true)} disabled={checking}>{checking ? 'Checking…' : 'Check health'}</button>
     {error && <p role="alert" className="notice">{error}</p>}
     {healthRead && <p className="muted">Last checked <time dateTime={new Date(healthRead.checkedAt).toISOString()}>
       {new Intl.DateTimeFormat('en', { dateStyle: 'medium', timeStyle: 'medium', timeZone: 'UTC' }).format(healthRead.checkedAt)} UTC
-    </time>. Reused for up to 30 seconds.</p>}
+    </time>. Kept until Refresh data or Check health.</p>}
     {health && <dl><dt>Data</dt><dd>{health.database}</dd><dt>Functions</dt><dd>{health.functions}</dd>
       <dt>Outbox pending</dt><dd>{health.outbox_pending}</dd><dt>Event delivery</dt><dd>{health.broker}</dd></dl>}
     {!health && !error && <p role="status">Invoking native health function…</p>}</section>

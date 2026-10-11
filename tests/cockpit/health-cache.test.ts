@@ -6,6 +6,7 @@ vi.mock('../../apps/cockpit/src/services/rayfinClient', () => ({
   getRayfinClient: () => ({ functions: { health: { invoke } } }),
 }));
 import { createHealthReader } from '../../apps/cockpit/src/services/health';
+import { createReadCache } from '../../apps/cockpit/src/services/readCache';
 
 const health: Health = { database: 'Test database', functions: 'Native function', outbox_pending: 3, broker: 'Test delivery status' };
 
@@ -25,7 +26,7 @@ beforeEach(() => {
 afterEach(() => { vi.useRealTimers(); vi.restoreAllMocks(); });
 
 describe('Operations health cache', () => {
-  it('reuses success for 30 seconds from completion without extending freshness on a hit', async () => {
+  it('reuses success and its original timestamp until an explicit recheck', async () => {
     const response = deferred();
     invoke.mockReturnValueOnce(response.promise);
     const read = createHealthReader();
@@ -38,13 +39,15 @@ describe('Operations health cache', () => {
     await vi.advanceTimersByTimeAsync(29_999);
     expect(await read()).toBe(completed);
     expect(invoke).toHaveBeenCalledOnce();
-    await vi.advanceTimersByTimeAsync(1);
+    await vi.advanceTimersByTimeAsync(24 * 60 * 60_000);
+    expect(await read()).toBe(completed);
+    expect(invoke).toHaveBeenCalledOnce();
     invoke.mockResolvedValueOnce({ ...health, outbox_pending: 1 });
-    expect(await read()).toEqual({ health: { ...health, outbox_pending: 1 }, checkedAt: Date.parse('2026-10-10T12:00:33.850Z') });
+    expect(await read(true)).toEqual({ health: { ...health, outbox_pending: 1 }, checkedAt: Date.now() });
     expect(invoke).toHaveBeenCalledTimes(2);
   });
 
-  it('forces a fresh read before expiry and coalesces concurrent automatic and forced checks', async () => {
+  it('forces a fresh read and coalesces concurrent automatic and forced checks', async () => {
     const read = createHealthReader();
     await read();
     const response = deferred();
@@ -73,10 +76,9 @@ describe('Operations health cache', () => {
     expect(await first).toEqual(await second);
   });
 
-  it.each(['initial', 'forced', 'expired'] as const)('does not cache a failed %s check or fall back to an older success', async kind => {
+  it.each(['initial', 'forced'] as const)('does not cache a failed %s check or fall back to an older success', async kind => {
     const read = createHealthReader();
     if (kind !== 'initial') await read();
-    if (kind === 'expired') await vi.advanceTimersByTimeAsync(30_000);
     const failure = new Error('Health access denied');
     invoke.mockRejectedValueOnce(failure);
     await expect(read(kind === 'forced')).rejects.toBe(failure);
@@ -107,7 +109,7 @@ describe('Operations health cache', () => {
     expect(invoke).toHaveBeenCalledTimes(2);
   });
 
-  it('never polls or persists health data in browser storage', async () => {
+  it('never polls and only persists when an authenticated cache is supplied', async () => {
     const localWrite = vi.spyOn(localStorage, 'setItem');
     const sessionWrite = vi.spyOn(Storage.prototype, 'setItem');
     const read = createHealthReader();
@@ -117,5 +119,22 @@ describe('Operations health cache', () => {
     expect(vi.getTimerCount()).toBe(0);
     expect(localWrite).not.toHaveBeenCalled();
     expect(sessionWrite).not.toHaveBeenCalled();
+  });
+
+  it('persists an authenticated check until explicit recheck or business invalidation', async () => {
+    const first = createHealthReader(createReadCache('health-user'));
+    const completed = await first();
+    await vi.advanceTimersByTimeAsync(6 * 60_000);
+    const cache = createReadCache('health-user');
+    const restored = createHealthReader(cache);
+    expect(await restored()).toEqual(completed);
+    expect(invoke).toHaveBeenCalledOnce();
+    await restored(true);
+    expect(invoke).toHaveBeenCalledTimes(2);
+    cache.invalidate('read:');
+    await restored();
+    expect(invoke).toHaveBeenCalledTimes(3);
+    expect((await createHealthReader(createReadCache('another-user'))()).health).toEqual(health);
+    expect(invoke).toHaveBeenCalledTimes(4);
   });
 });

@@ -102,7 +102,7 @@ it('does not surface a failed prefetch on the active screen and retries on entry
   expect(readers.gold.mock.calls).toEqual([['overview'], ['catalog'], ['catalog']]);
 });
 
-it('revalidates prefetched data after its 30-second lifetime', async () => {
+it('keeps prefetched data without an expiry', async () => {
   let now = Date.parse('2026-10-10T12:00:00Z');
   vi.spyOn(Date, 'now').mockImplementation(() => now);
   const { result } = renderHook(() => useCockpitReads('overview'));
@@ -110,9 +110,9 @@ it('revalidates prefetched data after its 30-second lifetime', async () => {
   await act(async () => { await result.current.prefetch('catalog'); });
   await act(async () => { await result.current.prefetch('catalog'); });
   expect(readers.gold).toHaveBeenCalledTimes(2);
-  now += 30_001;
+  now += 24 * 60 * 60_000;
   await act(async () => { await result.current.prefetch('catalog'); });
-  expect(readers.gold).toHaveBeenCalledTimes(3);
+  expect(readers.gold).toHaveBeenCalledTimes(2);
 });
 
 it('does not preload unrelated data or preload when data saving is enabled', async () => {

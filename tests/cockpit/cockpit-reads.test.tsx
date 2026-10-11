@@ -1,3 +1,4 @@
+import type { ReactNode } from 'react';
 import { act, cleanup, renderHook, waitFor } from '@testing-library/react';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
 import type { GoldPages } from '../../apps/cockpit/rayfin/functions/src/gold-pages';
@@ -10,6 +11,10 @@ vi.mock('../../apps/cockpit/src/services/business', () => ({
   safeError: (error: Error) => error.message,
 }));
 import { useCockpitReads } from '../../apps/cockpit/src/hooks/useCockpitReads';
+import { ReadCacheContext } from '../../apps/cockpit/src/hooks/ReadCacheContext';
+import { createReadCache, type ReadCache } from '../../apps/cockpit/src/services/readCache';
+const withCache = (cache: ReadCache) => ({ children }: { children: ReactNode }) =>
+  <ReadCacheContext.Provider value={cache}>{children}</ReadCacheContext.Provider>;
 
 const snapshot: Snapshot = {
   content: [], customers: [], offers: [], rentals: [], playback: [], outbox: [],
@@ -82,7 +87,7 @@ it('coalesces duplicate explicit refresh requests rather than querying twice', a
   await act(async () => { finish(gold); await Promise.all([first, second]); });
 });
 
-it('caches each operational screen separately and revalidates only after stale reactivation', async () => {
+it('keeps each operational screen and its timestamp until explicit refresh, even after five minutes away', async () => {
   let now = Date.parse('2026-10-10T12:00:00Z');
   vi.spyOn(Date, 'now').mockImplementation(() => now);
   const snapshots = { orders: { ...snapshot }, demo: { ...snapshot }, operations: { ...snapshot } };
@@ -101,13 +106,16 @@ it('caches each operational screen separately and revalidates only after stale r
   rerender({ section: 'orders' });
   expect(result.current.snapshot).toBe(snapshots.orders);
   const updated = result.current.updated;
-  now += 30_001;
+  now += 5 * 60_000 + 1;
   rerender({ section: 'orders' });
   await act(async () => {});
   expect(readers.operational).toHaveBeenCalledTimes(3);
   rerender({ section: 'graph' });
   rerender({ section: 'orders' });
   await waitFor(() => expect(result.current.loading).toBe(false));
+  expect(readers.operational).toHaveBeenCalledTimes(3);
+  expect(result.current.updated).toEqual(updated);
+  await act(async () => { await result.current.refresh(); });
   expect(readers.operational).toHaveBeenCalledTimes(4);
   expect(readers.operational).toHaveBeenLastCalledWith('orders', { ordersPage: 1, playbackPage: 1 });
   expect(result.current.updated).not.toEqual(updated);
@@ -146,7 +154,7 @@ it('reloads the currently selected scope after a command and invalidates other f
   await waitFor(() => expect(result.current.loading).toBe(false));
   const authoritative = { ...snapshot };
   readers.operational.mockResolvedValueOnce(authoritative);
-  await act(async () => { await afterCommand(); });
+  await act(async () => { await afterCommand(true); });
   expect(readers.operational).toHaveBeenLastCalledWith('operations');
   expect(result.current.snapshot).toBe(authoritative);
   rerender({ section: 'orders' });
@@ -211,4 +219,68 @@ it.each([
   rerender({ section: 'orders' });
   expect(result.current.snapshot).toBe(snapshot);
   expect(readers.operational).toHaveBeenCalledTimes(2);
+});
+
+it('restores Gold and operational reads after a browser remount without network calls', async () => {
+  const first = renderHook(({ section }) => useCockpitReads(section), {
+    initialProps: { section: 'overview' }, wrapper: withCache(createReadCache('same-app-and-user')),
+  });
+  await waitFor(() => expect(first.result.current.goldLoading).toBe(false));
+  first.rerender({ section: 'orders' });
+  await waitFor(() => expect(first.result.current.loading).toBe(false));
+  const updated = first.result.current.updated;
+  first.unmount();
+  const restored = renderHook(({ section }) => useCockpitReads(section), {
+    initialProps: { section: 'orders' }, wrapper: withCache(createReadCache('same-app-and-user')),
+  });
+  expect(restored.result.current.snapshot).toEqual(snapshot);
+  expect(restored.result.current.updated).toEqual(updated);
+  expect(restored.result.current.loading).toBe(false);
+  restored.rerender({ section: 'overview' });
+  expect(restored.result.current.gold).toEqual(gold);
+  expect(restored.result.current.goldLoading).toBe(false);
+  expect(readers.gold).toHaveBeenCalledOnce();
+  expect(readers.operational).toHaveBeenCalledOnce();
+});
+
+it('refreshes only the selected screen and invalidates all reads after a command', async () => {
+  const cache = createReadCache('refresh-scope');
+  const hook = renderHook(({ section }) => useCockpitReads(section), {
+    initialProps: { section: 'overview' }, wrapper: withCache(cache),
+  });
+  await waitFor(() => expect(hook.result.current.goldLoading).toBe(false));
+  hook.rerender({ section: 'catalog' });
+  await waitFor(() => expect(hook.result.current.goldLoading).toBe(false));
+  cache.set('read:insights:fixture', 'previous analysis');
+  cache.set('read:graph:12', 'previous graph');
+  cache.set('ui:insights:selection', 'keep filters');
+  await act(async () => { await hook.result.current.refresh(); });
+  expect(cache.get('read:insights:fixture')).toBe('previous analysis');
+  hook.rerender({ section: 'overview' });
+  expect(readers.gold).toHaveBeenCalledTimes(3);
+  await act(async () => { await hook.result.current.refresh(true); });
+  expect(cache.get('read:insights:fixture')).toBeUndefined();
+  expect(cache.get('read:graph:12')).toBeUndefined();
+  expect(cache.get('ui:insights:selection')).toBe('keep filters');
+  hook.rerender({ section: 'catalog' });
+  await waitFor(() => expect(hook.result.current.goldLoading).toBe(false));
+  expect(readers.gold.mock.calls).toEqual([['overview'], ['catalog'], ['catalog'], ['overview'], ['catalog']]);
+});
+
+it.each([false, true])('does not reuse a prior refresh (business invalidation: %s) after another command', async priorCommand => {
+  const hook = renderHook(() => useCockpitReads('overview'));
+  await waitFor(() => expect(hook.result.current.goldLoading).toBe(false));
+  let finishOld!: (value: typeof gold) => void;
+  let finishNew!: (value: typeof gold) => void;
+  readers.gold.mockImplementationOnce(() => new Promise(resolve => { finishOld = resolve; }))
+    .mockImplementationOnce(() => new Promise(resolve => { finishNew = resolve; }));
+  let manual!: Promise<void>, command!: Promise<void>;
+  await act(async () => { manual = hook.result.current.refresh(priorCommand); });
+  await act(async () => { command = hook.result.current.refresh(true); });
+  const authoritative = { ...gold, snapshot: { ...snapshot } };
+  await act(async () => { finishNew(authoritative); await command; });
+  await act(async () => { finishOld(gold); await manual; });
+  expect(hook.result.current.gold).toBe(authoritative);
+  expect(hook.result.current.goldLoading).toBe(false);
+  expect(readers.gold).toHaveBeenCalledTimes(3);
 });

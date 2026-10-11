@@ -1,4 +1,4 @@
-import { StrictMode } from 'react';
+import { StrictMode, type ReactNode } from 'react';
 import { act, cleanup, fireEvent, render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { afterEach, beforeEach, expect, it, vi } from 'vitest';
@@ -27,6 +27,10 @@ vi.mock('../../apps/cockpit/src/services/goldViews', () => ({
   loadGoldViews: async () => ({ pages, snapshot }),
 }));
 import { HomePage } from '../../apps/cockpit/src/pages/HomePage';
+import { ReadCacheContext } from '../../apps/cockpit/src/hooks/ReadCacheContext';
+import { createReadCache, type ReadCache } from '../../apps/cockpit/src/services/readCache';
+const withCache = (cache: ReadCache) => ({ children }: { children: ReactNode }) =>
+  <ReadCacheContext.Provider value={cache}>{children}</ReadCacheContext.Provider>;
 
 const snapshot: Snapshot = {
   content: [], customers: [], offers: [], rentals: [], playback: [], outbox: [],
@@ -83,16 +87,19 @@ it('reuses a successful health check and its timestamp when Operations remounts 
   expect(sdk.health).toHaveBeenCalledOnce();
 });
 
-it('rechecks at the 30-second boundary only when Operations is revisited', async () => {
+it('keeps the health read after more than five minutes away until Check health is used', async () => {
   const view = render(<HomePage />);
   await navigate('Operations');
-  now += 30_000;
+  now += 6 * 60_000;
   await act(async () => { view.rerender(<HomePage />); });
   expect(sdk.health).toHaveBeenCalledOnce();
   await navigate('Overview');
   await navigate('Operations');
+  expect(sdk.health).toHaveBeenCalledOnce();
+  expect(lastChecked()).toHaveAttribute('datetime', '2026-10-10T12:00:00.000Z');
+  await navigate('Check health');
   expect(sdk.health).toHaveBeenCalledTimes(2);
-  expect(lastChecked()).toHaveAttribute('datetime', '2026-10-10T12:00:30.000Z');
+  expect(lastChecked()).toHaveAttribute('datetime', '2026-10-10T12:06:00.000Z');
 });
 
 it('uses Check health as a keyboard-accessible force check without enabling operational commands', async () => {
@@ -195,4 +202,44 @@ it('does not hide permission errors or enable commands after a successful cached
   expect(screen.getByRole('button', { name: 'Request simulate' })).toBeDisabled();
   expect(screen.getByRole('button', { name: 'Expire due rentals' })).toBeDisabled();
   expect(sdk.requestControl).not.toHaveBeenCalled();
+});
+
+it('restores the selected screen and its health read after a browser remount', async () => {
+  const first = render(<HomePage />, { wrapper: withCache(createReadCache('operations-user')) });
+  await navigate('Operations');
+  first.unmount();
+  now += 6 * 60_000;
+  render(<HomePage />, { wrapper: withCache(createReadCache('operations-user')) });
+  await act(async () => {});
+  expect(screen.getByRole('heading', { name: 'Connection verification' })).toBeInTheDocument();
+  expect(lastChecked()).toHaveAttribute('datetime', '2026-10-10T12:00:00.000Z');
+  expect(sdk.health).toHaveBeenCalledOnce();
+  expect(sdk.capabilities).toHaveBeenCalledTimes(2);
+});
+
+it('refreshes health with the topbar Refresh data button in the shared cache', async () => {
+  render(<HomePage />, { wrapper: withCache(createReadCache('operations-refresh')) });
+  await navigate('Operations');
+  now += 6 * 60_000;
+  sdk.health.mockResolvedValue({ ...health, outbox_pending: 0 });
+  await navigate('Refresh data');
+  expect(sdk.health).toHaveBeenCalledTimes(2);
+  expect(lastChecked()).toHaveAttribute('datetime', '2026-10-10T12:06:00.000Z');
+  await navigate('Check health');
+  expect(sdk.health).toHaveBeenCalledTimes(3);
+});
+
+it('ignores an old health response after a command invalidates the active screen', async () => {
+  const cache = createReadCache('health-command');
+  const old = deferredHealth();
+  sdk.health.mockReturnValueOnce(old.promise);
+  render(<HomePage />, { wrapper: withCache(cache) });
+  await navigate('Operations');
+  sdk.health.mockResolvedValue({ ...health, database: 'Reconciled database' });
+  await act(async () => { cache.invalidate('read:'); });
+  expect(screen.getByText('Reconciled database')).toBeInTheDocument();
+  await act(async () => { old.resolve({ ...health, database: 'Obsolete database' }); });
+  expect(screen.queryByText('Obsolete database')).not.toBeInTheDocument();
+  expect(screen.getByText('Reconciled database')).toBeInTheDocument();
+  expect(sdk.health).toHaveBeenCalledTimes(2);
 });
