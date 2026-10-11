@@ -14,6 +14,11 @@ from test_worker import config, event
 
 LOGIN_TIMEOUT = ("HYT00", "[HYT00] [Microsoft][ODBC Driver 18 for SQL Server]"
                  "Login timeout expired (0) (SQLDriverConnect)")
+CAPACITY_INACTIVE = (
+    "42000", "[42000] [Microsoft][ODBC Driver 18 for SQL Server][SQL Server]"
+    "Unable to complete the action because this Fabric capacity is currently not active. "
+    "Contact the capacity administrator for help. "
+    "(https://learn.microsoft.com/fabric/data-warehouse/pause-resume) (24800) (SQLDriverConnect)")
 
 
 class WorkerConnectionRecoveryTests(unittest.TestCase):
@@ -95,6 +100,95 @@ class WorkerConnectionRecoveryTests(unittest.TestCase):
         self.assertEqual(state["cycle"]["events"], [event()])
         self.assertEqual(state["last_recovery"]["kind"], "sql_connect_unavailable")
         self.assertEqual(self.store.pending([event()]), [event()])
+        self.runtime.submit_job.assert_not_called()
+
+    def test_inactive_capacity_recovers_from_idle_after_restarts_and_long_outage(self):
+        self.store.save({"phase": "idle", "last_cycle": None})
+        for delay in (30, 60, 120, 240, 900):
+            state, calls = self.once(pyodbc.ProgrammingError(*CAPACITY_INACTIVE))
+            self.assertEqual(calls, 1)
+            self.assertEqual(state["phase"], "idle")
+            self.assertEqual(state["retry"]["kind"], "sql_connect_capacity_inactive")
+            self.assertEqual(state["retry"]["native_error"], 24800)
+            self.assertEqual(state["retry"]["next_attempt_at"] - self.now, delay)
+            _, calls = self.once()
+            self.assertEqual(calls, 0, "A process restart must preserve the capacity backoff")
+            self.now = state["retry"]["next_attempt_at"]
+        self.now += 8 * 3600
+        state, calls = self.once()
+        self.assertEqual(calls, 1)
+        self.assertEqual(state["phase"], "waiting_native_onelake")
+        self.assertEqual(state["cycle"]["events"], [event()])
+        self.assertEqual(state["last_recovery"]["total_failures"], 5)
+        self.runtime.submit_job.assert_not_called()
+
+    def test_legacy_inactive_capacity_block_recovers_automatically(self):
+        self.store.save({"phase": "blocked", "blocked_phase": "idle", "last_cycle": None,
+                         "error_kind": "nonretryable", "error": str(pyodbc.ProgrammingError(*CAPACITY_INACTIVE))})
+        state, calls = self.once()
+        self.assertEqual(calls, 1)
+        self.assertEqual(state["phase"], "waiting_native_onelake")
+        self.assertEqual(state["cycle"]["events"], [event()])
+        self.assertIn("capacity_block_recovered_at", state)
+        self.assertNotIn("blocked_phase", state)
+        self.assertNotIn("error", state)
+        self.runtime.submit_job.assert_not_called()
+
+    def test_legacy_capacity_block_preserves_pause(self):
+        self.store.save({"phase": "blocked", "blocked_phase": "idle", "last_cycle": None,
+                         "error_kind": "nonretryable", "error": str(pyodbc.ProgrammingError(*CAPACITY_INACTIVE))})
+        (self.path / "PAUSED").touch()
+        state, calls = self.once()
+        self.assertEqual(calls, 0)
+        self.assertEqual(state["phase"], "blocked")
+        self.assertTrue(state["paused"])
+
+    def test_other_42000_connection_errors_remain_blocked(self):
+        for message in (
+                "Permission denied (229) (SQLDriverConnect)",
+                "Invalid object name (208) (SQLDriverConnect)",
+                "SQL syntax error (102) (SQLDriverConnect)",
+                "capacity unavailable (124800) (SQLDriverConnect)"):
+            with self.subTest(message=message):
+                self.store.save({"phase": "idle", "last_cycle": None})
+                state, _ = self.once(pyodbc.ProgrammingError("42000", message))
+                self.assertEqual(state["phase"], "blocked")
+                self.assertEqual(state["error_kind"], "nonretryable")
+                state, calls = self.once()
+                self.assertEqual(calls, 0)
+                self.assertEqual(state["phase"], "blocked")
+
+    def test_capacity_error_during_statement_or_commit_is_not_automatically_replayed(self):
+        for boundary in ("SQLExecDirectW", "SQLEndTran"):
+            with self.subTest(boundary=boundary):
+                self.store.save({"phase": "idle", "last_cycle": None})
+                self.runtime.publish.side_effect = pyodbc.ProgrammingError(
+                    "42000", CAPACITY_INACTIVE[1].replace("SQLDriverConnect", boundary))
+                state, _ = self.once()
+                self.assertEqual(state["phase"], "blocked")
+                self.runtime.publish.reset_mock()
+                self.runtime.publish.side_effect = None
+                state, _ = self.once()
+                self.runtime.publish.assert_not_called()
+                self.assertEqual(state["phase"], "blocked")
+
+    def test_vm_downtime_does_not_double_extend_an_existing_sql_retry(self):
+        state = self.store.load()
+        state["phase"] = "raw"
+        state["stage_started_at"] = self.now - 100
+        state["cycle"]["raw_job"] = {"id": "existing-raw-job"}
+        self.store.save(state)
+        self.runtime.get_job.return_value = {"status": "InProgress"}
+        state, _ = self.once(pyodbc.OperationalError(*LOGIN_TIMEOUT))
+        with patch.object(worker.time, "time", return_value=self.now):
+            self.store.save(state)
+        self.now += 8 * 3600
+        state, calls = self.once()
+        self.assertEqual(calls, 1)
+        self.assertEqual(state["phase"], "raw")
+        self.assertEqual(self.now - state["stage_started_at"], 100)
+        self.assertEqual(state["cycle"]["id"], self.cycle["id"])
+        self.runtime.get_job.assert_called_once_with("raw-job", "existing-raw-job", "spark-cli")
         self.runtime.submit_job.assert_not_called()
 
     def test_unavailable_connection_preserves_an_inflight_cycle(self):

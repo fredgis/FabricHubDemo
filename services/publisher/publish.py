@@ -15,12 +15,21 @@ from typing import Any
 class TransientSqlConnectionError(RuntimeError):
     """A failed connection establishment; no SQL statement was submitted."""
 
-    def __init__(self, sqlstate):
+    def __init__(self, sqlstate, *, native_error=None):
         self.sqlstate = sqlstate
+        self.native_error = native_error
         timeout = sqlstate in ("HYT00", "HYT01")
         self.kind = "sql_connect_timeout" if timeout else "sql_connect_unavailable"
         reason = "timed out" if timeout else "could not establish a verified connection"
+        if native_error == 24800:
+            self.kind = "sql_connect_capacity_inactive"
+            reason = "is waiting for an active Fabric capacity"
         super().__init__(f"SQLDriverConnect {reason} [{sqlstate}]; no statement submitted")
+
+
+def inactive_capacity_connect_error(sqlstate, message):
+    return (sqlstate == "42000" and
+            re.search(r"\(24800\)\s+\(SQLDriverConnect\)", message) is not None)
 
 
 def canonical_payload(value: str | dict[str, Any]) -> tuple[dict[str, Any], str]:
@@ -143,6 +152,8 @@ def sql_connect(server, database, credential, *, autocommit=False):
         state = exc.args[0] if exc.args else ""
         if state in ("HYT00", "HYT01", "08001"):
             raise TransientSqlConnectionError(state) from exc
+        if inactive_capacity_connect_error(state, str(exc)):
+            raise TransientSqlConnectionError(state, native_error=24800) from exc
         raise
     connection.timeout = 300
     return connection

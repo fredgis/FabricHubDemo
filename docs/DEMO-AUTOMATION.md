@@ -227,23 +227,35 @@ IDs. `resume` follows repair of a blocked stage; it does not discard job intent.
 - A missing-ID result in `waiting_native_onelake` remains a read-only wait.
   After 30 minutes, status exposes `native_onelake.overdue` and probes every
   five minutes instead of permanently blocking. The same cycle and IDs are
-  retained across restart. Only the exact native-wait deadline error from
-  older workers is automatically recovered; other blocked errors are not.
+  retained across restart. For this wait, only the exact native-wait deadline
+  error from older workers is automatically recovered.
   This cannot recover messages that have expired from upstream retention:
   persistent missing IDs still require investigation, not a new Start Demo.
-- Other stages have a 30-minute deadline. SQL **connection-establishment** timeouts
-  (`HYT00`/`HYT01`) and unavailable connections (`08001`, including transient TLS
-  handshake failures) from `SQLDriverConnect`, before any statement is submitted,
+- The enabled systemd service starts at VM boot and restarts a failed process.
+  After a worker interruption, stage deadlines exclude the time since its last
+  durable checkpoint. An existing SQL retry already accounts for that interval
+  and is not extended twice. Saved events, job IDs and submission intents stay
+  unchanged: a job completed while the VM was off is checked, not resubmitted.
+  The operator's `PAUSED` file still suppresses work after reboot.
+- Other stages have a 30-minute active-worker deadline. SQL **connection-establishment**
+  timeouts (`HYT00`/`HYT01`), unavailable connections (`08001`, including transient
+  TLS handshake failures), and inactive Fabric capacity (`42000` with native
+  error `24800` and `SQLDriverConnect`), before any statement is submitted,
   keep the same cycle/phase and persist their error plus next retry time.
   Every attempt retains `Encrypt=yes;TrustServerCertificate=no`; retries never
   accept an untrusted certificate or bypass authentication. A persistent TLS
   failure still requires repairing the certificate chain, not weakening TLS.
-  The retry kind distinguishes `sql_connect_timeout` from `sql_connect_unavailable`.
+  Retry kinds are `sql_connect_timeout`, `sql_connect_unavailable`, and
+  `sql_connect_capacity_inactive`; the last also records native error `24800`.
   Retry delays are 30, 60, 120, and 240 seconds; after the fifth failed
   connection the worker waits 900 seconds before another bounded burst.
   No attempts occur during the persisted backoff, including after restart.
-  Only time when SQL is unavailable is excluded from bounded stage deadlines;
-  job and post-Gold OneLake waits still have their original bound.
+  SQL unavailability and worker interruptions are excluded from stage deadlines;
+  healthy job and post-Gold OneLake waits still consume their original bound.
+  A legacy `nonretryable` checkpoint blocked at `idle` on the exact
+  `42000`/`24800`/`SQLDriverConnect` signature recovers automatically and records
+  `capacity_block_recovered_at`. It neither deletes SQLite nor recreates Demo
+  transactions. Other `42000` errors and statement/commit failures stay blocked.
 - Permission, configuration, invalid data, terminal failed Spark jobs, and
   statement/commit timeouts enter `blocked` immediately with the original
   phase, error and job intent preserved. Publishing and propagation stop until
@@ -407,6 +419,23 @@ five orders and sessions on **10 October**, totaling **20.95 in ALL** (nominal
 EUR + CHF, no FX conversion), with BE/CH/FR on the map. A direct hosting check
 returned HTTP 401 with CLI credentials; the hosted SSO journey was not
 validated by this check and is not claimed as a successful browser smoke.
+
+### Verified VM-stop recovery, 11 October 2026
+
+After the capacity and Eventstream were reactivated, the deployed worker
+recovered its existing inactive-capacity block automatically, without an
+operator `resume` or another Start Demo. All 80 original outbox events retained
+their entity keys, sequences, types and run IDs. Exact Kafka receipts and SQL
+commits covered all 80 events; native OneLake and Raw also contained all 80.
+A read-only Warehouse check found the latest event IDs and sequences for all
+20 original orders and 20 original sessions, with no missing or duplicate keys.
+The 109 publisher regression tests passed, including recovery of the same job
+after simulated interruptions of 8 and 24 hours.
+
+This validates recovery, not real-time Gold latency. Kafka acknowledged this
+batch at 11:55:54 UTC and Gold published it at 12:10:58 UTC, about 15 minutes
+later. The existing native OneLake, Raw notebook, Silver notebook and Gold
+publication stages remain sequential; this fix does not shorten that path.
 
 References:
 [Notebook API unattended execution](https://learn.microsoft.com/fabric/data-engineering/notebook-public-api),

@@ -13,7 +13,7 @@ from pathlib import Path
 
 from fabric.rest import DeploymentError, safe_error_message
 from services.publisher.access import check_access, validate_authorization
-from services.publisher.publish import TransientSqlConnectionError
+from services.publisher.publish import TransientSqlConnectionError, inactive_capacity_connect_error
 from services.publisher.runtime import GoldDeadlockError, Runtime, latest_targets, timestamp
 
 ACTIVE = ("NotStarted", "InProgress", "Running")
@@ -130,6 +130,14 @@ class Worker:
         if "ingress_binding" in self.state and self.state["ingress_binding"] != cfg.get("ingress"):
             raise DeploymentError("Worker ingress bindings changed; reconcile existing checkpoint before promoting")
         self.binding_hash = identity
+        retry = self.state.get("retry", {})
+        if (self.state["phase"] not in ("idle", "blocked") and "updated_at" in self.state and
+                not (retry.get("kind", "").startswith("sql_connect_") and
+                     retry.get("phase") == self.state["phase"])):
+            # A stopped VM cannot spend a stage's active-time budget. SQL retry
+            # already accounts for its downtime, including any process stop.
+            downtime = max(0, self.clock() - self.state["updated_at"])
+            self.state["stage_started_at"] += downtime
 
     def save(self):
         self.state["binding_hash"] = self.binding_hash
@@ -169,7 +177,16 @@ class Worker:
     def run_pass(self):
         """Recover safe reads and known rollbacks without replaying ambiguous writes."""
         if self.state["phase"] == "blocked":
-            if (self.state.get("blocked_phase") == "waiting_native_onelake" and
+            error = self.state.get("error", "")
+            if (self.state.get("error_kind") == "nonretryable" and
+                    self.state.get("blocked_phase") == "idle" and error.startswith("('42000',") and
+                    inactive_capacity_connect_error("42000", error)):
+                self.state["phase"] = self.state.pop("blocked_phase")
+                self.state.pop("error")
+                self.state.pop("error_kind")
+                self.state["capacity_block_recovered_at"] = self.clock()
+                self.save()
+            elif (self.state.get("blocked_phase") == "waiting_native_onelake" and
                     self.state.get("error") == "waiting_native_onelake exceeded bounded stage deadline; no success claimed"):
                 self.state["phase"] = "waiting_native_onelake"
                 self.state.pop("blocked_phase")
@@ -217,6 +234,8 @@ class Worker:
                 "next_attempt_at": failed_at + CONNECT_RETRY_DELAYS[attempt - 1],
                 "cooldown": attempt == len(CONNECT_RETRY_DELAYS),
             }
+            if exc.native_error is not None:
+                self.state["retry"]["native_error"] = exc.native_error
             self.state["error"] = str(exc)
             self.state["error_kind"] = "transient_sql_connect"
             self.save()

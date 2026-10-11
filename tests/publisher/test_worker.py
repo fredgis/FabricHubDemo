@@ -76,6 +76,43 @@ class WorkerTests(unittest.TestCase):
         self.runtime.get_job.assert_called_once_with("raw-job", "actual-job", "spark-cli")
         self.runtime.submit_job.assert_not_called()
 
+    def test_vm_stop_start_preserves_job_and_remaining_stage_deadline(self):
+        self.worker.tick()
+        self.worker.state["cycle"]["raw_job"] = {"id": "existing-job"}
+        self.worker.advance("raw")
+        cycle = copy.deepcopy(self.worker.state["cycle"])
+        self.now += 100
+        with patch("services.publisher.worker.time.time", return_value=self.now):
+            self.worker.save()
+        self.now += 8 * 3600
+        restored = Worker(config(), self.runtime, self.store, lambda: self.now)
+        self.runtime.get_job.return_value = {"status": "InProgress"}
+        restored.tick()
+        self.assertEqual(restored.state["phase"], "raw")
+        self.assertEqual(self.now - restored.state["stage_started_at"], 100)
+        self.assertEqual(restored.state["cycle"]["id"], cycle["id"])
+        self.assertEqual(restored.state["cycle"]["events"], cycle["events"])
+        self.runtime.get_job.assert_called_once_with("raw-job", "existing-job", "spark-cli")
+        self.runtime.submit_job.assert_not_called()
+        self.now += 1701
+        with self.assertRaisesRegex(RuntimeError, "bounded stage deadline"):
+            restored.tick()
+
+    def test_job_completed_while_vm_off_is_verified_without_resubmission(self):
+        self.worker.tick()
+        self.worker.state["cycle"]["raw_job"] = {"id": "completed-during-outage"}
+        self.worker.advance("raw")
+        with patch("services.publisher.worker.time.time", return_value=self.now):
+            self.worker.save()
+        self.now += 24 * 3600
+        restored = Worker(config(), self.runtime, self.store, lambda: self.now)
+        self.runtime.get_job.return_value = {"status": "Completed", "endTimeUtc": "1970-01-01T00:30:00Z"}
+        restored.tick()
+        self.assertEqual(restored.state["phase"], "verify_raw")
+        self.assertEqual(len(self.store.pending([event()])), 1)
+        self.runtime.get_job.assert_called_once_with("raw-job", "completed-during-outage", "spark-cli")
+        self.runtime.submit_job.assert_not_called()
+
     def test_lost_post_response_adopts_single_matching_job(self):
         self.worker.tick()
         self.worker.state["cycle"]["raw_intent"] = 900
