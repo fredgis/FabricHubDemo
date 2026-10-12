@@ -30,7 +30,7 @@ Warehouse. Recorded campaign conversions remain **0**; none are inferred.
 
 ## Actual serving and business-context items
 
-| Component | Actual identifier |
+| Component | Identifier placeholder |
 |---|---|
 | Warehouse `MSFlixGold` | `<WAREHOUSE_ID>` |
 | Conformed Lakehouse `MSFlixSilver` | `<SILVER_LAKEHOUSE_ID>` |
@@ -125,8 +125,8 @@ instance-refresh endpoint or silently substituted generation-one model is used.
 
 ## Cockpit reads and writes have different responsibilities
 
-The deployed app is hosted at
-[MSFlix Business Control](https://<app-host>).
+The deployed MSFlix Business Control app is hosted at the privately supplied
+`https://<app-host>`.
 Full cockpit deployment **succeeded** at the same hosting, with
 `excludedServices=[]`, `skippedConnectors=[]`, `warnings=[]`.
 It includes Gold business views, native GQL business-graph integration and

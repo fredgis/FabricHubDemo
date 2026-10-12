@@ -16,11 +16,11 @@ real customer identities; SAP is separately authorized as described below.
 Budget: reasonable demo-sized SKUs, bounded producers, no unapproved capacity
 increase. Reuse existing Azure and Salesforce authentication caches.
 
-The original deployment below excludes SAP and financial Planning. approved operator
-subsequently authorized the [local SAP contract](#sap-pr-1-local-data-contract),
+The original deployment below excludes SAP and financial Planning. The approved
+operator subsequently authorized the [local SAP contract](#sap-pr-1-local-data-contract),
 private SAP foundation and [native BPS integration](#sap-native-bps-and-warehouse-publication).
-Planning remains deferred. approved operator owns SAP through `MSFlixGold`; app owner owns
-cockpit changes and repository merges.
+Planning remains deferred. The approved operator owns SAP through `MSFlixGold`;
+the app owner owns cockpit changes and repository merges.
 
 On 2026-10-08, the user authorized Flixy: a native Fabric Data Agent sourced from
 the consolidated Gold Warehouse and business ontology, with a conversational
@@ -86,9 +86,9 @@ settlement is performed.
 
 ## SAP PR 1: local data contract
 
-On 2026-10-08 approved operator approved the November scenario below and development on
-`work/sap-data-contract`. This authorization is **local only**: no Azure/Fabric
-deployment, source-system mutation, automatic PR publication or merge. The
+On 2026-10-08 the approved operator authorized the November scenario below and
+development on `work/sap-data-contract`. This authorization is **local only**: no
+Azure/Fabric deployment, source-system mutation, automatic PR publication or merge. The
 eventual SAP BPS item will be separate from Salesforce, under `02bis SAP BPS`;
 neither that item nor the folder is created by this code.
 
@@ -412,7 +412,7 @@ $proof = ".state\sap-native\silver-qualified-$($b2s.job_id).json"
 python -m sources.sap.warehouse `
   --target .state\sap-native\target.local.json `
   --processing-evidence .state\sap-native `
-  --catalog $proof --run-id msflix-sap-november-2026-v1 --inspect-silver
+  --catalog $proof --run-id "<SAP_PUBLICATION_RUN_ID>" --inspect-silver
 python -m sources.sap.process `
   --target .state\sap-native\target.local.json `
   --stage s2g --evidence .state\sap-native --apply
@@ -469,7 +469,7 @@ python -m sources.sap.warehouse `
   --target .state\sap-native\target.local.json `
   --processing-evidence .state\sap-native `
   --catalog .state\sap-native\warehouse-qualified-v1.json `
-  --run-id msflix-sap-november-2026-v1 --inspect-source
+  --run-id "<SAP_PUBLICATION_RUN_ID>" --inspect-source
 ```
 
 `--inspect-source` performs bounded reads only. The default mode is offline
@@ -513,9 +513,10 @@ published successfully.
 
 ### SQL handoff for cockpit integration
 
-The published source is `S4M`, company scope `1710`, scenario and initial run
-`msflix-sap-november-2026-v1`, with financial `as_of = 2026-11-30`. This is an
-explicitly synthetic future-period demonstration, not today's production results.
+The published source is `S4M`, company scope `1710`, and synthetic scenario
+`msflix-sap-november-2026-v1`, with financial `as_of = 2026-11-30`. The initial
+publication run identifier is kept in private evidence. This is an explicitly
+synthetic future-period demonstration, not today's production results.
 The publication timestamp describes processing freshness, not the accounting date.
 
 | Serving view in `gold` | Grain and consumption meaning |
@@ -557,10 +558,10 @@ EUR 14.40 contribution as whole-company profit. Never add GL revenue to the
 same journal's AR/AP projection or to existing operational order revenue.
 
 This change does not deploy a semantic model, Plan, SAP writeback, cockpit UI
-or cockpit API. app owner owns integrating this published SQL contract into the
-cockpit. Infrastructure and finance code are reviewed as separate change sets on
-`work/sap-mirroring` and `work/sap-bps-finance`; app owner owns merges.
-Planning remains deferred.
+or cockpit API. The app owner is responsible for integrating this published SQL
+contract into the cockpit. Infrastructure and finance code are reviewed as separate
+change sets on `work/sap-mirroring` and `work/sap-bps-finance`; the app owner owns
+merges. Planning remains deferred.
 
 ## UI direction
 
@@ -600,10 +601,10 @@ prices, expiry and availability. Respect reduced motion and keyboard navigation.
 | Repository | MSFlix implementation, cinematic README/banner and architecture present; deployment continues |
 | Azure/Fabric authentication | Verified cached access |
 | Salesforce authentication/API | Authorized and verified |
-| Fabric capacity/workspace | F16 <capacity-name> and workspace MSFlix deployed in Southeast Asia |
+| Fabric capacity/workspace | F16 `<capacity-name>` and workspace MSFlix deployed in Southeast Asia |
 | Private networking | Approved Fabric PE and private API/OneLake/Oracle connectivity proved from the dedicated gateway VM; public workspace access still Allow |
 | Oracle source | 305 contents and 2,440 price rules loaded; Unicode titles repaired and propagated through the mirror, Gold and graph |
-| Oracle gateway | <oracle-gateway-name> registered in tenant-default centralus; recognized by Fabric; other environment's gateway untouched |
+| Oracle gateway | `<oracle-gateway-name>` registered in tenant-default centralus; recognized by Fabric; other environment's gateway untouched |
 | Oracle mirror | Five tables replicated into the mirror and Raw; insert, update and delete CDC validated |
 | Salesforce/BPS | Native processed Silver provides 700 customers, 6 campaigns, 700 consents and 600 touches; all are loaded into MSFlix Gold. Optional BPS-native Touch Gold fact needs dataset relationships |
 | RTI | 13,477 propagated event IDs after evening recovery; all 19 accumulated events verified in native OneLake and deduplicated Raw |

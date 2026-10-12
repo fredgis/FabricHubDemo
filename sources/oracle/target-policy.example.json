@@ -1,0 +1,5 @@
+{
+  "subscriptionId": "<approved-subscription-id>",
+  "tenantId": "<approved-tenant-id>",
+  "prohibitedGatewayId": "<prohibited-gateway-id>"
+}

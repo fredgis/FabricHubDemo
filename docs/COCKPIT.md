@@ -23,6 +23,25 @@ failure states. Revenue is calculated from persisted booked commercial rows,
 grouped by currency; no currencies are added together. Pagination reads every
 page or fails rather than showing partial KPIs.
 
+## Private local configuration
+
+Use `apps\cockpit\.env.example` as the template for ignored
+`apps\cockpit\rayfin\.env`. Copy it only when that private file is absent;
+otherwise add missing entries without replacing existing settings. Keep these
+private deployment settings in that file:
+
+- `COCKPIT_EXPECTED_TENANT_ID`
+- `COCKPIT_EXPECTED_WORKSPACE_ID`
+- `COCKPIT_EXPECTED_APP_ID`
+- `COCKPIT_ALLOWED_REDIRECT_URI`
+- `COCKPIT_ARTWORK_PROJECT_URL`
+
+Rayfin loads `rayfin\.env` relative to the cockpit directory. Optional
+`RAYFIN_ENV_FILE` selects a different private file; process environment values
+take precedence over file values. Do not use generated `.env.local` or add a
+public prefix to these private keys. Never commit the private file or values.
+Publishing remains a separate, explicitly authorized operation.
+
 ## Data Flow
 
 The authenticated `/dataflow` route embeds the supplied English explorer without
@@ -355,13 +374,13 @@ or a complete hosted-browser acceptance run. Protected access was not relaxed.
 
 ## Live deployment, 2026-10-07
 
-| Resource | Actual value |
+| Resource | Value / identifier placeholder |
 |---|---|
 | Workspace | MSFlix, `<WORKSPACE_ID>` |
-| Capacity | F16 <capacity-name>, `<CAPACITY_ID>`, southeastasia |
+| Capacity | F16 `<capacity-name>`, `<CAPACITY_ID>`, southeastasia |
 | App item | `<APP_ITEM_ID>` |
-| App URL | <https://<app-host>> |
-| Portal launch | <https://app.fabric.microsoft.com/groups/<WORKSPACE_ID>/appbackends/<APP_ITEM_ID>?ctid=<TENANT_ID>> |
+| App URL | `https://<app-host>` |
+| Portal launch | `https://app.fabric.microsoft.com/groups/<WORKSPACE_ID>/appbackends/<APP_ITEM_ID>?ctid=<TENANT_ID>` |
 | App-linked SQL item | `<APP_SQL_ITEM_ID>` |
 | SQL server | `<sql-server>` |
 | SQL database | `MSFlix Business Control-<APP_SQL_ITEM_ID>` |
@@ -618,7 +637,7 @@ with a deployment administrator identity in production.
 Executed on the proven app-linked SQL database, using the bound worker/shared
 native command core (not claimed as browser UDF invocation):
 
-| Command | Persisted key | Result |
+| Command | Persisted key placeholder | Result |
 |---|---|---|
 | TVOD rental | `<ACCEPTANCE_RENTAL_ORDER_ID>` | EUR 399 minor; initially booked; exact replay same order/event |
 | EST purchase | `<ACCEPTANCE_PURCHASE_ORDER_ID>` | EUR 1299 minor; purchased; null rental expiry |
@@ -702,7 +721,7 @@ Operational SQL remains the command/order/entitlement ledger and catalog/CRM
 reference directory; it is not a fallback consolidated business KPI source.
 The UI explicitly labels the operational ledger separately.
 
-Validated coordinates:
+Validated coordinates (private values replaced by placeholders):
 
 ```text
 Workspace: <WORKSPACE_ID>
@@ -1033,7 +1052,7 @@ source/storage confirmation and parent publisher qualification remain required.
 The final already-pending guarded command was:
 
 ```powershell
-Set-Location $env:USERPROFILE\repo-fabricroadshow\apps\cockpit
+Set-Location "$env:USERPROFILE\repo-fabricroadshow\apps\cockpit"
 npm run rayfin:up
 ```
 
@@ -1044,7 +1063,7 @@ was started after the parent's sequential-work priority correction.
 Live readback:
 
 - App `<APP_ITEM_ID>`, hosting
-  <https://<app-host>>.
+  `https://<app-host>`.
 - Hosting management reports `deployedCodeOrigin=User`,
   `lastSuccessfulDeploymentAt=2026-10-07T14:12:10Z` (16:12:10 local).
 - Active Data API schema version **10**; Functions enabled with

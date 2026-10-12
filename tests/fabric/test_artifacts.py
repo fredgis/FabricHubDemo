@@ -17,10 +17,16 @@ from fabric.rti import eventstream_definition
 from fabric.sql import render_load
 
 
+def fixture_policy():
+    policy = json.loads((ROOT / "target-policy.example.json").read_text())
+    policy.update(tenant_id=str(uuid.UUID(int=10)), subscription_id=str(uuid.UUID(int=20)))
+    return policy
+
+
 def fixture_config():
     cfg = json.loads((ROOT / "config.example.json").read_text())
     # UUIDs below are expressly local test fixtures, never deployment defaults.
-    policy = json.loads((ROOT / "target-policy.json").read_text())
+    policy = fixture_policy()
     cfg.update(tenant_id=policy["tenant_id"], subscription_id=policy["subscription_id"],
                capacity_resource_id="/subscriptions/" + policy["subscription_id"] + "/resourceGroups/" + policy["resource_group"] + "/providers/Microsoft.Fabric/capacities/" + policy["capacity_name"],
                eventhub_connection_id=str(uuid.UUID(int=3)), eventhub_namespace="fixture.servicebus.windows.net",
@@ -33,6 +39,11 @@ def fixture_config():
 
 
 class ArtifactsTests(unittest.TestCase):
+    def setUp(self):
+        policy = patch("fabric.deploy.load_target_policy", side_effect=fixture_policy)
+        policy.start()
+        self.addCleanup(policy.stop)
+
     def test_checked_in_notebooks_match_generator_and_jupyter_schema(self):
         for layer in ("Raw", "Silver"):
             actual = json.loads((ROOT / "notebooks" / f"MSFlix{layer}.ipynb").read_text())

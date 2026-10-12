@@ -2,12 +2,19 @@ import { readFile, writeFile } from 'node:fs/promises';
 import { RayfinClient } from '@microsoft/rayfin-client';
 import { signInWithEntraToken } from '@microsoft/rayfin-auth-provider-fabric';
 import { RayfinAuth } from '../node_modules/@microsoft/rayfin-cli/dist/auth/rayfin-auth.js';
+import { loadEnvironmentVariables } from '../node_modules/@microsoft/rayfin-cli/dist/utils/config-utils.js';
 
-const tenant = '11111111-1111-4111-8111-111111111111';
+const env = loadEnvironmentVariables({ projectRoot: process.cwd() });
+const tenant = env.get('COCKPIT_EXPECTED_TENANT_ID');
+const workspace = env.get('COCKPIT_EXPECTED_WORKSPACE_ID');
+const app = env.get('COCKPIT_EXPECTED_APP_ID');
+const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+if (![tenant, workspace, app].every(value => typeof value === 'string' && uuid.test(value))) {
+  throw new Error('Configure COCKPIT_EXPECTED_TENANT_ID, COCKPIT_EXPECTED_WORKSPACE_ID, and COCKPIT_EXPECTED_APP_ID in private rayfin/.env or the shell.');
+}
 const registry = JSON.parse(await readFile('rayfin/.deployments.json', 'utf8'));
 const deployment = registry.deployments[registry.active];
-if (deployment.fabricWorkspaceId !== '33333333-3333-4333-8333-333333333333' ||
-    deployment.fabricItemId !== '00000000-0000-4000-8000-000000100044') {
+if (deployment.fabricWorkspaceId !== workspace || deployment.fabricItemId !== app) {
   throw new Error('Refusing native invocation outside the recorded MSFlix app.');
 }
 const auth = new RayfinAuth({ tenantId: tenant });

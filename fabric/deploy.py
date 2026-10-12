@@ -26,10 +26,20 @@ COLLECTIONS = {"raw": "lakehouses", "silver": "lakehouses", "gold": "warehouses"
 OWNER = "MSFlix analytics managed"
 
 
+def load_target_policy():
+    try:
+        return json.loads((ROOT / "target-policy.json").read_text(encoding="utf-8"))
+    except FileNotFoundError as exc:
+        raise DeploymentError(
+            "Missing private fabric/target-policy.json; copy target-policy.example.json "
+            "and fill the independently approved target before running deployment tools"
+        ) from exc
+
+
 def validate_config(cfg, stage):
     if cfg.get("environment") not in ("dev", "test", "prod"):
         raise DeploymentError("environment must explicitly be dev, test or prod")
-    policy = json.loads((ROOT / "target-policy.json").read_text(encoding="utf-8"))
+    policy = load_target_policy()
     for field in ("region", "capacity_sku", "workspace_name"):
         if cfg.get(field) != policy[field]:
             raise DeploymentError("Only one MSFlix workspace on the externally approved F16 region is authorized")
@@ -160,7 +170,7 @@ def resolve(cfg, client, ws, key, required=True):
 
 def verify_eventhub_region(cfg):
     """Qualify the new regional namespace, never the temporary Germany ingress."""
-    policy = json.loads((ROOT / "target-policy.json").read_text(encoding="utf-8"))
+    policy = load_target_policy()
     hostname = cfg["eventhub_namespace"].lower()
     if not re.fullmatch(r"[a-z0-9-]+\.servicebus\.windows\.net", hostname):
         raise DeploymentError("eventhub_namespace must be the actual fully qualified Azure namespace")

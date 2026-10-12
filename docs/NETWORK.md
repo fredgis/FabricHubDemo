@@ -21,18 +21,19 @@ It reuses the private-endpoint subnet and integrates
 The deployed endpoint is `<workspace-private-endpoint>` in `<resource-group>`,
 subscription `<SUBSCRIPTION_ID>`, Southeast Asia.
 Azure readback on 2026-10-07 confirms `Succeeded`, connection `Approved`,
-subresource `workspace`, targeting `<workspace-private-link-service>`. It is distinct from
-`<key-vault-private-endpoint>`.
+subresource `workspace`, targeting `<workspace-private-link-service>`. It is
+distinct from `<key-vault-private-endpoint>`.
 
-[Open the Fabric workspace Private Endpoint in Azure](https://portal.azure.com/).
-The backing Fabric private link service is a hidden Azure resource; enable
-**Show hidden resources** to see `<workspace-private-link-service>` in the resource group.
+Open the Fabric workspace Private Endpoint in [Azure](https://portal.azure.com/)
+using the approved local bindings. The backing Fabric private link service is a
+hidden Azure resource; enable **Show hidden resources** to see
+`<workspace-private-link-service>` in the resource group.
 
-Private DNS records point the workspace API to `<workspace-api-private-ip>` and OneLake to
-`<onelake-private-ip>`. On 2026-10-07 at 16:32 local time, the gateway VM resolved these
-exact private addresses, reached both services on TCP 443 and Oracle
-`<oracle-private-ip>` on TCP 1521, and successfully read the authenticated MSFlix
-workspace API through its private hostname. The gateway service was Running.
+Private DNS records point the workspace API to `<workspace-api-private-ip>` and
+OneLake to `<onelake-private-ip>`. On 2026-10-07 at 16:32 local time, the gateway
+VM resolved these exact private addresses, reached both services on TCP 443 and
+Oracle `<oracle-private-ip>` on TCP 1521, and successfully read the authenticated
+MSFlix workspace API through its private hostname. The gateway service was Running.
 Evidence: `.state/network/private-paths-20261007.json` (ignored operational
 state, no credentials). Gateway registration is a separate unfinished step;
 workspace public access remains Allow.

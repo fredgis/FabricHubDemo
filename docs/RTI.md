@@ -22,7 +22,7 @@ been qualified. The failed direct Eventstream-to-Raw branch and its SQL operator
 have been removed; the accepted path uses KQL native OneLake availability and
 physical Raw materialization.
 
-| Physical component | Actual identifier |
+| Physical component | Identifier placeholder |
 |---|---|
 | Eventstream `MSFlixIngress` | `<EVENTSTREAM_ID>` |
 | Eventhouse `MSFlixEventhouse` | `<EVENTHOUSE_ID>` |

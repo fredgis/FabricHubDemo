@@ -16,8 +16,18 @@ the workspace.
 Authorized tenant: `<TENANT_ID>`.
 Authorized subscription: `<SUBSCRIPTION_ID>`.
 Supply these as configuration parameters; neither is a code default.
-The external `fabric/target-policy.json` pins the revised authorization boundary
-and rejects other tenants, subscriptions, regions, resource groups and capacities.
+Copy `fabric/target-policy.example.json` to ignored `fabric/target-policy.json`
+and fill the approved values locally. This private policy pins the revised
+authorization boundary and rejects other tenants, subscriptions, regions,
+resource groups and capacities. Never commit real deployment values or evidence;
+publishing remains a separate, explicitly authorized operation.
+
+The optional scripts read two additional fields from this private policy:
+`event_hub_namespace` for `scripts\Initialize-Workspace.ps1` and the independently
+approved `ontology_graph_name` for `scripts\materialize_gold_graph.py`. Both are
+blank in the template; each loader rejects missing or invalid values before
+external access.
+
 Root implementation documents still describe the original Germany target; this
 explicitly approved update supersedes that region for these owned analytics
 artifacts. The parent owns updating root/the broader plan.

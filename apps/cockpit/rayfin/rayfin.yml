@@ -12,7 +12,7 @@ services:
     allowedRedirectUris:
       - http://localhost:5173
       - http://127.0.0.1:5173
-      - https://demo.example.invalid
+      - ${COCKPIT_ALLOWED_REDIRECT_URI}
   data:
     enabled: true
     dialect: mssql

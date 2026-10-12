@@ -1,11 +1,59 @@
 // @vitest-environment node
-import { describe, expect, it, vi } from 'vitest';
+import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
-  ARTWORK_USER_AGENT, commonsRecord, createArtworkClient,
+  artworkUserAgent, commonsRecord, createArtworkClient,
   permittedImageLicense, publicSourceUrl, retryAfterMilliseconds,
 } from '../../apps/cockpit/tools/artwork-recovery.mjs';
 
+const environment = vi.hoisted(() => ({ load: vi.fn() }));
+vi.mock('../../apps/cockpit/node_modules/@microsoft/rayfin-cli/dist/utils/config-utils.js', () => ({
+  loadEnvironmentVariables: environment.load,
+}));
+const projectUrl = 'https://example.org/artwork-recovery';
+beforeEach(() => {
+  environment.load.mockReset().mockReturnValue(new Map([['COCKPIT_ARTWORK_PROJECT_URL', projectUrl]]));
+});
+
 describe('bounded public-source artwork recovery', () => {
+  it('keeps the request identification format with a fictional contact', () => {
+    expect(artworkUserAgent(projectUrl)).toBe(
+      `MSFlixArtworkRecovery/1.1 (${projectUrl}; licensed film artwork cache; contact via repository issues)`);
+  });
+
+  it('uses the private project URL when an explicit URL is not supplied', () => {
+    expect(() => createArtworkClient()).not.toThrow();
+    expect(environment.load).toHaveBeenCalledOnce();
+    expect(environment.load.mock.calls[0][0].projectRoot.replaceAll('\\', '/')).toMatch(/\/apps\/cockpit\/$/);
+  });
+
+  it('uses an explicit project URL without reading private configuration', async () => {
+    const explicitUrl = 'https://example.net/artwork-recovery';
+    const fetchImpl = vi.fn(async (_url, options) => {
+      expect(options.headers['User-Agent']).toContain(explicitUrl);
+      expect(options.headers['User-Agent']).not.toContain(projectUrl);
+      return new Response('downloaded');
+    });
+    const client = createArtworkClient({ projectUrl: explicitUrl, fetchImpl, sleep: async () => {} });
+    expect(environment.load).not.toHaveBeenCalled();
+    await client.bytes('https://upload.wikimedia.org/wikipedia/commons/a/ab/Test.jpg');
+    expect(fetchImpl).toHaveBeenCalledOnce();
+  });
+
+  it('fails before requesting artwork if the private contact URL is missing', () => {
+    environment.load.mockReturnValue(new Map());
+    const fetchImpl = vi.fn();
+    expect(() => createArtworkClient({ fetchImpl })).toThrow(/COCKPIT_ARTWORK_PROJECT_URL/);
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
+
+  it.each([
+    '', 'not-a-url', 'http://example.org/project', 'https://user:password@example.org/project',
+    'https://example.org/project?token=fixture', 'https://example.org/project#fragment',
+  ])('rejects an invalid or credential-bearing project URL before a request: %s', invalidUrl => {
+    const fetchImpl = vi.fn();
+    expect(() => createArtworkClient({ projectUrl: invalidUrl, fetchImpl })).toThrow();
+    expect(fetchImpl).not.toHaveBeenCalled();
+  });
   it('honors numeric and HTTP-date Retry-After values', () => {
     expect(retryAfterMilliseconds('12', 0)).toBe(12_000);
     expect(retryAfterMilliseconds('Thu, 08 Oct 2026 06:00:10 GMT',
@@ -17,8 +65,8 @@ describe('bounded public-source artwork recovery', () => {
     const requestTimes: number[] = [];
     const fetchImpl = vi.fn(async (_url, options) => {
       requestTimes.push(clock);
-      expect(options.headers['User-Agent']).toBe(ARTWORK_USER_AGENT);
-      expect(ARTWORK_USER_AGENT).toContain('https://example.org/artwork-recovery');
+      expect(options.headers['User-Agent']).toBe(artworkUserAgent(projectUrl));
+      expect(options.headers['User-Agent']).toContain(projectUrl);
       expect(options.headers.Authorization).toBeUndefined();
       return requestTimes.length === 1
         ? new Response('throttled', { status: 429, headers: { 'Retry-After': '7' } })

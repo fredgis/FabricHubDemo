@@ -9,12 +9,12 @@ not a snapshot dressed up as CDC.
 (`<gateway-private-ip>`) → `MSFlix_OracleMirror` → five shortcuts in
 `MSFlixRaw.DEMO_DW`.
 
-| Component | Actual identifier |
+| Component | Identifier placeholder |
 |---|---|
 | Mirror | `<ORACLE_MIRROR_ID>` |
 | Mirror SQL endpoint | `<ORACLE_MIRROR_SQL_ENDPOINT_ID>` |
 | Raw Lakehouse | `<RAW_LAKEHOUSE_ID>` |
-| <oracle-gateway-name> | `<ORACLE_GATEWAY_ID>` |
+| Dedicated Oracle gateway | `<ORACLE_GATEWAY_ID>` |
 | Dedicated Oracle connection | `<ORACLE_CONNECTION_ID>` |
 
 The mirror and its native SQL endpoint now reside in the real
@@ -68,8 +68,8 @@ service registration, **not a VM or data-capacity relocation**.
 The following belong to another user environment and must never be reused,
 renamed, reconfigured or deleted:
 
-- <other-environment-gateway-name>: `<OTHER_ENVIRONMENT_GATEWAY_ID>`.
-- <other-environment-connection-name>: `<OTHER_ENVIRONMENT_CONNECTION_ID>`.
+- Other environment's gateway: `<OTHER_ENVIRONMENT_GATEWAY_ID>`.
+- Other environment's connection: `<OTHER_ENVIRONMENT_CONNECTION_ID>`.
 
 Workspace private endpoint approval and authenticated private API access are
 proved, but public access remains **Allow**. See [NETWORK.md](NETWORK.md);
@@ -78,6 +78,10 @@ do not describe the overall workspace as fully private.
 ## Rerunnable entry points
 
 Source migrations are additive and target the dedicated MSFlix environment.
+Copy `sources/oracle/target-policy.example.json` to ignored
+`sources/oracle/target-policy.local.json` and fill the approved coordinates
+locally; `Oracle-TargetPolicy.ps1` loads that private policy. Never commit real
+deployment values. Deployment and publication require separate explicit approval.
 `sources/oracle/Deploy-ReferenceMirror.ps1` loads the catalog, registers the
 dedicated gateway and configures the reference mirror. Do not rerun a destructive
 installer to demonstrate a new transaction.
@@ -120,5 +124,5 @@ order identities, prices or existing environment resources.
 - `scripts/verify_oracle_mirror.py`
 - `scripts/expand_catalog.py`, `data/catalog.json`
 - [Oracle mirroring in Fabric](https://learn.microsoft.com/en-us/fabric/database/mirrored-database/oracle)
-- Upstream [oracletofabric](https://github.com/<repository-owner>/oracletofabric);
+- Upstream `oracletofabric` (`https://github.com/<repository-owner>/oracletofabric`);
   retained MIT license at `sources/oracle/reference/LICENSE`.

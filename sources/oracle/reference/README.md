@@ -28,7 +28,9 @@ This repo deploys Oracle AI Database Free on a private Azure Linux VM and mirror
   </a>
 </p>
 
-This is the deployed environment in `FGI-ORACLE`. Both VMs are private. Bastion handles administration, the Windows gateway reads Oracle on port `1521`, and outbound NAT carries the gateway traffic to Fabric.
+This is the deployed environment in the `FGI-ORACLE` workspace. Both VMs are private. Bastion handles administration, the Windows gateway reads Oracle on port `1521`, and outbound NAT carries the gateway traffic to Fabric.
+
+Deployment coordinates below are placeholders. For the maintained MSFlix private configuration and deployment path, see [Oracle references](../../../docs/ORACLE.md).
 
 | Location | Role |
 | --- | --- |
@@ -243,7 +245,7 @@ Prerequisites:
 - Azure Owner on the subscription
 - Fabric Administrator or Power BI Administrator
 - Cloud Application Administrator or Application Administrator when directory changes are required
-- an existing `FGI-ORACLE` resource group
+- an existing `<resource-group>` resource group
 - an existing `FGI-ORACLE` Fabric workspace on active capacity
 - Bicep and `sqlcmd` installed locally
 

@@ -7,6 +7,15 @@ param(
 )
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $PSScriptRoot
+$policyPath = Join-Path $root 'fabric\target-policy.json'
+if (-not (Test-Path -LiteralPath $policyPath -PathType Leaf)) {
+    throw 'Missing private fabric/target-policy.json; copy the example and fill the approved target.'
+}
+$policy = Get-Content -LiteralPath $policyPath -Raw | ConvertFrom-Json
+$eventHubNamespace = $policy.event_hub_namespace
+if ($eventHubNamespace -isnot [string] -or $eventHubNamespace -notmatch '^[a-zA-Z][a-zA-Z0-9-]{4,48}[a-zA-Z0-9]$') {
+    throw 'Set the approved event_hub_namespace in private fabric/target-policy.json.'
+}
 $account = az account show --subscription $SubscriptionId --output json --only-show-errors | ConvertFrom-Json
 if ($LASTEXITCODE -ne 0 -or $account.tenantId -ne $TenantId) { throw 'Incorrect deployment tenant.' }
 $token = az account get-access-token --subscription $SubscriptionId `
@@ -41,7 +50,7 @@ $state = @{
     capacityName = $capacity.displayName
     workspaceId = $workspace.id
     workspaceName = $workspace.displayName
-    eventHubNamespace = 'fixture'
+    eventHubNamespace = $eventHubNamespace
     eventHubName = 'msflix-events'
 }
 $directory = Join-Path $root '.state'

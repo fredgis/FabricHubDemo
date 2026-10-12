@@ -5,8 +5,10 @@ param(
     [string]$ResourceGroupName='rg-msflix-demo-sea'
 )
 $ErrorActionPreference = 'Stop'
-if ($SubscriptionId -ne '00000000-0000-4000-8000-000000100086' -or
-    $TenantId -ne '11111111-1111-4111-8111-111111111111' -or
+. (Join-Path $PSScriptRoot 'Oracle-TargetPolicy.ps1')
+$targetPolicy = Read-OracleTargetPolicy
+if ($SubscriptionId -ne $targetPolicy.subscriptionId -or
+    $TenantId -ne $targetPolicy.tenantId -or
     $ResourceGroupName -ne 'rg-msflix-demo-sea') {
     throw 'Refusing Oracle reference deployment outside the approved MSFlix environment.'
 }

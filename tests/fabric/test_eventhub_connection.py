@@ -4,10 +4,15 @@ from unittest.mock import Mock, patch
 
 from fabric.deploy import dispatch
 from fabric.rest import DeploymentError
-from test_artifacts import fixture_config
+from test_artifacts import fixture_config, fixture_policy
 
 
 class EventHubConnectionTests(unittest.TestCase):
+    def setUp(self):
+        policy = patch("fabric.deploy.load_target_policy", side_effect=fixture_policy)
+        policy.start()
+        self.addCleanup(policy.stop)
+
     def qualify(self, path):
         cfg = fixture_config()
         cfg["eventhub_namespace"] = "fixture.servicebus.windows.net"

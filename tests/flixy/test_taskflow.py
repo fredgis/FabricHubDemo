@@ -11,7 +11,7 @@ class FlixyTaskFlowTests(unittest.TestCase):
         self.assertNotIn("flixy", {task[0] for task in tasks})
 
     def test_native_agent_adds_one_task_and_three_connectors(self):
-        item = {"id": "44444444-4444-4444-8444-444444444444",
+        item = {"id": "00000000-0000-0000-0000-000000000303",
                 "displayName": "Flixy", "type": "DataAgent"}
         mapped = mapping([item])
         self.assertEqual(mapped[0]["logical_task"], "flixy")

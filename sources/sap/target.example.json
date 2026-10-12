@@ -1,10 +1,10 @@
 {
-  "tenant_id": "11111111-1111-4111-8111-111111111111",
-  "subscription_id": "00000000-0000-4000-8000-000000100086",
-  "workspace_id": "33333333-3333-4333-8333-333333333333",
+  "tenant_id": "",
+  "subscription_id": "",
+  "workspace_id": "",
   "operator_id": "00000000-0000-0000-0000-000000000000",
   "source_system": "S4M",
   "system_suffix": "fea347cc",
-  "landing_lakehouse_id": "00000000-0000-4000-8000-000000100070",
-  "mirror_id": "00000000-0000-4000-8000-000000100003"
+  "landing_lakehouse_id": "",
+  "mirror_id": ""
 }

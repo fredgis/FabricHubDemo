@@ -113,13 +113,14 @@ concurrency.
 
 ## Security and commercial boundaries
 
-- Oracle `<oracle-private-ip>` and gateway `<gateway-private-ip>` are private Singapore VMs.
-  Gateway **registration** is in tenant-default `centralus`; this does not move
-  the VM or capacity.
+- Oracle `<oracle-private-ip>` and gateway `<gateway-private-ip>` are private
+  Singapore VMs. Gateway **registration** is in tenant-default `centralus`;
+  this does not move the VM or capacity.
 - Fabric private endpoint `<workspace-private-endpoint>` is Approved; API
-  `<workspace-api-private-ip>` and OneLake `<onelake-private-ip>` connectivity was tested from the gateway.
-  Public access remains **Allow**: the deployment is not fully private.
-- The other environment's <other-environment-gateway-name>/<other-environment-connection-name> are out of scope and
+  `<workspace-api-private-ip>` and OneLake `<onelake-private-ip>` connectivity
+  was tested from the gateway. Public access remains **Allow**: the deployment
+  is not fully private.
+- The other environment's Oracle gateway and connection are out of scope and
   untouched. Credentials/configuration stay external or ignored.
 - Exact minor-unit amounts remain separated by currency. No bank charge,
   royalty settlement, financial margin or commercial distribution right is
@@ -131,11 +132,12 @@ concurrency.
   change set. The user subsequently authorized Flixy and enabled the required
   Azure OpenAI cross-region processing and conversation-storage settings.
 - In-cockpit Flixy requires an enabled, administrator-managed, caller-scoped
-  `FlixyAccessGrant` (owner and named approved approved operator account only). The shared
-  `ctx.Tokens.Fabric` identity is the app owner; caller and owner OIDs may differ,
-  but their tenants must match. Native resource access uses the owner's Fabric
-  permissions, not approved operator's own permissions. `OperatorGrant` is independent of
-  Flixy access. See [Flixy](FLIXY.md) for the approved shared-identity model.
+  `FlixyAccessGrant` (app owner and specifically approved operator account only).
+  The shared `ctx.Tokens.Fabric` identity is the app owner; caller and owner OIDs
+  may differ, but their tenants must match. Native resource access uses the
+  owner's Fabric permissions, not the approved operator's own permissions.
+  `OperatorGrant` is independent of Flixy access. See [Flixy](FLIXY.md) for the
+  approved shared-identity model.
 - The persistent worker uses managed identity, not cached administrator tokens.
   Its orchestration role is limited to MSFlix; effective SQL DENYs protect
   operational payloads, deletes and commercial writes. See the
@@ -145,10 +147,10 @@ concurrency.
 
 ## SAP Azure storage foundation
 
-On 8 October 2026, approved operator authorized the Azure SAP foundation independently of
-the local data-generator PR. app owner retains ownership of merges. Infrastructure
-changes are on the separate `work/sap-mirroring` branch, based on `main`,
-without merging or changing PR 1.
+On 8 October 2026, the approved operator authorized the Azure SAP foundation
+independently of the local data-generator PR. The app owner retains ownership
+of merges. Infrastructure changes are on the separate `work/sap-mirroring`
+branch, based on `main`, without merging or changing PR 1.
 
 | Resource | Configuration |
 |---|---|
@@ -160,7 +162,7 @@ without merging or changing PR 1.
 | Public access | Public network access disabled; anonymous blob access disabled |
 | Network exception | Only the existing MSFlix workspace resource-instance rule; no IP/VNet rules or blanket trusted-service bypass |
 | Workspace identity | Account-scoped Storage Blob Data Reader plus Storage Blob Data Contributor on the `datasphere` container only |
-| Authorized operator | approved operator: Storage Blob Data Contributor, scoped to this dedicated account |
+| Authorized operator | Approved operator: Storage Blob Data Contributor, scoped to this dedicated account |
 
 The account has HTTPS-only access, TLS 1.2 minimum and Microsoft-managed
 encryption. This is **trusted workspace access**, not a newly deployed private
@@ -205,7 +207,7 @@ access without separate approval. Deployment uses incremental mode:
 ```powershell
 az deployment group create --subscription $policy.subscription_id `
   --resource-group $policy.resource_group --mode Incremental `
-  --name <sap-foundation-deployment> `
+  --name "<sap-foundation-deployment>" `
   --template-file .state\sap-azure\template.json --parameters $parameters
 ```
 
@@ -216,9 +218,9 @@ data is not uploaded by this deployment.
 ### Fabric SAP entrypoint
 
 The following dedicated Fabric resources were created on 8 October using
-approved operator's identity and the public Fabric APIs:
+the approved operator's identity and the public Fabric APIs:
 
-| Resource | Identifier / placement |
+| Resource | Identifier placeholder / placement |
 |---|---|
 | Folder `02bis SAP BPS` | `<SAP_FOLDER_ID>` |
 | Lakehouse `MSFlixSAPLanding` | `<SAP_LANDING_LAKEHOUSE_ID>`, in the SAP folder |
@@ -247,8 +249,8 @@ lakehouse and SQL child are correctly grouped in `02bis SAP BPS`.
 
 ### Native SAP BPS source and mirror
 
-After approved operator completed interactive sign-in, the native portal created the
-`MSFlixSAPFabricSQL` OAuth connection (`<SAP_SQL_CONNECTION_ID>`,
+After the approved operator completed interactive sign-in, the native portal
+created the `MSFlixSAPFabricSQL` OAuth connection (`<SAP_SQL_CONNECTION_ID>`,
 type `FabricSql`). No tokens/passwords were copied into code, evidence or browser
 storage by the deployment scripts. Use the native UI for this OAuth flow; the
 public create-connection request has no OAuth2 credential input.

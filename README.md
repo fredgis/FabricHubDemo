@@ -99,10 +99,18 @@ identity-scoped; see [Flixy](docs/FLIXY.md) for the source and authentication de
 
 ## Run it
 
-Open the [MSFlix cockpit](https://<app-host>)
+Open the MSFlix cockpit at the privately supplied `https://<app-host>`
 with an authorized identity. For deployment or replay, use the
 [source and execution documentation](docs/ARCHITECTURE.md); run only the needed
 stage against the approved environment, never reset existing source data.
+
+Keep real deployment identifiers, endpoints and identity bindings only in
+ignored local `.env`, `.state`, or private binding files; never commit them.
+Copy `fabric/target-policy.example.json` to ignored `fabric/target-policy.json`
+and fill the approved values locally. Flixy authoring uses ignored
+`.state/flixy/target.json`, based on `agents/flixy/target.example.json`.
+Documentation placeholders are labels, not additional runtime settings.
+Publishing is a separate operation requiring explicit authorization.
 
 ## Deep dives
 

@@ -4,7 +4,9 @@ param(
     [string[]]$ReplayContentKeys = @()
 )
 $ErrorActionPreference = 'Stop'
-if ($SubscriptionId -ne '00000000-0000-4000-8000-000000100086') {
+. (Join-Path $PSScriptRoot 'Oracle-TargetPolicy.ps1')
+$targetPolicy = Read-OracleTargetPolicy
+if ($SubscriptionId -ne $targetPolicy.subscriptionId) {
     throw 'Refusing to repair catalog data outside the approved MSFlix subscription.'
 }
 $root = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)

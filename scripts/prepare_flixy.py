@@ -3,18 +3,39 @@
 import base64
 import json
 from pathlib import Path
+from uuid import UUID
 
 from fabric.rest import DeploymentError, FabricClient
 
 ROOT = Path(__file__).resolve().parents[1]
-TENANT = "11111111-1111-4111-8111-111111111111"
-WORKSPACE = "33333333-3333-4333-8333-333333333333"
-CAPACITY = "22222222-2222-4222-8222-222222222222"
-WAREHOUSE = "55555555-5555-4555-8555-555555555555"
+TARGET_PATH = ROOT / ".state" / "flixy" / "target.json"
 SKILL = "spark-cli"
 SOURCE_PATH = "Files/Config/draft/data-warehouse-MSFlixGold/datasource.json"
 INSTRUCTIONS_PATH = "Files/Config/draft/stage_config.json"
 SCHEMA_BASE = "https://developer.microsoft.com/json-schemas/fabric/item/dataAgent/definition"
+
+
+def load_target(*, include_graph=False):
+    try:
+        target = json.loads(TARGET_PATH.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError) as exc:
+        raise DeploymentError(
+            "Missing or invalid private .state/flixy/target.json; "
+            "copy agents/flixy/target.example.json and fill the approved target"
+        ) from exc
+    keys = ("tenant_id", "workspace_id", "capacity_id", "warehouse_id")
+    if include_graph:
+        keys += ("ontology_id", "graph_id")
+    if not isinstance(target, dict):
+        raise DeploymentError("Private Flixy target must be a JSON object")
+    for key in keys:
+        value = target.get(key)
+        try:
+            if not isinstance(value, str) or not UUID(value).int:
+                raise ValueError()
+        except ValueError as exc:
+            raise DeploymentError(f"Missing/invalid private Flixy target: {key}") from exc
+    return target
 
 
 def canonical(value):
@@ -28,13 +49,13 @@ def canonical(value):
     return value
 
 
-def definition(instructions):
+def definition(instructions, workspace_id, warehouse_id):
     if not instructions.strip():
         raise DeploymentError("Flixy instructions must not be empty")
     source = {
         "$schema": f"{SCHEMA_BASE}/dataSource/1.0.0/schema.json",
-        "artifactId": WAREHOUSE,
-        "workspaceId": WORKSPACE,
+        "artifactId": warehouse_id,
+        "workspaceId": workspace_id,
         "displayName": "MSFlixGold",
         "type": "data_warehouse",
         "userDescription": "Consolidated MSFlix catalogue, CRM, orders, playback and marketing.",
@@ -62,13 +83,17 @@ def definition(instructions):
 
 
 def main():
+    target = load_target()
+    TENANT, WORKSPACE, CAPACITY, WAREHOUSE = (
+        target[key] for key in ("tenant_id", "workspace_id", "capacity_id", "warehouse_id")
+    )
     client = FabricClient(TENANT)
     base = f"/v1/workspaces/{WORKSPACE}"
     workspace = client.request("GET", base, skill=SKILL)[2]
     if workspace.get("displayName") != "MSFlix" or workspace.get("capacityId") != CAPACITY:
         raise DeploymentError("Refusing Flixy authoring outside the approved MSFlix capacity")
     instructions = (ROOT / "agents" / "flixy" / "instructions.md").read_text(encoding="utf-8")
-    expected = definition(instructions)
+    expected = definition(instructions, WORKSPACE, WAREHOUSE)
     existing = [item for item in client.list(base + "/dataAgents", SKILL)
                 if item["displayName"] == "Flixy"]
     if len(existing) > 1:

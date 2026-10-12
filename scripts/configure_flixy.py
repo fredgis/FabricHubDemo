@@ -4,10 +4,8 @@ import json
 from urllib.parse import quote
 
 from fabric.rest import DeploymentError, FabricClient
-from scripts.prepare_flixy import CAPACITY, ROOT, SKILL, TENANT, WAREHOUSE, WORKSPACE
+from scripts.prepare_flixy import ROOT, SKILL, load_target
 
-ONTOLOGY = "88888888-8888-4888-8888-888888888888"
-GRAPH = "66666666-6666-4666-8666-666666666666"
 QUESTIONS = (
     ("Combien de films, clients et commandes sont publies dans Gold ?",
      "SELECT (SELECT COUNT_BIG(*) FROM gold.dim_content) AS films, "
@@ -41,13 +39,18 @@ TABLE_DESCRIPTIONS = {
 }
 
 
-def item_reference(item_id):
+def item_reference(item_id, workspace_id):
     return {"type": "FabricItem", "itemReference": {
-        "referenceType": "ById", "itemId": item_id, "workspaceId": WORKSPACE,
+        "referenceType": "ById", "itemId": item_id, "workspaceId": workspace_id,
     }}
 
 
 def main():
+    target = load_target(include_graph=True)
+    TENANT, WORKSPACE, CAPACITY, WAREHOUSE, ONTOLOGY, GRAPH = (
+        target[key] for key in ("tenant_id", "workspace_id", "capacity_id", "warehouse_id",
+                               "ontology_id", "graph_id")
+    )
     client = FabricClient(TENANT)
     workspace_path = f"/v1/workspaces/{WORKSPACE}"
     workspace = client.request("GET", workspace_path, skill=SKILL)[2]
@@ -70,7 +73,7 @@ def main():
         raise DeploymentError("Unexpected source attached to Flixy; no source was removed")
     for source_id in (WAREHOUSE, GRAPH):
         if not any(s.get("itemReference", {}).get("itemId") == source_id for s in sources):
-            client.operation("POST", sources_path, item_reference(source_id), SKILL)
+            client.operation("POST", sources_path, item_reference(source_id, WORKSPACE), SKILL)
     elements_path = sources_path + "/" + WAREHOUSE + "/elements"
     roots = client.list(elements_path, SKILL)
     # Replace only the initial unpublished draft's unavailable, hand-authored root.
@@ -79,7 +82,7 @@ def main():
         if any("/published/" in p["path"].lower() for p in definition["definition"]["parts"]):
             raise DeploymentError("Refusing source replacement in an already-published agent")
         client.request("DELETE", sources_path + "/" + WAREHOUSE, skill=SKILL)
-        client.operation("POST", sources_path, item_reference(WAREHOUSE), SKILL)
+        client.operation("POST", sources_path, item_reference(WAREHOUSE, WORKSPACE), SKILL)
         roots = client.list(elements_path, SKILL)
     containers = [r for r in roots if r["displayName"] == "Schemas" and r["state"] == "Available"]
     if len(containers) != 1:

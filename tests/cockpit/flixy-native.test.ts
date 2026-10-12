@@ -19,7 +19,7 @@ const source = (itemId: string, type: string) => ({
 });
 
 describe('Flixy native authorization and source boundary', () => {
-  it('allows approved caller with a distinct Entra OID using the app-owner token', () => {
+  it('allows an approved caller with a distinct Entra OID using the app-owner token', () => {
     const approvedCallerGrant = { ...grant, entra_object_id: '22222222-2222-4222-8222-222222222222' };
     expect(() => assertFlixyIdentity(approvedCallerGrant, token(owner))).not.toThrow();
   });

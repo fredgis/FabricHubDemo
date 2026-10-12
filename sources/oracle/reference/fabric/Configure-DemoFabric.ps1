@@ -13,6 +13,8 @@ param(
 )
 
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot '..\..\Oracle-TargetPolicy.ps1')
+$targetPolicy = Read-OracleTargetPolicy
 $fabricBaseUri = 'https://api.fabric.microsoft.com/v1'
 $repoRoot = Split-Path -Parent $PSScriptRoot
 . (Join-Path $repoRoot 'scripts\Demo.Common.ps1')
@@ -228,9 +230,9 @@ if (-not (Test-Path -LiteralPath $StatePath)) {
 }
 
 $state = Get-Content -Raw $StatePath | ConvertFrom-Json
-if ($SubscriptionId -ne '00000000-0000-4000-8000-000000100086' -or
+if ($SubscriptionId -ne $targetPolicy.subscriptionId -or
     $state.subscriptionId -ne $SubscriptionId -or
-    $state.tenantId -ne '11111111-1111-4111-8111-111111111111' -or
+    $state.tenantId -ne $targetPolicy.tenantId -or
     $WorkspaceName -ne 'MSFlix' -or
     $GatewayName -ne 'MSFlix Oracle Gateway Fabric' -or
     $ConnectionName -ne 'MSFlix Oracle Connection' -or
@@ -267,7 +269,7 @@ if (-not $gateway) {
     throw "Fabric gateway $GatewayName was not visible to the automation service principal within three minutes."
 }
 $gateway = Invoke-FabricRequest -Method Get -Uri "$fabricBaseUri/gateways/$($gateway.id)" -Headers $headers
-if ($gateway.id -ne $state.fabric.gatewayId -or $gateway.id -eq '00000000-0000-4000-8000-000000100083') {
+if ($gateway.id -ne $state.fabric.gatewayId -or $gateway.id -eq $targetPolicy.prohibitedGatewayId) {
     throw 'Refusing to use or modify an unrelated gateway.'
 }
 Ensure-DemoFabricRoleAssignment `

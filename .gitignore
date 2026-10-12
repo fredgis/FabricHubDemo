@@ -19,9 +19,9 @@ rayfin/.deployments.json
 **/rayfin/data/generated/
 **/state.json
 **/parameters.private.json
+**/*.local.json
+/fabric/target-policy.json
 *.key
 *.pem
 *.pfx
 *.crt
-**/*.local.json
-/fabric/target-policy.json

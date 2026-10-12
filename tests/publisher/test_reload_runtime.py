@@ -10,7 +10,7 @@ class SourceReloadRuntimeTests(unittest.TestCase):
     def setUp(self):
         self.runtime = Runtime.__new__(Runtime)
         self.runtime.operational = Mock(return_value=Mock())
-        self.cycle = {"source": "oracle", "command_id": "00000000-0000-4000-8000-000000100061"}
+        self.cycle = {"source": "oracle", "command_id": "00000000-0000-4000-8000-000000000602"}
         self.row = {"id": self.cycle["command_id"], "type": "reload_oracle", "status": "requested",
                     "parameters": json.dumps({"limit": 1})}
 

@@ -19,7 +19,7 @@ from sources.sap.native import INPUT_CONTRACT, build as build_native, load_contr
 
 
 TARGET = {
-    "workspace_id": "33333333-3333-4333-8333-333333333333", "system_suffix": "fea347cc",
+    "workspace_id": "00000000-0000-4000-8000-000000000501", "system_suffix": "fea347cc",
     "source_system": "S4M", "tenant_id": "11111111-1111-1111-1111-111111111111",
     "subscription_id": "22222222-2222-2222-2222-222222222222",
     "operator_id": "33333333-3333-3333-3333-333333333333",

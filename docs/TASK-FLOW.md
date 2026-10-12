@@ -3,7 +3,8 @@
 **Workspace:** MSFlix, `<WORKSPACE_ID>`.
 **Capacity:** active F16 `<capacity-name>`, Singapore;
 `<CAPACITY_ID>`.
-The workspace description is blank.
+The workspace description is blank. Identifiers below are placeholders; keep
+real values in ignored local configuration and operational state.
 
 ## Execution result: actual native graph and item assignments
 
@@ -18,7 +19,7 @@ The workspace description is blank.
 A folder or Markdown diagram is not a Task Flow. This delivery now includes
 the **actual saved native graph**, not just documentation artifacts.
 
-| Native graph identity | Actual value |
+| Native graph identity | Value / identifier placeholder |
 |---|---|
 | Name | `MSFlix Business Architecture` |
 | Flow ID | `<TASK_FLOW_ID>` |
@@ -72,7 +73,7 @@ relationships; they do not create data connections or schedule jobs.
 | Flixy | General | 1 | Native Data Agent using Gold and the ontology-owned graph |
 | **Total** | | **47** | |
 
-| Native task | Actual task ID |
+| Native task | Task ID placeholder |
 |---|---|
 | Oracle references | `<ORACLE_REFERENCES_TASK_ID>` |
 | Salesforce BPS CRM | `<SALESFORCE_BPS_CRM_TASK_ID>` |
@@ -108,7 +109,7 @@ SAP and Planning do not appear as deployed tasks.
 Native children were moved only by the documented parent move operation.
 No independent SQL-endpoint, KQL-child or Ontology-child move was attempted.
 
-| Real folder | Folder ID | Physical items |
+| Real folder | Folder ID placeholder | Physical items |
 |---|---|---:|
 | `01 Oracle References` | `<ORACLE_REFERENCES_FOLDER_ID>` | 2 |
 | `02 Salesforce BPS` | `<SALESFORCE_BPS_FOLDER_ID>` | 24 |
@@ -127,26 +128,27 @@ alter navigation, not source names, business definitions, connections or IDs.
 
 ## Every actual item and its logical task
 
-This table records the physical public item IDs. Native assignment DTOs were
-persisted/read back for all 47 items; portal identities use the captured
-artifact-type adapters. Extended folder readback completed at
+This table labels the physical public item IDs without publishing their values.
+Native assignment DTOs were persisted/read back for all 47 items; portal
+identities use the captured artifact-type adapters. Extended folder readback completed at
 **2026-10-07 20:01 UTC**; graph/assignment proof is recorded separately below.
 
 ### Oracle references — 2
 
-| Item | Type | Actual item ID |
+| Item | Type | Item ID placeholder |
 |---|---|---|
 | `MSFlix_OracleMirror` | MirroredDatabase | `<ORACLE_MIRROR_ID>` |
 | `MSFlix_OracleMirror` | SQLEndpoint | `<ORACLE_MIRROR_SQL_ENDPOINT_ID>` |
 
 ### Salesforce BPS CRM — 25
 
-All names and IDs below were preserved. The 24 standard artifacts are now in
-`02 Salesforce BPS`; only the unsupported native solution launcher remains at
-root. BPS's own Bronze/Silver/Gold are a native CRM subsystem, not the
-cross-business Raw/Silver/Warehouse stages.
+All deployed names and IDs below were preserved; generated suffixes are shown
+as placeholders. The 24 standard artifacts are now in `02 Salesforce BPS`;
+only the unsupported native solution launcher remains at root. BPS's own
+Bronze/Silver/Gold are a native CRM subsystem, not the cross-business
+Raw/Silver/Warehouse stages.
 
-| Item | Type | Actual item ID |
+| Item | Type | Item ID placeholder |
 |---|---|---|
 | `MSFlix` | Microsoft.WaaS.BusinessProcessSolutions | `<CRM_BPS_ITEM_ID>` |
 | `MSFlixSalesforceSQLdb` | SQLDatabase | `<MSFLIXSALESFORCESQLDB_SQLDATABASE_ID>` |
@@ -183,7 +185,7 @@ its native task assignment.
 
 ### RTI transactions — 4
 
-| Item | Type | Actual item ID |
+| Item | Type | Item ID placeholder |
 |---|---|---|
 | `MSFlixEventhouse` | Eventhouse | `<EVENTHOUSE_ID>` |
 | `MSFlixEventhouse` | KQLDatabase | `<EVENTHOUSE_KQL_DATABASE_ID>` |
@@ -192,7 +194,7 @@ its native task assignment.
 
 ### Raw — 3
 
-| Item | Type | Actual item ID |
+| Item | Type | Item ID placeholder |
 |---|---|---|
 | `MSFlixRaw` | Lakehouse | `<RAW_LAKEHOUSE_ID>` |
 | `MSFlixRaw` | SQLEndpoint | `<RAW_SQL_ENDPOINT_ID>` |
@@ -200,7 +202,7 @@ its native task assignment.
 
 ### Silver conformance — 3
 
-| Item | Type | Actual item ID |
+| Item | Type | Item ID placeholder |
 |---|---|---|
 | `MSFlixSilver` | Lakehouse | `<SILVER_LAKEHOUSE_ID>` |
 | `MSFlixSilver` | SQLEndpoint | `<SILVER_SQL_ENDPOINT_ID>` |
@@ -208,13 +210,13 @@ its native task assignment.
 
 ### Warehouse Gold business domains — 1
 
-| Item | Type | Actual item ID |
+| Item | Type | Item ID placeholder |
 |---|---|---|
 | `MSFlixGold` | Warehouse | `<WAREHOUSE_ID>` |
 
 ### Ontology v2 — 4
 
-| Item | Type | Actual item ID |
+| Item | Type | Item ID placeholder |
 |---|---|---|
 | `MSFlixBusiness` | Ontology | `<ONTOLOGY_ID>` |
 | `MSFlixBusiness_eh_<ONTOLOGY_ID_COMPACT>` | Eventhouse | `<ONTOLOGY_EVENTHOUSE_ID>` |
@@ -223,7 +225,7 @@ its native task assignment.
 
 ### Cockpit Apps — 4
 
-| Item | Type | Actual item ID |
+| Item | Type | Item ID placeholder |
 |---|---|---|
 | `MSFlix Business Control` | AppBackend | `<APP_ITEM_ID>` |
 | `MSFlix Business Control` | SQLDatabase | `<APP_SQL_ITEM_ID>` |
@@ -232,7 +234,7 @@ its native task assignment.
 
 ### Flixy — 1
 
-| Item | Type | Actual item ID |
+| Item | Type | Item ID placeholder |
 |---|---|---|
 | `Flixy` | DataAgent | `<DATA_AGENT_ID>` |
 
@@ -243,8 +245,8 @@ workspace and capacity parameters. It verifies the target, lists paginated
 items/folders and can deploy/read back the **actual native Task Flow**.
 
 ```powershell
-py -3 scripts\workspace_taskflow.py --tenant <tenant> --subscription <subscription> `
-  --workspace <workspace> --capacity-name <capacity-name> --require-taskflow
+py -3 scripts\workspace_taskflow.py --tenant "<TENANT_ID>" --subscription "<SUBSCRIPTION_ID>" `
+  --workspace "<WORKSPACE_ID>" --capacity-name "<capacity-name>" --require-taskflow
 ```
 
 `--require-taskflow` returns **0 only when the native graph and all exact item

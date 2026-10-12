@@ -6,9 +6,18 @@ import { readFile, writeFile, mkdir, rename } from 'node:fs/promises';
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseArgs } from 'node:util';
+import { loadEnvironmentVariables } from '../node_modules/@microsoft/rayfin-cli/dist/utils/config-utils.js';
 
-export const ARTWORK_USER_AGENT =
-  'MSFlixArtworkRecovery/1.1 (https://example.org/artwork-recovery; licensed film artwork cache; contact via repository issues)';
+export function artworkUserAgent(projectUrl) {
+  if (typeof projectUrl !== 'string' || !projectUrl.trim()) {
+    throw new Error('Configure COCKPIT_ARTWORK_PROJECT_URL in private rayfin/.env or pass --project-url.');
+  }
+  const url = new URL(projectUrl);
+  if (url.protocol !== 'https:' || url.username || url.password || url.search || url.hash) {
+    throw new Error('Artwork project URL must use HTTPS without credentials, query or fragment.');
+  }
+  return `MSFlixArtworkRecovery/1.1 (${url.href}; licensed film artwork cache; contact via repository issues)`;
+}
 export const MAX_IMAGE_BYTES = 10 * 1024 * 1024;
 const allowedHosts = new Set([
   'studio.blender.org', 'upload.wikimedia.org', 'thumb.wikimedia.org',
@@ -37,6 +46,9 @@ export function retryAfterMilliseconds(value, now = Date.now()) {
 
 /** Testable clock/transport; no parallel requests or credential-bearing requests. */
 export function createArtworkClient({
+  projectUrl = loadEnvironmentVariables({
+    projectRoot: fileURLToPath(new URL('../', import.meta.url)),
+  }).get('COCKPIT_ARTWORK_PROJECT_URL'),
   fetchImpl = globalThis.fetch,
   sleep = ms => new Promise(resolve => setTimeout(resolve, ms)),
   now = Date.now,
@@ -45,6 +57,7 @@ export function createArtworkClient({
   maxRequests = 350,
   maxCooldownMs = 120_000,
 } = {}) {
+  const userAgent = artworkUserAgent(projectUrl);
   let nextRequestAt = 0;
   let requestCount = 0;
   let suspendedUntil = 0;
@@ -63,7 +76,7 @@ export function createArtworkClient({
         response = await fetchImpl(url, {
           redirect: 'manual',
           signal: AbortSignal.timeout(30_000),
-          headers: { 'User-Agent': ARTWORK_USER_AGENT, Accept: accept },
+          headers: { 'User-Agent': userAgent, Accept: accept },
         });
       } catch (error) {
         if (attempt === maxAttempts - 1) throw error;
@@ -246,7 +259,7 @@ async function discoverFilmSources(values) {
     films: [],
   });
   const byKey = new Map(evidence.films.map(film => [film.content_key, film]));
-  const client = createArtworkClient({ maxRequests });
+  const client = createArtworkClient({ projectUrl: values['project-url'], maxRequests });
   const reviews = await readJsonOr('public/artwork/source-review.json', { known: {} });
   const films = catalog.filter(film => /^MSF-WD-Q\d+$/.test(film.content_key)
     && !byKey.get(film.content_key)?.discovery_complete
@@ -363,6 +376,7 @@ async function discoverFilmSources(values) {
 if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
   const { values } = parseArgs({ options: {
     discover: { type: 'boolean' },
+    'project-url': { type: 'string' },
     catalog: { type: 'string', default: '../../data/catalog.json' },
     'max-films': { type: 'string', default: '25' },
     'max-requests': { type: 'string', default: '100' },

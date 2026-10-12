@@ -7,7 +7,7 @@ generic model, canned answers or hand-generated SQL for the Fabric Data Agent.
 
 ## Native sources and organization
 
-| Component | Actual item |
+| Component | Item ID placeholder |
 |---|---|
 | Published Data Agent `Flixy` | `<DATA_AGENT_ID>` |
 | Workspace folder `09 Flixy` | `<FLIXY_FOLDER_ID>` |
@@ -66,10 +66,10 @@ published snapshot and must not be filtered by the refresh marker.
 The UI invokes `flixyAsk` through the typed Rayfin client. The server requires
 exactly one enabled `FlixyAccessGrant` from the caller's RLS-scoped
 `ctx.getDataClient()`. This administrator-managed allowlist approves only the
-owner and the named approved operator account for in-cockpit Flixy. Missing, duplicate,
-disabled or malformed grants are rejected, even if the user can open the cockpit.
-The server also verifies exact approved source bindings and the published Data
-Agent source list before sending a question.
+app owner and the specifically approved operator account for in-cockpit Flixy.
+Missing, duplicate, disabled or malformed grants are rejected, even if the user
+can open the cockpit. The server also verifies exact approved source bindings
+and the published Data Agent source list before sending a question.
 
 **Approved shared application identity (Rayfin 1.36.2):** `ctx.Tokens.Fabric`
 represents the app item's owner. Rayfin authenticates this platform-provided
@@ -79,12 +79,14 @@ grant. The caller and app owner may have different OIDs. Browser-supplied grants
 identity claims and tokens cannot authorize access.
 
 Native Data Agent, Gold and graph access use the app owner's Fabric permissions.
-This design does **not** enforce approved operator's own Fabric permissions and does not
-use per-user OBO. Administrators must keep each caller's real Entra identity
-mapping; never map approved operator to the owner. App sharing alone is not sufficient.
+This design does **not** enforce the approved operator's own Fabric permissions
+and does not use per-user OBO. Administrators must keep each caller's real Entra
+identity mapping in private bindings; never map the approved operator to the
+owner. App sharing alone is not sufficient.
 `OperatorGrant` and `FlixyAccessGrant` are independent: neither grants the other's
-capabilities. No admin cache, client secret or bearer token is shipped to the
-browser or stored in the repository.
+capabilities. The approved operator's current `OperatorGrant` lasts one year;
+this does not extend or replace the separate `FlixyAccessGrant`. No admin cache,
+client secret or bearer token is shipped to the browser or stored in the repository.
 
 Each invocation opens its own authenticated MCP session. No thread/session ID is
 accepted from the browser or reused across users. The browser retains only a
@@ -120,6 +122,10 @@ removed through supported service controls.
 
 Run commands from the repository root unless a working directory is specified.
 Authentication uses existing caches; no login popup is launched by these tools.
+Copy `agents\flixy\target.example.json` to ignored `.state\flixy\target.json`
+and fill the approved authoring bindings locally. Keep real deployment values
+and identity mappings out of tracked files. Publishing remains a separate,
+explicitly authorized operation; filling bindings does not publish anything.
 
 ```powershell
 # First-time draft only; refuses to overwrite an existing configured/published agent.
@@ -130,10 +136,10 @@ py -3 -m scripts.configure_flixy
 
 # Preserve and extend the native Task Flow.
 py -3 -m scripts.workspace_taskflow `
-  --tenant <TENANT_ID> `
-  --subscription <SUBSCRIPTION_ID> `
-  --workspace <WORKSPACE_ID> `
-  --capacity-name <capacity-name> --deploy-taskflow --require-taskflow
+  --tenant "<TENANT_ID>" `
+  --subscription "<SUBSCRIPTION_ID>" `
+  --workspace "<WORKSPACE_ID>" `
+  --capacity-name "<capacity-name>" --deploy-taskflow --require-taskflow
 ```
 
 After source or instruction changes, republish Flixy. Ordinary data changes do

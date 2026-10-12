@@ -6,13 +6,15 @@ param(
     [ValidateSet('true', 'false')][string]$ReplaceDedicatedVmRegistration='false'
 )
 $ErrorActionPreference = 'Stop'
+. (Join-Path $PSScriptRoot 'Oracle-TargetPolicy.ps1')
+$targetPolicy = Read-OracleTargetPolicy
 $statePath = Join-Path $env:LOCALAPPDATA 'MSFlixOracle\state.json'
 $state = Get-Content -LiteralPath $statePath -Raw | ConvertFrom-Json
 if ($state.tenantId -ne $TenantId -or $state.subscriptionId -ne $SubscriptionId) { throw 'Gateway state is not the approved environment.' }
 if ($state.gatewayVmName -ne 'msflix-fabric-gateway-vm' -or
     $ResourceGroupName -ne 'rg-msflix-demo-sea' -or
-    $SubscriptionId -ne '00000000-0000-4000-8000-000000100086' -or
-    $TenantId -ne '11111111-1111-4111-8111-111111111111') {
+    $SubscriptionId -ne $targetPolicy.subscriptionId -or
+    $TenantId -ne $targetPolicy.tenantId) {
     throw 'Refusing gateway registration outside the explicitly approved dedicated MSFlix VM.'
 }
 if (-not $state.gatewayIdentity.appId) { throw 'Dedicated gateway identity not initialized.' }
@@ -43,7 +45,7 @@ try {
     $registration = $records[0].Substring('MSFLIX_GATEWAY_JSON='.Length) | ConvertFrom-Json
     if (-not $registration.registered -or
         $registration.gatewayName -ne 'MSFlix Oracle Gateway Fabric' -or
-        $registration.gatewayId -eq '00000000-0000-4000-8000-000000100083') {
+        $registration.gatewayId -eq $targetPolicy.prohibitedGatewayId) {
         throw 'Refusing an unverified or unrelated gateway registration.'
     }
     [guid]::Parse($registration.gatewayId) | Out-Null

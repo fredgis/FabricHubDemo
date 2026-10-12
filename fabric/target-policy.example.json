@@ -1,0 +1,11 @@
+{
+  "tenant_id": "",
+  "subscription_id": "",
+  "region": "southeastasia",
+  "capacity_sku": "F16",
+  "workspace_name": "MSFlix",
+  "capacity_name": "msflixf16sea",
+  "resource_group": "rg-msflix-demo-sea",
+  "event_hub_namespace": "",
+  "ontology_graph_name": ""
+}

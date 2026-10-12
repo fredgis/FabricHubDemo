@@ -12,7 +12,7 @@ spec.loader.exec_module(publisher)
 class EnvelopeTests(unittest.TestCase):
     def row(self):
         return {
-            "event_id": "00000000-0000-4000-8000-000000100026",
+            "event_id": "00000000-0000-4000-8000-000000000601",
             "event_type": "rental.created",
             "entity_key": "order-1",
             "source_sequence": 1,
