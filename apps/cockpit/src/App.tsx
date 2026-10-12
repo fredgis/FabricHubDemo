@@ -30,7 +30,8 @@ function AuthGuard({
 function CockpitRoute() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
-  return <HomePage route={pathname === '/campaign-impact' ? '/campaign-impact' : '/'} onNavigate={navigate} />;
+  const route = pathname === '/campaign-impact' || pathname === '/dataflow' ? pathname : '/';
+  return <HomePage route={route} onNavigate={navigate} />;
 }
 
 function App() {
@@ -56,6 +57,14 @@ function App() {
         />
         <Route
           path="/campaign-impact"
+          element={
+            <AuthGuard requireAuth={true}>
+              <CockpitRoute />
+            </AuthGuard>
+          }
+        />
+        <Route
+          path="/dataflow"
           element={
             <AuthGuard requireAuth={true}>
               <CockpitRoute />

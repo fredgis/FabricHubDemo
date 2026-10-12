@@ -20,6 +20,23 @@ npm test
 backend. It does **not** deploy to a default workspace. Mock local login is
 removed. Fabric's supported portal broker is required for end-user auth.
 
+## Data Flow
+
+Open **Data Flow** in the navigation, or `/dataflow` after authentication.
+The English explorer is preserved in `src/assets/msflix-dataflow-en.html`,
+including its shared Gold diagram, inventory, source filters, processing steps,
+search, dialogs, light/dark themes, and PNG/JPEG/WebP/SVG exports.
+
+It is a repository snapshot, not a live service monitor or an additional Gold
+query. Its original wording and snapshot references are intentionally unchanged.
+The document is loaded only on first visit in a CSS-isolated iframe; returning
+to it preserves its selection, search, scroll and theme. **Refresh data flow**
+resets only that document, without refreshing other cockpit reads.
+**Expand view** hides the sidebar for the full-width diagram; **Restore navigation**
+returns to the normal shell. Narrow viewports retain the original source-route
+layout. The iframe runs the trusted, versioned document; it is not a sandbox for
+untrusted HTML.
+
 ## Deployment and imports
 
 ```powershell

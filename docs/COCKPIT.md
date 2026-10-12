@@ -2,9 +2,9 @@
 
 ## Delivered application
 
-An authenticated, charcoal entertainment-business app with nine sections:
+An authenticated, charcoal entertainment-business app with ten sections:
 Overview, Catalog, Rentals & Purchases, Audiences & Campaigns, Business Graph,
-MSFlix Insights, Campaign Impact, Demo, and Operations. It reads published Gold business views
+MSFlix Insights, Campaign Impact, Demo, Operations, and Data Flow. It reads published Gold business views
 through native read-only functions, operational entities through Rayfin
 `client.data`, and native commands through `client.functions`. Flixy connects
 the floating assistant to the native Fabric Data Agent.
@@ -22,6 +22,33 @@ reduced-motion handling, and explicit loading, empty, connection and command
 failure states. Revenue is calculated from persisted booked commercial rows,
 grouped by currency; no currencies are added together. Pagination reads every
 page or fails rather than showing partial KPIs.
+
+## Data Flow
+
+The authenticated `/dataflow` route embeds the supplied English explorer without
+rewriting its HTML, styles, scripts or inventory. The source is versioned at
+`apps/cockpit/src/assets/msflix-dataflow-en.html` and bundled in a lazy page chunk,
+not the initial cockpit bundle. An iframe with `srcDoc` isolates the document's
+CSS and IDs from the cockpit. Only trusted repository content is embedded;
+this is document isolation, not an untrusted-content security sandbox.
+
+The original snapshot documents Oracle, Salesforce, RTI and SAP, their native
+ingestion and preparation, one shared **MSFlixGold** Warehouse, and the
+Gold/Ontology/Flixy paths into the cockpit. All 11 profiles, table searches,
+processing steps, relationships, nine historical screen mappings, limitations,
+two themes and four download formats remain in the supplied document. Snapshot
+wording is intentionally retained, including its original standalone-preview
+notes. This page adds no Gold/operational reads, live status or SAP consumption.
+The normal cockpit identity and capability checks still apply.
+
+The frame stays mounted when another section is selected, preserving its open
+dialog, search, source selection, scroll position and theme. **Refresh data flow**
+remounts only the explorer; other screens retain their cached reads. A document
+that fails to initialize shows a retry control rather than a blank view.
+**Expand view** hides only the sidebar so the original wide diagram fits;
+**Restore navigation** brings it back without reloading the document. At smaller
+widths the original accessible source-route layout is used. No business heading,
+Gold freshness timestamp or duplicate cockpit footer is added to this snapshot.
 
 ## Campaign Impact
 

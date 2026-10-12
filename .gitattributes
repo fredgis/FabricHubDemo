@@ -1,2 +1,3 @@
 * text=auto
 *.sh text eol=lf
+apps/cockpit/src/assets/msflix-dataflow-en.html -text

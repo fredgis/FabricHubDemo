@@ -2,6 +2,7 @@ export const loadGraphCode = () => import('@/components/OntologyGraph').then(mod
 export const loadInsightsCode = () => import('@/pages/InsightsPage').then(module => ({ default: module.InsightsPage }));
 export const loadCampaignCode = () => import('@/pages/CampaignImpactPage').then(module => ({ default: module.CampaignImpactPage }));
 export const loadMarkdownCode = () => import('@/components/FlixyMarkdown');
+export const loadDataFlowCode = () => import('@/pages/DataFlowPage').then(module => ({ default: module.DataFlowPage }));
 
 export function canPrefetch(): boolean {
   const connection = (navigator as Navigator & { connection?: { saveData?: boolean; effectiveType?: string } }).connection;

@@ -1,5 +1,5 @@
 import { lazy, useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
-import { ArrowRight, ArrowsClockwise, Broadcast, ChartBar, FilmSlate, Graph, House,
+import { ArrowRight, ArrowsClockwise, ArrowsIn, ArrowsOut, Broadcast, ChartBar, FilmSlate, FlowArrow, Graph, House,
   Play, ShoppingBag, SignOut, Target, UsersThree } from '@phosphor-icons/react';
 import { useAuth } from '@/hooks/AuthContext';
 import { useReadCache } from '@/hooks/ReadCacheContext';
@@ -10,7 +10,8 @@ import {GoldBusinessDashboard}from'@/components/GoldBusinessDashboard';
 import type { GraphReadState } from '@/components/OntologyGraph';
 import { DeferredPanel } from '@/components/DeferredPanel';
 import { LedgerPagination } from '@/components/LedgerPagination';
-import { canPrefetch, duringIdle, loadGraphCode, loadInsightsCode, loadCampaignCode, loadMarkdownCode } from '@/services/deferred';
+import { canPrefetch, duringIdle, loadGraphCode, loadInsightsCode, loadCampaignCode, loadMarkdownCode, loadDataFlowCode } from '@/services/deferred';
+import './DataFlowPage.css';
 import { useCockpitReads } from '@/hooks/useCockpitReads';
 import type{GoldPages}from'../../rayfin/functions/src/gold-pages';
 import{catalogArt}from'@/assets/catalog-art.generated';
@@ -27,6 +28,7 @@ import type { Capabilities, CommandResult } from '../../rayfin/functions/src/dom
 const OntologyGraph = lazy(loadGraphCode);
 const InsightsPage = lazy(loadInsightsCode);
 const CampaignImpactPage = lazy(loadCampaignCode);
+const DataFlowPage = lazy(loadDataFlowCode);
 
 const sections = [
   { key: 'overview', name: 'Overview', icon: House },
@@ -38,6 +40,7 @@ const sections = [
   { key: 'campaign-impact', name: 'Campaign Impact', icon: Target },
   { key: 'demo', name: 'Demo', icon: Play },
   { key: 'operations', name: 'Operations', icon: Broadcast },
+  { key: 'dataflow', name: 'Data Flow', icon: FlowArrow },
 ] as const;
 type Section = typeof sections[number]['key'];
 type Command = (idempotencyKey: string) => Promise<CommandResult>;
@@ -61,8 +64,9 @@ function Status({ value }: { value: string }) {
 }
 export { Artwork } from '@/components/CatalogArtwork';
 
+type CockpitPath = '/' | '/campaign-impact' | '/dataflow';
 type HomePageProps = {
-  route?: '/' | '/campaign-impact'; onNavigate?: (path: '/' | '/campaign-impact') => void;
+  route?: CockpitPath; onNavigate?: (path: CockpitPath) => void;
 };
 
 export function HomePage(props: HomePageProps) {
@@ -82,7 +86,7 @@ function CockpitHome({ route = '/', onNavigate, localSection, setSection }: Home
   const { user, signOut } = useAuth();
   const { cache, revision: readRevision } = useReadCache();
   const healthReader = useMemo(() => ({ userId: user?.id, read: createHealthReader(cache) }), [user?.id, cache]);
-  const section = route === '/campaign-impact' ? 'campaign-impact' : localSection;
+  const section = route === '/campaign-impact' ? 'campaign-impact' : route === '/dataflow' ? 'dataflow' : localSection;
   const [graphVisited, setGraphVisited] = useState(section === 'graph');
   const [graphRefreshKey, setGraphRefreshKey] = useState(0);
   const [graphRead, setGraphRead] = useState<GraphReadState>({ loading: false, queriedAt: null });
@@ -92,6 +96,9 @@ function CockpitHome({ route = '/', onNavigate, localSection, setSection }: Home
   const [campaignVisited, setCampaignVisited] = useState(route === '/campaign-impact');
   const [campaignRefreshKey, setCampaignRefreshKey] = useState(0);
   const [campaignRead, setCampaignRead] = useState<CampaignImpactReadState>({ loading: false, queriedAt: null });
+  const [dataFlowVisited, setDataFlowVisited] = useState(section === 'dataflow');
+  const [dataFlowRefreshKey, setDataFlowRefreshKey] = useState(0);
+  const [dataFlowExpanded, setDataFlowExpanded] = useState(false);
   const { snapshot, loading, error, updated, refresh, prefetch, cancelPrefetch, setOrderPages,
     gold, goldLoading, goldError } = useCockpitReads(section);
   const reconcileReads = useCallback(() => refresh(true), [refresh]);
@@ -136,7 +143,7 @@ function CockpitHome({ route = '/', onNavigate, localSection, setSection }: Home
   const context = { snapshot, canOperate, busy, command };
   const selected = sections.find(s => s.key === section)!;
   const readAt = section === 'graph' ? graphRead.queriedAt : section === 'campaign-impact' ? campaignRead.queriedAt : section === 'insights' ? insightsRead.queriedAt : gold?.pages.dashboard.freshness.queried_at ?? updated;
-  const refreshing = section === 'graph' ? graphRead.loading : section === 'campaign-impact' ? campaignRead.loading : section === 'insights' ? insightsRead.loading : loading || goldLoading;
+  const refreshing = section === 'dataflow' ? false : section === 'graph' ? graphRead.loading : section === 'campaign-impact' ? campaignRead.loading : section === 'insights' ? insightsRead.loading : loading || goldLoading;
   useEffect(() => {
     if (!intent || intent === section || refreshing || busy || !canPrefetch()) return;
     const timer = window.setTimeout(() => {
@@ -169,6 +176,7 @@ function CockpitHome({ route = '/', onNavigate, localSection, setSection }: Home
     if (section === 'graph') setGraphRefreshKey(value => value + 1);
     else if (section === 'insights') setInsightsRefreshKey(value => value + 1);
     else if (section === 'campaign-impact') setCampaignRefreshKey(value => value + 1);
+    else if (section === 'dataflow') setDataFlowRefreshKey(value => value + 1);
     else void refresh();
   };
   const selectSection = (next: Section) => {
@@ -180,16 +188,20 @@ function CockpitHome({ route = '/', onNavigate, localSection, setSection }: Home
       setCampaignVisited(true);
       if (onNavigate) { onNavigate('/campaign-impact'); return; }
     }
+    if (next === 'dataflow') {
+      setDataFlowVisited(true);
+      if (onNavigate) { onNavigate('/dataflow'); return; }
+    }
     setSection(next);
-    if (route === '/campaign-impact') onNavigate?.('/');
+    if (route !== '/') onNavigate?.('/');
   };
   const heroVariants=catalogArtVariants.find(item=>item.content_key==='MSF-FILM-BUNNY')?.variants;
-  return <div className="app-shell">
+  return <div className={`app-shell${section === 'dataflow' ? ' app-shell--dataflow' : ''}${section === 'dataflow' && dataFlowExpanded ? ' app-shell--dataflow-expanded' : ''}`}>
     {heroVariants&&<link rel="preload" as="image" href={heroVariants.at(-1)?.path}
       imageSrcSet={heroVariants.map(item=>`${item.path} ${item.width}w`).join(', ')}
       imageSizes="(max-width: 760px) 100vw, 75vw" fetchPriority="high"/>}
     <a className="skip-link" href="#main">Skip to business content</a>
-    <aside className="sidebar">
+    <aside className="sidebar" hidden={section === 'dataflow' && dataFlowExpanded}>
       <a className="brand" href="/" aria-label="MSFlix home">MS<span>FLIX</span><small>BUSINESS CONTROL</small></a>
       <nav aria-label="Main navigation">{sections.map(({ key, name, icon: Icon }) =>
         <button key={key} aria-current={section === key ? 'page' : undefined}
@@ -202,10 +214,16 @@ function CockpitHome({ route = '/', onNavigate, localSection, setSection }: Home
     </aside>
     <div className="workspace">
       <header className="topbar"><span>MSFlix <span className="muted">/ {selected.name}</span></span>
-        <button onClick={refreshSection} disabled={refreshing || busy}>
-          <ArrowsClockwise aria-hidden="true" />{refreshing ? 'Refreshing…' : section === 'graph' ? 'Refresh graph' : section === 'insights' ? 'Refresh insights' : section === 'campaign-impact' ? 'Refresh campaign impact' : 'Refresh data'}</button></header>
+        <div className={section === 'dataflow' ? 'dataflow-actions' : undefined}>
+          {section === 'dataflow' && <button aria-pressed={dataFlowExpanded} aria-controls="dataflow-panel"
+            onClick={() => setDataFlowExpanded(value => !value)}>
+            {dataFlowExpanded ? <ArrowsIn aria-hidden="true" /> : <ArrowsOut aria-hidden="true" />}
+            {dataFlowExpanded ? 'Restore navigation' : 'Expand view'}</button>}
+          <button onClick={refreshSection} disabled={refreshing || (section !== 'dataflow' && busy)}>
+            <ArrowsClockwise aria-hidden="true" />{refreshing ? 'Refreshing…' : section === 'dataflow' ? 'Refresh data flow' : section === 'graph' ? 'Refresh graph' : section === 'insights' ? 'Refresh insights' : section === 'campaign-impact' ? 'Refresh campaign impact' : 'Refresh data'}</button>
+        </div></header>
       <main id="main" tabIndex={-1}>
-        <div className="page-heading"><div><p className="eyebrow">ENTERTAINMENT BUSINESS</p>
+        {section !== 'dataflow' && <><div className="page-heading"><div><p className="eyebrow">ENTERTAINMENT BUSINESS</p>
           <h1>{section === 'overview' ? 'The business behind the stories.' : selected.name}</h1>
           <p>{section === 'overview' ? 'Curated Gold performance, sourced catalog and business controls.'
             : section === 'orders' ? 'Persisted demo transactions and time-bound viewing rights. No bank charges.'
@@ -223,7 +241,7 @@ function CockpitHome({ route = '/', onNavigate, localSection, setSection }: Home
         {commandError && <p className="notice" role="alert">{commandError} Retrying the same command reuses its idempotency key.</p>}
         {receipt && <div className="receipt" role="status"><strong>Command persisted: {receipt.status}</strong>
           <span>Entity {receipt.entity_key}</span><span>{receipt.event_ids.length} returned event receipts. Broker delivery is separate.</span></div>}
-        {!['insights', 'campaign-impact', 'graph'].includes(section) && error && <ErrorState message={`${snapshot ? 'Refresh failed. The records below are from the last successful read. ' : ''}${error}`} retry={() => void refresh()} />}
+        {!['insights', 'campaign-impact', 'graph'].includes(section) && error && <ErrorState message={`${snapshot ? 'Refresh failed. The records below are from the last successful read. ' : ''}${error}`} retry={() => void refresh()} />}</>}
         {['overview','catalog','audiences'].includes(section)&&<>
           {goldLoading&&!gold&&<LoadingState/>}
           {goldError&&<ErrorState message={`Gold business read failed: ${goldError} ${gold?'The last successful Gold read remains visible.':'No operational fallback.'}`} retry={()=>void refresh()}/>}
@@ -244,6 +262,11 @@ function CockpitHome({ route = '/', onNavigate, localSection, setSection }: Home
         {(campaignVisited || section === 'campaign-impact') && <div hidden={section !== 'campaign-impact'}><DeferredPanel label="Campaign Impact">
           <CampaignImpactPage active={section === 'campaign-impact'} refreshKey={campaignRefreshKey} onRead={setCampaignRead} />
         </DeferredPanel></div>}
+        {(dataFlowVisited || section === 'dataflow') && <div id="dataflow-panel" className="dataflow-panel" hidden={section !== 'dataflow'}>
+          <DeferredPanel label="Data Flow">
+            <DataFlowPage key={dataFlowRefreshKey} onRetry={() => setDataFlowRefreshKey(value => value + 1)} />
+          </DeferredPanel>
+        </div>}
         <div hidden={section !== 'demo'}><DemoPage active={section === 'demo'} snapshot={snapshot} capabilities={capabilities}
           loading={loading} readError={error} busy={busy} snapshotUpdatedAt={updated}
           gold={gold?.pages} goldLoading={goldLoading} goldError={goldError} onRefresh={reconcileReads} /></div>
@@ -256,8 +279,8 @@ function CockpitHome({ route = '/', onNavigate, localSection, setSection }: Home
             readHealth={healthReader.read} readRevision={readRevision} />}
         </>)}
       </main>
-      <footer>MSFlix business demonstration. Sourced film metadata and licensed reference artwork; fictional CRM identities.
-        <span>Commercial amounts are recorded sales, not bank payments or invoices.</span></footer>
+      {section !== 'dataflow' && <footer>MSFlix business demonstration. Sourced film metadata and licensed reference artwork; fictional CRM identities.
+        <span>Commercial amounts are recorded sales, not bank payments or invoices.</span></footer>}
     </div>
     {user && <FlixyAssistant ask={askFlixy} userKey={user.id} />}
   </div>;

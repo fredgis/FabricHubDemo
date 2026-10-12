@@ -52,6 +52,9 @@ it('loads only the selected Gold page and delays operational collections until t
   rerender({ section: 'insights' });
   expect(readers.operational).not.toHaveBeenCalled();
   expect(readers.gold).toHaveBeenCalledTimes(2);
+  rerender({ section: 'dataflow' });
+  expect(readers.operational).not.toHaveBeenCalled();
+  expect(readers.gold).toHaveBeenCalledTimes(2);
   rerender({ section: 'orders' });
   await waitFor(() => expect(result.current.snapshot).toBe(snapshot));
   expect(readers.operational).toHaveBeenCalledOnce();
