@@ -19,12 +19,40 @@ const source = (itemId: string, type: string) => ({
 });
 
 describe('Flixy native authorization and source boundary', () => {
-  it('permits only the caller identity mapped to the trusted platform resource token', () => {
+  it('allows approved caller with a distinct Entra OID using the app-owner token', () => {
+    const approvedCallerGrant = { ...grant, entra_object_id: '22222222-2222-4222-8222-222222222222' };
+    expect(() => assertFlixyIdentity(approvedCallerGrant, token(owner))).not.toThrow();
+  });
+  it('continues to allow the approved owner with the app-owner token', () => {
     expect(() => assertFlixyIdentity(grant, token(owner))).not.toThrow();
-    expect(() => assertFlixyIdentity(grant, token(config.data_agent_id))).toThrow(/owner/);
-    expect(() => assertFlixyIdentity(grant, token(owner, config.workspace_id))).toThrow(/owner/);
-    expect(() => assertFlixyIdentity({ ...grant, enabled: false }, token(owner))).toThrow(/Named user/);
-    expect(() => assertFlixyIdentity(grant, 'malformed')).toThrow(/unavailable/);
+  });
+  it('rejects an external identity from a different tenant', () => {
+    expect(() => assertFlixyIdentity(grant, token(owner, config.workspace_id))).toThrow(/tenant/);
+  });
+  it.each([
+    { name: 'disabled', value: { ...grant, enabled: false } },
+    { name: 'non-boolean enabled', value: { ...grant, enabled: 'true' as unknown as boolean } },
+    { name: 'missing caller OID', value: { ...grant, entra_object_id: '' } },
+    { name: 'malformed caller OID', value: { ...grant, entra_object_id: 'not-a-uuid' } },
+    { name: 'missing tenant', value: { ...grant, tenant_id: '' } },
+    { name: 'malformed tenant', value: { ...grant, tenant_id: 'not-a-uuid' } },
+  ])('rejects a $name caller grant', ({ value }) => {
+    expect(() => assertFlixyIdentity(value, token(owner))).toThrow(/Named user/);
+  });
+  it.each([
+    { name: 'missing OID', value: token('') },
+    { name: 'malformed OID', value: token('not-a-uuid') },
+    { name: 'malformed tenant', value: token(owner, 'not-a-uuid') },
+    { name: 'missing claims', value: 'header.e30.signature' },
+    { name: 'null claims', value: 'header.bnVsbA.signature' },
+    { name: 'array claims', value: 'header.W10.signature' },
+    { name: 'malformed token', value: 'malformed' },
+    { name: 'non-JSON payload', value: 'header.not-json.signature' },
+    { name: 'missing header', value: token(owner).replace('header', '') },
+    { name: 'missing signature', value: token(owner).replace('.signature', '') },
+    { name: 'extra segment', value: token(owner) + '.extra' },
+  ])('rejects an unavailable external identity: $name', ({ value }) => {
+    expect(() => assertFlixyIdentity(grant, value)).toThrow(/unavailable/);
   });
   it('rejects endpoint injection and links to another workspace', () => {
     const path = `/groups/${config.workspace_id}/aiskills/${config.data_agent_id}`;

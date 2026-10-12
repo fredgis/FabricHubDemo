@@ -67,7 +67,7 @@ try {
         .input('url', sql.NVarChar(1000),
           `https://app.fabric.microsoft.com/groups/${workspace}/aiskills/${published.item_id}?ctid=${tenant}`)
         .input('description', sql.NVarChar(400),
-          'Native read-only Data Agent: Gold and the ontology native graph. Named caller authorization; no shared owner privilege.')
+          'Native read-only Data Agent: Gold and the ontology native graph. Administrator-approved callers; shared app-owner resource identity.')
         .query(`IF EXISTS (SELECT 1 FROM dbo.IntegrationLinks WHERE link_key='flixy-data-agent')
           UPDATE dbo.IntegrationLinks SET name='Flixy',type='DataAgent',url=@url,description=@description
           WHERE link_key='flixy-data-agent'

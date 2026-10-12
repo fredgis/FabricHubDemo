@@ -104,7 +104,7 @@ udf.func('flixyAsk', async (question: string, historyJson: string,
   ctx: RayfinContext<AppSchema, AudienceType.Fabric>): Promise<FlixyAnswer> => {
   const grants = await ctx.getDataClient().FlixyAccessGrant
     .select(['enabled', 'entra_object_id', 'tenant_id']).execute();
-  if (grants.length !== 1) throw new Error("Named user access to Flixy is required. The owner's permissions are not shared.");
+  if (grants.length !== 1) throw new Error('Named user access to Flixy is required.');
   assertFlixyIdentity(grants[0], ctx.Tokens.Fabric);
   const operational = await binding(ctx);
   const [links, gold, ontology] = await Promise.all([

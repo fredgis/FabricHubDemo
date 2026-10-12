@@ -130,9 +130,12 @@ concurrency.
   data processing and Warehouse publication belong to the separate SAP finance
   change set. The user subsequently authorized Flixy and enabled the required
   Azure OpenAI cross-region processing and conversation-storage settings.
-- Flixy requires a caller-scoped identity grant. The current Rayfin resource
-  token is the app owner's identity, so another caller cannot borrow it.
-  See [Flixy](FLIXY.md) before expanding access.
+- In-cockpit Flixy requires an enabled, administrator-managed, caller-scoped
+  `FlixyAccessGrant` (owner and named approved approved operator account only). The shared
+  `ctx.Tokens.Fabric` identity is the app owner; caller and owner OIDs may differ,
+  but their tenants must match. Native resource access uses the owner's Fabric
+  permissions, not approved operator's own permissions. `OperatorGrant` is independent of
+  Flixy access. See [Flixy](FLIXY.md) for the approved shared-identity model.
 - The persistent worker uses managed identity, not cached administrator tokens.
   Its orchestration role is limited to MSFlix; effective SQL DENYs protect
   operational payloads, deletes and commercial writes. See the

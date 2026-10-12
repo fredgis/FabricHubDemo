@@ -63,21 +63,28 @@ published snapshot and must not be filtered by the refresh marker.
 
 ## Authentication and conversation isolation
 
-The UI invokes `flixyAsk` through the typed Rayfin client. The server verifies
-the caller-scoped `FlixyAccessGrant`, exact approved source bindings, and the
-published Data Agent source list before sending a question.
+The UI invokes `flixyAsk` through the typed Rayfin client. The server requires
+exactly one enabled `FlixyAccessGrant` from the caller's RLS-scoped
+`ctx.getDataClient()`. This administrator-managed allowlist approves only the
+owner and the named approved operator account for in-cockpit Flixy. Missing, duplicate,
+disabled or malformed grants are rejected, even if the user can open the cockpit.
+The server also verifies exact approved source bindings and the published Data
+Agent source list before sending a question.
 
-**Rayfin 1.36.2 limitation:** external resource tokens represent the app item's
-owner, not arbitrary invoking users. Flixy does not lend that owner's rights to
-viewers: it requires the token's `oid` and `tid` to equal the administrator-managed
-Entra identity mapping for the authenticated Rayfin caller. The initial grant
-is for the verified current app-owner identity only. Other users receive an
-explicit access error, even if they can open the cockpit.
+**Approved shared application identity (Rayfin 1.36.2):** `ctx.Tokens.Fabric`
+represents the app item's owner. Rayfin authenticates this platform-provided
+token; decoding its claims is not authentication of arbitrary JWTs. The server
+requires valid Entra OID and tenant UUIDs and a token tenant matching the caller's
+grant. The caller and app owner may have different OIDs. Browser-supplied grants,
+identity claims and tokens cannot authorize access.
 
-Do not grant another user the owner's identity mapping. Multi-user delegation
-requires a supported delegated/OBO resource-token path before expanding access;
-app sharing alone is not sufficient. No admin cache, client secret or bearer
-token is shipped to the browser or stored in the repository.
+Native Data Agent, Gold and graph access use the app owner's Fabric permissions.
+This design does **not** enforce approved operator's own Fabric permissions and does not
+use per-user OBO. Administrators must keep each caller's real Entra identity
+mapping; never map approved operator to the owner. App sharing alone is not sufficient.
+`OperatorGrant` and `FlixyAccessGrant` are independent: neither grants the other's
+capabilities. No admin cache, client secret or bearer token is shipped to the
+browser or stored in the repository.
 
 Each invocation opens its own authenticated MCP session. No thread/session ID is
 accepted from the browser or reused across users. The browser retains only a

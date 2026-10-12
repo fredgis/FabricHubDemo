@@ -19,17 +19,22 @@ function record(value: unknown): value is Record<string, unknown> {
 }
 
 export function assertFlixyIdentity(grant: AccessGrant, resourceToken: string): void {
-  if (!grant.enabled || !uuid.test(grant.entra_object_id) || !uuid.test(grant.tenant_id))
+  if (grant.enabled !== true || !uuid.test(grant.entra_object_id) || !uuid.test(grant.tenant_id))
     throw new Error('Named user access to Flixy is required.');
+  // Rayfin authenticates ctx.Tokens.Fabric as the app owner; decoding is not JWT authentication.
+  // Caller authorization comes from the administrator-managed, RLS-scoped grant, not this token.
   let claims: unknown;
   try {
+    if (!/^[\w-]+\.[\w-]+\.[\w-]+$/.test(resourceToken)) throw new Error('Invalid resource token format.');
     claims = JSON.parse(Buffer.from(resourceToken.split('.')[1] ?? '', 'base64url').toString('utf8'));
   } catch {
     throw new Error('The external Flixy identity is unavailable.');
   }
-  // Rayfin 1.36 supplies the app owner's resource identity. Never lend it to another caller.
-  if (!record(claims) || claims.oid !== grant.entra_object_id || claims.tid !== grant.tenant_id)
-    throw new Error("Flixy cannot use the owner's permissions for another user.");
+  if (!record(claims) || typeof claims.oid !== 'string' || !uuid.test(claims.oid)
+    || typeof claims.tid !== 'string' || !uuid.test(claims.tid))
+    throw new Error('The external Flixy identity is unavailable.');
+  if (claims.tid !== grant.tenant_id)
+    throw new Error('The external Flixy identity must match the approved tenant.');
 }
 
 export function flixyAgentId(url: string, workspaceId: string): string {
