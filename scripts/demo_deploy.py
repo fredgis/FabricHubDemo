@@ -25,7 +25,7 @@ def bundle(cfg):
         "__init__.py", "snapshot.py", "inspect.py", "jobs.py")]
     paths += [path for path in (ROOT / "sources/__init__.py", ROOT / "sources/salesforce/__init__.py")
               if path.is_file()]
-    paths += list((ROOT / "fabric/gold").glob("*.sql"))
+    paths += [ROOT / "fabric/gold" / name for name in ("ddl.sql", "load.sql", "kpis.sql")]
     memory = io.BytesIO()
     with zipfile.ZipFile(memory, "w", zipfile.ZIP_DEFLATED) as archive:
         for path in sorted(paths):
