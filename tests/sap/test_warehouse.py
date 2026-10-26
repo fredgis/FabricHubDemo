@@ -232,10 +232,11 @@ class WarehouseTests(unittest.TestCase):
             self.qualify()
 
     def test_contract_versions_are_source_numc_text_not_surrogates(self):
-        ddl = w.domain_ddl(self.contract)
-        self.assertIn("[VERSION] varchar(4) NOT NULL", ddl)
-        self.assertIn("[NATIVE_DIMENSION_KEY] bigint NULL", ddl)
+        names, values = w.projection(self.contract, "ZMSF_PLAN", self.bindings["ZMSF_PLAN"])
+        self.assertIn("VERSION", names)
+        self.assertEqual(values[names.index("NATIVE_DIMENSION_KEY")], "CAST(s.[Key] AS bigint)")
         f = next(f for f in self.contract.schemas["ZMSF_PLAN"].fields if f.name == "VERSION")
+        self.assertEqual(w.sql_type(f), "varchar(4)")
         self.assertIn("CAST(s.[VERSION] AS varchar(4))", w.expression(f))
         self.assertIn("REPLICATE('0',4)", w.expression(f))
         self.rows["ZMSF_PLAN"][0]["VERSION"] = 1
@@ -334,10 +335,11 @@ class WarehouseTests(unittest.TestCase):
         self.rows["I_FISCALPERIODFORVARIANT"][0]["FISCALPERIODENDDATE"] = self.totals["as_of"]
         with self.assertRaisesRegex(DeploymentError, "gap/overlap"):
             self.qualify()
-        ddl = w.domain_ddl(self.contract)
         for name in ("I_GLACCOUNTHIERARCHYNODE", "I_COSTCENTERHIERARCHYNODE", "I_PROFITCENTERHIERARCHYNODE"):
+            names, values = w.projection(self.contract, name, self.bindings[name])
             for key in self.contract.schemas[name].keys:
-                self.assertIn("["+key+"]", ddl)
+                self.assertIn(key, names)
+                self.assertIn("s.[" + key + "]", values[names.index(key)])
 
     def test_invoice_link_tax_credit_and_order_fail(self):
         for field, value, message in (
@@ -393,6 +395,7 @@ class WarehouseTests(unittest.TestCase):
         self.assertIn("source_types", sql)
         self.assertIn("LEN(s.[CUSTOMER]+'#')-1>10", sql)
         self.assertIn("s.[VERSION]>=10000", sql)
+        self.assertTrue(all(query.lstrip().startswith("SELECT ") for query in statements))
 
     def test_local_job_gate_before_cloud(self):
         self.write_evidence("Failed")
@@ -506,6 +509,16 @@ class WarehouseTests(unittest.TestCase):
             actual = read_json(path)
             self.assertEqual(result["mode"], "silver_qualified_only")
             self.assertFalse(result["warehouse_written"])
+            self.assertEqual(actual["version"], 1)  # process.run(s2g) requires exactly v1.
+            self.assertEqual(set(actual), {
+                "version", "source_stage", "run_id", "workspace_id", "source_item_id", "source_endpoint_id",
+                "jobs", "input_sha256", "catalog_sha256", "data_sha256", "data_verified", "reconciliation",
+            })
+            self.assertEqual(actual["run_id"], RUN)
+            self.assertEqual(actual["workspace_id"], TARGET["workspace_id"])
+            self.assertEqual(actual["input_sha256"], self.input_hash)
+            self.assertEqual(actual["catalog_sha256"], w.signature(self.bindings))
+            self.assertEqual(actual["data_sha256"], w.signature({n: w.fingerprint(r) for n, r in self.rows.items()}))
             self.assertEqual(actual["source_stage"], "silver")
             self.assertIs(actual["data_verified"], True)
             self.assertEqual(actual["jobs"], {"b2s": self.jobs["b2s"]})
@@ -529,24 +542,36 @@ class WarehouseTests(unittest.TestCase):
             with self.assertRaisesRegex(DeploymentError, "native custom dimension Key missing"):
                 w.catalog(object(), self.contract, "dbo")
 
-    def test_apply_rejects_columncount_or_data_drift_and_pins_run(self):
-        self.write_evidence()
-        path = self.directory/"catalog.json"
-        self.inspect(path)
-        pinned = read_json(path)
-        pinned["catalog_sha256"] = "different"
-        path.write_text(json.dumps(pinned), encoding="utf-8")
-        patches = self.inspect_patches(self.mock_client())
-        for p in patches:
-            p.start()
-        try:
-            with patch.object(w, "publish") as publish:
-                with self.assertRaisesRegex(DeploymentError, "COLUMNCOUNT/data changed"):
-                    w.run(TARGET, self.config, self.references, self.metadata, self.directory, path, RUN)
-                publish.assert_not_called()
-        finally:
-            for p in reversed(patches):
-                p.stop()
+    def test_run_requires_explicit_inspect_true_before_inputs_files_or_clients(self):
+        for options in ({}, {"inspect": False}, {"inspect": None}, {"inspect": 1}, {"inspect": "yes"}):
+            with self.subTest(options=options), \
+                    patch.object(w, "inputs", return_value=(self.contract, self.totals, self.input_hash)) as inputs, \
+                    patch.object(w, "local_jobs", return_value=self.jobs) as jobs, \
+                    patch.object(w, "read_json", return_value={}) as read, \
+                    patch.object(w, "ScopedClient") as client, patch.object(w, "connect") as connect, \
+                    patch.object(w, "execute") as execute:
+                with self.assertRaisesRegex(DeploymentError, "retired.*sap_live"):
+                    w.run(TARGET, self.config, self.references, self.metadata, self.directory,
+                          self.directory / "missing-catalog.json", RUN, **options)
+                for boundary in (inputs, jobs, read, client, connect, execute):
+                    boundary.assert_not_called()
+
+    def test_cli_apply_is_retired_before_target_config_or_connection_use(self):
+        argv = ["warehouse", "--apply", "--target", "missing-target.json",
+                "--processing-evidence", "missing-evidence", "--catalog", "missing-catalog.json", "--run-id", RUN]
+        with patch.object(sys, "argv", argv), patch.object(w, "load_target", return_value=TARGET) as target, \
+                patch.object(w, "read_json", return_value={}) as read, \
+                patch.object(w, "inputs", return_value=(self.contract, self.totals, self.input_hash)) as inputs, \
+                patch.object(w, "ScopedClient") as client, patch.object(w, "connect") as connect, \
+                patch("sys.stderr", new_callable=io.StringIO) as error, \
+                patch("sys.stdout", new_callable=io.StringIO) as out:
+            with self.assertRaises(SystemExit) as stopped:
+                w.main()
+            self.assertEqual(stopped.exception.code, 2)
+            self.assertRegex(error.getvalue(), "retired.*sap_live")
+            self.assertEqual(out.getvalue(), "")
+            for boundary in (target, read, inputs, client, connect):
+                boundary.assert_not_called()
 
     def test_offline_preview_no_clients_and_no_jobs_required(self):
         argv = ["warehouse", "--target", "target.json", "--metadata", str(self.metadata), "--processing-evidence", str(self.directory),
@@ -555,7 +580,14 @@ class WarehouseTests(unittest.TestCase):
                 patch.object(w, "ScopedClient") as client, patch("sys.stdout", new_callable=io.StringIO) as out:
             w.main()
             client.assert_not_called()
-        self.assertEqual(json.loads(out.getvalue())["mode"], "offline_preview")
+        preview = json.loads(out.getvalue())
+        self.assertEqual(preview["mode"], "offline_preview")
+        self.assertIs(preview.get("writer_retired"), True)
+        self.assertIs(preview["warehouse_written"], False)
+        self.assertEqual(preview["serving_schema"], "sap_live")
+        self.assertEqual(preview["source_tables"], sorted(w.TABLES))
+        self.assertNotIn("tables", preview)
+        self.assertNotIn("transactional target reconciliation", preview["gates"])
         self.assertFalse((self.directory/"catalog.json").exists())
 
     def proof(self):
@@ -570,78 +602,17 @@ class WarehouseTests(unittest.TestCase):
             "native_relationships": self.relationship_proof(),
         }
 
-    def test_atomic_publish_only_writes_owned_tables_and_reconciles_before_commit(self):
-        statements = []
-        proof = self.proof()
-        def execute(connection, query, params=()):
-            statements.append(query)
-            if "_relationships'" in query:
-                fact = next(n for n in w.CUSTOM_RELATIONSHIPS if "["+n+"] s" in query)
-                return [{"joined_rows": len(self.rows[fact]), "invalid_rows": 0}]
-            if query.startswith("SELECT run_id,data_sha256"):
-                return [{"run_id": RUN, "data_sha256": proof["data_sha256"]}]
-            for name, table in w.TABLES.items():
-                if query.startswith("SELECT ") and "FROM gold.["+table+"]" in query:
-                    return self.rows[name]
-            return []
-        with patch.object(w, "execute", side_effect=execute), patch.object(w, "target_schema"), \
-                patch.object(w, "reference_rows", return_value=(self.customers, self.contents, self.distributors)):
-            result = w.publish(object(), self.contract, self.bindings, proof["database"], self.config,
-                               RUN, self.totals, self.rows, proof)
-        self.assertEqual(result["mode"], "published")
-        sql = "\n".join(statements)
-        for table in ("dim_customer", "dim_content", "fact_order_line", "publication"):
-            self.assertNotIn("DELETE FROM gold."+table, sql)
-            self.assertNotIn("INSERT INTO gold."+table, sql)
-        self.assertNotIn("XACT_ABORT", sql)
-        self.assertIn("BEGIN TRANSACTION", statements[0])
-        self.assertIn("BEGIN CATCH", statements[0])
-        self.assertIn("THROW;", statements[0])
-        self.assertIn("UPDATE gold.sap_writer_guard", sql)
-        self.assertIn("ROLLBACK TRANSACTION", sql)
-        self.assertIn("source_system='S4M' AND company_scope='1710' AND scenario_id=", sql)
-        self.assertIn("FROM [actual-native-database].[dbo].[I_GLACCOUNTLINEITEMRAWDATA]", sql)
-        self.assertNotIn("VALUES ", sql)
-        self.assertIn("COMMIT TRANSACTION", statements[-1])
-        self.assertTrue(any("sap-views" not in q and "CREATE OR ALTER VIEW gold.sap_" in q for q in statements))
-
-    def test_native_surrogate_failure_inside_publication_rolls_back(self):
-        statements = []
-        def execute(connection, query, params=()):
-            statements.append(query)
-            if "_relationships'" in query:
-                return [{"joined_rows": 4, "invalid_rows": 1}]
-            for name, table in w.TABLES.items():
-                if query.startswith("SELECT ") and "FROM gold.["+table+"]" in query:
-                    return self.rows[name]
-            return []
-        with patch.object(w, "execute", side_effect=execute), patch.object(w, "target_schema"), \
-                patch.object(w, "reference_rows", return_value=(self.customers, self.contents, self.distributors)):
-            with self.assertRaisesRegex(DeploymentError, "native surrogate relationship"):
-                w.publish(object(), self.contract, self.bindings, "native-database", self.config,
+    def test_publish_is_retired_before_any_sql_or_connection_use(self):
+        connection = MagicMock()
+        with patch.object(w, "execute", return_value=[]) as execute, \
+                patch.object(w, "connect") as connect, patch.object(w, "ScopedClient") as client:
+            with self.assertRaisesRegex(DeploymentError, "retired.*sap_live"):
+                w.publish(connection, self.contract, self.bindings, "native-database", self.config,
                           RUN, self.totals, self.rows, self.proof())
-        self.assertIn("ROLLBACK TRANSACTION", statements[-1])
-        self.assertFalse(any("COMMIT TRANSACTION" in q for q in statements))
-
-    def test_failed_target_reconciliation_rolls_back_no_success(self):
-        statements = []
-        def execute(connection, query, params=()):
-            statements.append(query)
-            return []
-        with patch.object(w, "execute", side_effect=execute), patch.object(w, "target_schema"):
-            with self.assertRaisesRegex(DeploymentError, "target values/counts/sums"):
-                w.publish(object(), self.contract, self.bindings, "native-database", self.config,
-                          RUN, self.totals, self.rows, self.proof())
-        self.assertIn("ROLLBACK TRANSACTION", statements[-1])
-        self.assertFalse(any("COMMIT TRANSACTION" in q for q in statements))
-
-    def test_snapshot_conflict_fails_without_retry(self):
-        with patch.object(w, "execute", side_effect=[DeploymentError("snapshot write conflict 24556"), []]) as exe:
-            with self.assertRaisesRegex(DeploymentError, "snapshot write conflict"):
-                w.publish(object(), self.contract, self.bindings, "native-database", self.config,
-                          RUN, self.totals, self.rows, self.proof())
-            self.assertEqual(exe.call_count, 2)
-            self.assertIn("ROLLBACK", exe.call_args.args[1])
+            execute.assert_not_called()
+            connect.assert_not_called()
+            client.assert_not_called()
+        self.assertEqual(connection.mock_calls, [])
 
     def test_odbc17_falls_back_to_declared_official_client_with_scoped_token(self):
         client = self.mock_client()
@@ -657,45 +628,14 @@ class WarehouseTests(unittest.TestCase):
         self.assertEqual(kwargs["attrs_before"][1256][4:], "scoped-token".encode("utf-16-le"))
         self.assertTrue(kwargs["autocommit"])
 
-    def test_views_keep_cash_vat_and_arap_separate_from_revenue(self):
-        sql = (w.SQL_ROOT/"sap-views.sql").read_text(encoding="utf-8")
-        self.assertIn("contribution_after_content_cost_only", sql)
-        self.assertIn("WHERE g.SOURCELEDGER='0L'", sql)
-        self.assertIn("o.CLEARINGDATE IS NULL OR o.CLEARINGDATE>p.as_of", sql)
-        monthly = sql.split("-- @batch")[1]
-        self.assertNotIn("sap_operational_item", monthly)
-        self.assertNotIn("fact_order_line", sql)
-        rendered = "\n".join(w.view_batches())
-        self.assertNotIn("{{", rendered)
-        self.assertIn("g.GLACCOUNT='0040000000'", rendered)
-        self.assertIn("g.CHARTOFACCOUNTS='MSFX'", rendered)
-
-    def test_target_schema_refuses_columncount_and_money_type_drift(self):
-        types = {
-            table: {**w.STAMPS, **{f.name: w.sql_type(f) for f in w.selected_fields(self.contract, name)},
-                    "NATIVE_DIMENSION_KEY": "bigint", "NATIVE_UPDATE_TIMESTAMP": "datetime2(6)"}
-            for name, table in w.TABLES.items()
-        }
-        types["sap_publication"] = w.PUBLICATION_TYPES
-        types["sap_writer_guard"] = {"resource_name": "varchar(128)", "generation": "bigint"}
-        actual = []
-        for table, columns in types.items():
-            for col, sql in columns.items():
-                precision, scale = (map(int, sql[8:-1].split(",")) if sql.startswith("decimal") else (None, None))
-                actual.append({"TABLE_NAME": table, "COLUMN_NAME": col, "DATA_TYPE": sql.split("(")[0],
-                               "CHARACTER_MAXIMUM_LENGTH": int(sql[8:-1]) if sql.startswith("varchar") else None,
-                               "NUMERIC_PRECISION": precision, "NUMERIC_SCALE": scale})
-        with patch.object(w, "execute", return_value=actual):
-            w.target_schema(object(), self.contract)
-        with patch.object(w, "execute", return_value=actual[:-1]):
-            with self.assertRaisesRegex(DeploymentError, "COLUMNCOUNT/schema drift"):
-                w.target_schema(object(), self.contract)
-        altered = copy.deepcopy(actual)
-        row = next(r for r in altered if r["TABLE_NAME"] == "sap_publication" and r["COLUMN_NAME"] == "payables")
-        row["NUMERIC_SCALE"] = 0
-        with patch.object(w, "execute", return_value=altered):
-            with self.assertRaisesRegex(DeploymentError, "decimal drift"):
-                w.target_schema(object(), self.contract)
+    def test_legacy_writer_sql_and_recreation_helpers_are_removed(self):
+        for name in ("sap-ddl.sql", "sap-views.sql"):
+            with self.subTest(sql=name):
+                self.assertFalse((w.ROOT / "fabric" / "gold" / name).exists())
+        for name in ("domain_ddl", "checked", "scope", "target_schema", "view_batches", "batch_literal",
+                     "STAMPS", "PUBLICATION_TYPES"):
+            with self.subTest(helper=name):
+                self.assertFalse(hasattr(w, name), "Retired writer helper still exposed: " + name)
 
 
 if __name__ == "__main__":

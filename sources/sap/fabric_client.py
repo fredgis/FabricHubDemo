@@ -7,7 +7,7 @@ import time
 from pathlib import Path
 from urllib.error import HTTPError
 from urllib.parse import quote, urlparse
-from urllib.request import Request, urlopen
+from urllib.request import HTTPRedirectHandler, Request, build_opener, urlopen
 from uuid import UUID
 
 from fabric.rest import FabricClient, DeploymentError, az_json
@@ -82,6 +82,12 @@ class ScopedClient(FabricClient):
         return matches[0]
 
 
+class _RejectPublicationRedirects(HTTPRedirectHandler):
+    """Never forward publication credentials or payloads to a redirected URL."""
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        raise HTTPError(req.full_url, code, msg, headers, fp)
+
+
 class OneLakeFiles:
     def __init__(self, client: ScopedClient):
         self.client = client
@@ -98,6 +104,10 @@ class OneLakeFiles:
             raise DeploymentError("Unexpected OneLake files endpoint")
 
     def request(self, method: str, path: str, query="", data=None, headers=None, *, blob=False):
+        # Bound publishers use a private view; cover internal put/directory calls.
+        guard = getattr(self, "_publication_guard", None)
+        if guard is not None:
+            guard()
         if "\\" in path or path.startswith("/") or any(p in ("", ".", "..") for p in path.split("/")):
             raise ValueError("Unsafe OneLake source path")
         expected = "datasphere/" + self.target["source_system"]
@@ -109,13 +119,20 @@ class OneLakeFiles:
             "Authorization": "Bearer " + self.client.token("https://storage.azure.com/"),
             "x-ms-version": "2021-06-08", "Content-Type": "application/octet-stream", **(headers or {}),
         })
+        if guard is not None:
+            guard()
         try:
-            with urlopen(request, timeout=90) as response:
+            # Per-request opener leaves the unguarded/global transport unchanged.
+            open_request = build_opener(_RejectPublicationRedirects()).open if guard is not None else urlopen
+            with open_request(request, timeout=90) as response:
                 return response.status, {k.lower(): v for k, v in response.headers.items()}, response.read()
         except HTTPError as exc:
             if method in ("GET", "HEAD", "DELETE") and exc.code == 404:
                 return exc.code, dict(exc.headers), b""
             raise DeploymentError(f"OneLake {method} HTTP {exc.code} for {path}; no publication claimed") from exc
+        finally:
+            if guard is not None:
+                guard()
 
     def directory(self, path: str):
         if path in self.directories:

@@ -1,0 +1,7338 @@
+{
+  "observed_at": "2026-10-26T08:44:21.419431+00:00",
+  "scope": "Verified expanded native SAP BPS Gold metadata; no business row data",
+  "tables": [
+    {
+      "name": "I_COMPANYCODE",
+      "business_key": [
+        "COMPANYCODE"
+      ],
+      "columns": [
+        {
+          "name": "__SEQUENCE_NUMBER",
+          "type": "decimal",
+          "precision": 20,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 1
+        },
+        {
+          "name": "__TIMESTAMP",
+          "type": "datetime2",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 2
+        },
+        {
+          "name": "COMPANYCODE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 3
+        },
+        {
+          "name": "CHARTOFACCOUNTS",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 4
+        },
+        {
+          "name": "COMPANY",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 5
+        },
+        {
+          "name": "COMPANYCODENAME",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 6
+        },
+        {
+          "name": "CONTROLLINGAREA",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 7
+        },
+        {
+          "name": "COUNTRY",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 8
+        },
+        {
+          "name": "CURRENCY",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 9
+        },
+        {
+          "name": "FISCALYEARVARIANT",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 10
+        },
+        {
+          "name": "_UpdateTimeStamp",
+          "type": "datetime2",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 11
+        },
+        {
+          "name": "_SystemName",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 12
+        },
+        {
+          "name": "LANGUAGE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 13
+        },
+        {
+          "name": "Key",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 14
+        },
+        {
+          "name": "_Delete",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 15
+        }
+      ],
+      "compound_key": [
+        "_SystemName",
+        "COMPANYCODE"
+      ]
+    },
+    {
+      "name": "I_GLACCOUNTINCHARTOFACCOUNTS",
+      "business_key": [
+        "CHARTOFACCOUNTS",
+        "GLACCOUNT"
+      ],
+      "columns": [
+        {
+          "name": "__SEQUENCE_NUMBER",
+          "type": "decimal",
+          "precision": 20,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 1
+        },
+        {
+          "name": "__TIMESTAMP",
+          "type": "datetime2",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 2
+        },
+        {
+          "name": "CHARTOFACCOUNTS",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 3
+        },
+        {
+          "name": "GLACCOUNT",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 4
+        },
+        {
+          "name": "GLACCOUNTGROUP",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 5
+        },
+        {
+          "name": "GLACCOUNTTYPE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 6
+        },
+        {
+          "name": "ISBALANCESHEETACCOUNT",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 7
+        },
+        {
+          "name": "ISPROFITLOSSACCOUNT",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 8
+        },
+        {
+          "name": "_UpdateTimeStamp",
+          "type": "datetime2",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 9
+        },
+        {
+          "name": "_SystemName",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 10
+        },
+        {
+          "name": "Key",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 11
+        },
+        {
+          "name": "_Delete",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 12
+        }
+      ],
+      "compound_key": [
+        "_SystemName",
+        "CHARTOFACCOUNTS",
+        "GLACCOUNT"
+      ]
+    },
+    {
+      "name": "I_FISCALPERIODFORVARIANT",
+      "business_key": [
+        "FISCALPERIOD",
+        "FISCALYEAR",
+        "FISCALYEARVARIANT"
+      ],
+      "columns": [
+        {
+          "name": "__SEQUENCE_NUMBER",
+          "type": "decimal",
+          "precision": 20,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 1
+        },
+        {
+          "name": "__TIMESTAMP",
+          "type": "datetime2",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 2
+        },
+        {
+          "name": "FISCALPERIOD",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 3
+        },
+        {
+          "name": "FISCALYEAR",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 4
+        },
+        {
+          "name": "FISCALYEARVARIANT",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 5
+        },
+        {
+          "name": "FISCALPERIODENDDATE",
+          "type": "date",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 6
+        },
+        {
+          "name": "FISCALPERIODSTARTDATE",
+          "type": "date",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 7
+        },
+        {
+          "name": "FISCALYEARENDDATE",
+          "type": "date",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 8
+        },
+        {
+          "name": "FISCALYEARPERIOD",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 9
+        },
+        {
+          "name": "FISCALYEARSTARTDATE",
+          "type": "date",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 10
+        },
+        {
+          "name": "ISSPECIALPERIOD",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 11
+        },
+        {
+          "name": "NEXTFISCALPERIOD",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 12
+        },
+        {
+          "name": "NEXTFISCALPERIODFISCALYEAR",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 13
+        },
+        {
+          "name": "_UpdateTimeStamp",
+          "type": "datetime2",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 14
+        },
+        {
+          "name": "_SystemName",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 15
+        },
+        {
+          "name": "Key",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 16
+        },
+        {
+          "name": "_Delete",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 17
+        }
+      ],
+      "compound_key": [
+        "_SystemName",
+        "FISCALPERIOD",
+        "FISCALYEAR",
+        "FISCALYEARVARIANT"
+      ]
+    },
+    {
+      "name": "I_FISCALYEARFORCOMPANYCODE",
+      "business_key": [
+        "COMPANYCODE",
+        "FISCALYEAR"
+      ],
+      "columns": [
+        {
+          "name": "__SEQUENCE_NUMBER",
+          "type": "decimal",
+          "precision": 20,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 1
+        },
+        {
+          "name": "__TIMESTAMP",
+          "type": "datetime2",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 2
+        },
+        {
+          "name": "COMPANYCODE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 3
+        },
+        {
+          "name": "FISCALYEAR",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 4
+        },
+        {
+          "name": "FISCALYEARENDDATE",
+          "type": "date",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 5
+        },
+        {
+          "name": "FISCALYEARSTARTDATE",
+          "type": "date",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 6
+        },
+        {
+          "name": "_UpdateTimeStamp",
+          "type": "datetime2",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 7
+        },
+        {
+          "name": "_SystemName",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 8
+        },
+        {
+          "name": "Key",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 9
+        },
+        {
+          "name": "_Delete",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 10
+        }
+      ],
+      "compound_key": [
+        "_SystemName",
+        "COMPANYCODE",
+        "FISCALYEAR"
+      ]
+    },
+    {
+      "name": "I_FISCALYEARVARIANT",
+      "business_key": [
+        "FISCALYEARVARIANT"
+      ],
+      "columns": [
+        {
+          "name": "__SEQUENCE_NUMBER",
+          "type": "decimal",
+          "precision": 20,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 1
+        },
+        {
+          "name": "__TIMESTAMP",
+          "type": "datetime2",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 2
+        },
+        {
+          "name": "FISCALYEARVARIANT",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 3
+        },
+        {
+          "name": "FISCALYEARISCALENDARYEAR",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 4
+        },
+        {
+          "name": "NUMBEROFPOSTINGPERIODS",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 5
+        },
+        {
+          "name": "NUMBEROFSPECIALPERIODS",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 6
+        },
+        {
+          "name": "_UpdateTimeStamp",
+          "type": "datetime2",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 7
+        },
+        {
+          "name": "_SystemName",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 8
+        },
+        {
+          "name": "Key",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 9
+        },
+        {
+          "name": "_Delete",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 10
+        }
+      ],
+      "compound_key": [
+        "_SystemName",
+        "FISCALYEARVARIANT"
+      ]
+    },
+    {
+      "name": "I_SUPPLIER",
+      "business_key": [
+        "SUPPLIER"
+      ],
+      "columns": [
+        {
+          "name": "__SEQUENCE_NUMBER",
+          "type": "decimal",
+          "precision": 20,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 1
+        },
+        {
+          "name": "__TIMESTAMP",
+          "type": "datetime2",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 2
+        },
+        {
+          "name": "SUPPLIER",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 3
+        },
+        {
+          "name": "COUNTRY",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 4
+        },
+        {
+          "name": "SUPPLIERFULLNAME",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 5
+        },
+        {
+          "name": "SUPPLIERNAME",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 6
+        },
+        {
+          "name": "_UpdateTimeStamp",
+          "type": "datetime2",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 7
+        },
+        {
+          "name": "_SystemName",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 8
+        },
+        {
+          "name": "Key",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 9
+        },
+        {
+          "name": "_Delete",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 10
+        }
+      ],
+      "compound_key": [
+        "_SystemName",
+        "SUPPLIER"
+      ]
+    },
+    {
+      "name": "I_PRODUCT",
+      "business_key": [
+        "PRODUCT"
+      ],
+      "columns": [
+        {
+          "name": "__SEQUENCE_NUMBER",
+          "type": "decimal",
+          "precision": 20,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 1
+        },
+        {
+          "name": "__TIMESTAMP",
+          "type": "datetime2",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 2
+        },
+        {
+          "name": "PRODUCT",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 3
+        },
+        {
+          "name": "BASEUNIT",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 4
+        },
+        {
+          "name": "PRODUCTGROUP",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 5
+        },
+        {
+          "name": "PRODUCTTYPE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 6
+        },
+        {
+          "name": "_UpdateTimeStamp",
+          "type": "datetime2",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 7
+        },
+        {
+          "name": "_SystemName",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 8
+        },
+        {
+          "name": "Key",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 9
+        },
+        {
+          "name": "_Delete",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 10
+        }
+      ],
+      "compound_key": [
+        "_SystemName",
+        "PRODUCT"
+      ]
+    },
+    {
+      "name": "I_COSTCENTER",
+      "business_key": [
+        "CONTROLLINGAREA",
+        "COSTCENTER",
+        "VALIDITYENDDATE"
+      ],
+      "columns": [
+        {
+          "name": "__SEQUENCE_NUMBER",
+          "type": "decimal",
+          "precision": 20,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 1
+        },
+        {
+          "name": "__TIMESTAMP",
+          "type": "datetime2",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 2
+        },
+        {
+          "name": "CONTROLLINGAREA",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 3
+        },
+        {
+          "name": "COSTCENTER",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 4
+        },
+        {
+          "name": "VALIDITYENDDATE",
+          "type": "date",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 5
+        },
+        {
+          "name": "ACTLDEPSTATISTICALKEYFIGURES",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 6
+        },
+        {
+          "name": "ACTLINDEPSTATISTICALKEYFIGURES",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 7
+        },
+        {
+          "name": "ACTYDEPDNTFORMULAPLANNINGTMPL",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 8
+        },
+        {
+          "name": "ACTYDEPENDENTALLOCATIONTMPL",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 9
+        },
+        {
+          "name": "ACTYINDEPENDENTALLOCATIONTMPL",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 10
+        },
+        {
+          "name": "ACTYINDEPFORMULAPLANNINGTMPL",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 11
+        },
+        {
+          "name": "ADDRESSADDITIONALNAME",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 12
+        },
+        {
+          "name": "ADDRESSNAME",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 13
+        },
+        {
+          "name": "AVAILABILITYCONTROLISACTIVE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 14
+        },
+        {
+          "name": "AVAILABILITYCONTROLPROFILE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 15
+        },
+        {
+          "name": "BUDGETCARRYINGCOSTCENTER",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 16
+        },
+        {
+          "name": "BUSINESSAREA",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 17
+        },
+        {
+          "name": "CITYNAME",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 18
+        },
+        {
+          "name": "COMPANYCODE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 19
+        },
+        {
+          "name": "CONDITIONAPPLICATION",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 20
+        },
+        {
+          "name": "CONDITIONUSAGE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 21
+        },
+        {
+          "name": "CONSUMPTIONQTYISRECORDED",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 22
+        },
+        {
+          "name": "COSTCENTERACCOUNTINGOVERHEAD",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 23
+        },
+        {
+          "name": "COSTCENTERADDRNAME3",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 24
+        },
+        {
+          "name": "COSTCENTERADDRNAME4",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 25
+        },
+        {
+          "name": "COSTCENTERALLOCATIONMETHOD",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 26
+        },
+        {
+          "name": "COSTCENTERALTERNATIVEFUNCTION",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 27
+        },
+        {
+          "name": "COSTCENTERCATEGORY",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 28
+        },
+        {
+          "name": "COSTCENTERCREATEDBYUSER",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 29
+        },
+        {
+          "name": "COSTCENTERCREATIONDATE",
+          "type": "date",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 30
+        },
+        {
+          "name": "COSTCENTERCURRENCY",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 31
+        },
+        {
+          "name": "COSTCENTERFUNCTION",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 32
+        },
+        {
+          "name": "COSTCENTERISCOMPLETE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 33
+        },
+        {
+          "name": "COSTCENTERPRINTERDESTINATION",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 34
+        },
+        {
+          "name": "COSTCENTERSTANDARDHIERAREA",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 35
+        },
+        {
+          "name": "COSTCOLLECTOR",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 36
+        },
+        {
+          "name": "COSTCTRRESPONSIBLEPERSONNAME",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 37
+        },
+        {
+          "name": "COSTCTRRESPONSIBLEUSER",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 38
+        },
+        {
+          "name": "COSTINGSHEET",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 39
+        },
+        {
+          "name": "COUNTRY",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 40
+        },
+        {
+          "name": "DATACOMMUNICATIONPHONENUMBER",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 41
+        },
+        {
+          "name": "DEPARTMENT",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 42
+        },
+        {
+          "name": "DISTRICT",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 43
+        },
+        {
+          "name": "FAXNUMBER",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 44
+        },
+        {
+          "name": "FORMOFADDRESS",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 45
+        },
+        {
+          "name": "FUNCTIONALAREA",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 46
+        },
+        {
+          "name": "FUNCTIONALAREAISFIXASSIGNED",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 47
+        },
+        {
+          "name": "FUND",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 48
+        },
+        {
+          "name": "FUNDISFIXASSIGNED",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 49
+        },
+        {
+          "name": "GRANTID",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 50
+        },
+        {
+          "name": "GRANTIDISFIXASSIGNED",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 51
+        },
+        {
+          "name": "ISBLKDFORPRIMARYCOSTSPOSTING",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 52
+        },
+        {
+          "name": "ISBLKDFORSECONDARYCOSTSPOSTING",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 53
+        },
+        {
+          "name": "ISBLOCKEDFORCOMMITMENTPOSTING",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 54
+        },
+        {
+          "name": "ISBLOCKEDFORPLANPRIMARYCOSTS",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 55
+        },
+        {
+          "name": "ISBLOCKEDFORPLANREVENUES",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 56
+        },
+        {
+          "name": "ISBLOCKEDFORPLANSECONDARYCOSTS",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 57
+        },
+        {
+          "name": "ISBLOCKEDFORREVENUEPOSTING",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 58
+        },
+        {
+          "name": "ISSTATISTICALCOSTCENTER",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 59
+        },
+        {
+          "name": "JOINTVENTURE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 60
+        },
+        {
+          "name": "JOINTVENTURECLASS",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 61
+        },
+        {
+          "name": "JOINTVENTUREEQUITYTYPE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 62
+        },
+        {
+          "name": "JOINTVENTUREOBJECTTYPE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 63
+        },
+        {
+          "name": "JOINTVENTURERECOVERYCODE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 64
+        },
+        {
+          "name": "JOINTVENTURESUBCLASS",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 65
+        },
+        {
+          "name": "LOGICALSYSTEM",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 66
+        },
+        {
+          "name": "OBJECTINTERNALID",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 67
+        },
+        {
+          "name": "PHONENUMBER1",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 68
+        },
+        {
+          "name": "PHONENUMBER2",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 69
+        },
+        {
+          "name": "PLANT",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 70
+        },
+        {
+          "name": "POBOX",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 71
+        },
+        {
+          "name": "POBOXPOSTALCODE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 72
+        },
+        {
+          "name": "POSTALCODE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 73
+        },
+        {
+          "name": "PROFITCENTER",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 74
+        },
+        {
+          "name": "REGION",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 75
+        },
+        {
+          "name": "STREETADDRESSNAME",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 76
+        },
+        {
+          "name": "SUBSEQUENTCOSTCENTER",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 77
+        },
+        {
+          "name": "TAXJURISDICTION",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 78
+        },
+        {
+          "name": "TELEBOXNUMBER",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 79
+        },
+        {
+          "name": "TELETEXNUMBER",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 80
+        },
+        {
+          "name": "TELEXNUMBER",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 81
+        },
+        {
+          "name": "VALIDITYSTARTDATE",
+          "type": "date",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 82
+        },
+        {
+          "name": "_UpdateTimeStamp",
+          "type": "datetime2",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 83
+        },
+        {
+          "name": "_SystemName",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 84
+        },
+        {
+          "name": "LANGUAGE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 85
+        },
+        {
+          "name": "Key",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 86
+        },
+        {
+          "name": "_Delete",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 87
+        }
+      ],
+      "compound_key": [
+        "_SystemName",
+        "CONTROLLINGAREA",
+        "COSTCENTER",
+        "VALIDITYENDDATE"
+      ]
+    },
+    {
+      "name": "I_PROFITCENTER",
+      "business_key": [
+        "CONTROLLINGAREA",
+        "PROFITCENTER",
+        "VALIDITYENDDATE"
+      ],
+      "columns": [
+        {
+          "name": "__SEQUENCE_NUMBER",
+          "type": "decimal",
+          "precision": 20,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 1
+        },
+        {
+          "name": "__TIMESTAMP",
+          "type": "datetime2",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 2
+        },
+        {
+          "name": "CONTROLLINGAREA",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 3
+        },
+        {
+          "name": "PROFITCENTER",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 4
+        },
+        {
+          "name": "VALIDITYENDDATE",
+          "type": "date",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 5
+        },
+        {
+          "name": "ADDITIONALNAME",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 6
+        },
+        {
+          "name": "ADDRESSNAME",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 7
+        },
+        {
+          "name": "CITYNAME",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 8
+        },
+        {
+          "name": "COMPANYCODE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 9
+        },
+        {
+          "name": "COUNTRY",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 10
+        },
+        {
+          "name": "DATACOMMUNICATIONPHONENUMBER",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 11
+        },
+        {
+          "name": "DEPARTMENT",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 12
+        },
+        {
+          "name": "DISTRICT",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 13
+        },
+        {
+          "name": "FAXNUMBER",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 14
+        },
+        {
+          "name": "FORMOFADDRESS",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 15
+        },
+        {
+          "name": "FORMULAPLANNINGTEMPLATE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 16
+        },
+        {
+          "name": "PHONENUMBER1",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 17
+        },
+        {
+          "name": "PHONENUMBER2",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 18
+        },
+        {
+          "name": "POBOX",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 19
+        },
+        {
+          "name": "POBOXPOSTALCODE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 20
+        },
+        {
+          "name": "POSTALCODE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 21
+        },
+        {
+          "name": "PROFITCENTERADDRNAME3",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 22
+        },
+        {
+          "name": "PROFITCENTERADDRNAME4",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 23
+        },
+        {
+          "name": "PROFITCENTERCREATEDBYUSER",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 24
+        },
+        {
+          "name": "PROFITCENTERCREATIONDATE",
+          "type": "date",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 25
+        },
+        {
+          "name": "PROFITCENTERISBLOCKED",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 26
+        },
+        {
+          "name": "PROFITCENTERPRINTERNAME",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 27
+        },
+        {
+          "name": "PROFITCENTERSTANDARDHIERARCHY",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 28
+        },
+        {
+          "name": "PROFITCTRRESPONSIBLEPERSONNAME",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 29
+        },
+        {
+          "name": "PROFITCTRRESPONSIBLEUSER",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 30
+        },
+        {
+          "name": "REGION",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 31
+        },
+        {
+          "name": "SEGMENT",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 32
+        },
+        {
+          "name": "STREETADDRESSNAME",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 33
+        },
+        {
+          "name": "TAXJURISDICTION",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 34
+        },
+        {
+          "name": "TELEBOXNUMBER",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 35
+        },
+        {
+          "name": "TELETEXNUMBER",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 36
+        },
+        {
+          "name": "TELEXNUMBER",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 37
+        },
+        {
+          "name": "VALIDITYSTARTDATE",
+          "type": "date",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 38
+        },
+        {
+          "name": "_UpdateTimeStamp",
+          "type": "datetime2",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 39
+        },
+        {
+          "name": "_SystemName",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 40
+        },
+        {
+          "name": "LANGUAGE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 41
+        },
+        {
+          "name": "Key",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 42
+        },
+        {
+          "name": "_Delete",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 43
+        }
+      ],
+      "compound_key": [
+        "_SystemName",
+        "CONTROLLINGAREA",
+        "PROFITCENTER",
+        "VALIDITYENDDATE"
+      ]
+    },
+    {
+      "name": "I_GLACCOUNTHIERARCHYNODE",
+      "business_key": [
+        "GLACCOUNTHIERARCHY",
+        "HIERARCHYNODE",
+        "VALIDITYENDDATE",
+        "PARENTNODE",
+        "HIERARCHYVERSION",
+        "CHARTOFACCOUNTS"
+      ],
+      "columns": [
+        {
+          "name": "__SEQUENCE_NUMBER",
+          "type": "decimal",
+          "precision": 20,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 1
+        },
+        {
+          "name": "__TIMESTAMP",
+          "type": "datetime2",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 2
+        },
+        {
+          "name": "GLACCOUNTHIERARCHY",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 3
+        },
+        {
+          "name": "HIERARCHYNODE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 4
+        },
+        {
+          "name": "VALIDITYENDDATE",
+          "type": "date",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 5
+        },
+        {
+          "name": "PARENTNODE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 6
+        },
+        {
+          "name": "HIERARCHYVERSION",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 7
+        },
+        {
+          "name": "CHARTOFACCOUNTS",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 8
+        },
+        {
+          "name": "GLACCOUNT",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 9
+        },
+        {
+          "name": "NODETYPE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 10
+        },
+        {
+          "name": "VALIDITYSTARTDATE",
+          "type": "date",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 11
+        },
+        {
+          "name": "_UpdateTimeStamp",
+          "type": "datetime2",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 12
+        },
+        {
+          "name": "_SystemName",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 13
+        },
+        {
+          "name": "Key",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 14
+        },
+        {
+          "name": "_Delete",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 15
+        }
+      ],
+      "compound_key": [
+        "_SystemName",
+        "GLACCOUNTHIERARCHY",
+        "HIERARCHYNODE",
+        "VALIDITYENDDATE",
+        "PARENTNODE",
+        "HIERARCHYVERSION",
+        "CHARTOFACCOUNTS"
+      ]
+    },
+    {
+      "name": "I_COSTCENTERHIERARCHYNODE",
+      "business_key": [
+        "CONTROLLINGAREA",
+        "COSTCENTERHIERARCHY",
+        "HIERARCHYNODE",
+        "VALIDITYENDDATE"
+      ],
+      "columns": [
+        {
+          "name": "__SEQUENCE_NUMBER",
+          "type": "decimal",
+          "precision": 20,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 1
+        },
+        {
+          "name": "__TIMESTAMP",
+          "type": "datetime2",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 2
+        },
+        {
+          "name": "CONTROLLINGAREA",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 3
+        },
+        {
+          "name": "COSTCENTERHIERARCHY",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 4
+        },
+        {
+          "name": "HIERARCHYNODE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 5
+        },
+        {
+          "name": "VALIDITYENDDATE",
+          "type": "date",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 6
+        },
+        {
+          "name": "COSTCENTER",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 7
+        },
+        {
+          "name": "NODETYPE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 8
+        },
+        {
+          "name": "PARENTNODE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 9
+        },
+        {
+          "name": "VALIDITYSTARTDATE",
+          "type": "date",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 10
+        },
+        {
+          "name": "_UpdateTimeStamp",
+          "type": "datetime2",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 11
+        },
+        {
+          "name": "_SystemName",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 12
+        },
+        {
+          "name": "Key",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 13
+        },
+        {
+          "name": "_Delete",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 14
+        }
+      ],
+      "compound_key": [
+        "_SystemName",
+        "CONTROLLINGAREA",
+        "COSTCENTERHIERARCHY",
+        "HIERARCHYNODE",
+        "VALIDITYENDDATE"
+      ]
+    },
+    {
+      "name": "I_PROFITCENTERHIERARCHYNODE",
+      "business_key": [
+        "CONTROLLINGAREA",
+        "HIERARCHYNODE",
+        "PROFITCENTERHIERARCHY",
+        "VALIDITYENDDATE"
+      ],
+      "columns": [
+        {
+          "name": "__SEQUENCE_NUMBER",
+          "type": "decimal",
+          "precision": 20,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 1
+        },
+        {
+          "name": "__TIMESTAMP",
+          "type": "datetime2",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 2
+        },
+        {
+          "name": "CONTROLLINGAREA",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 3
+        },
+        {
+          "name": "HIERARCHYNODE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 4
+        },
+        {
+          "name": "PROFITCENTERHIERARCHY",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 5
+        },
+        {
+          "name": "VALIDITYENDDATE",
+          "type": "date",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 6
+        },
+        {
+          "name": "NODETYPE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 7
+        },
+        {
+          "name": "PARENTNODE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 8
+        },
+        {
+          "name": "PROFITCENTER",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 9
+        },
+        {
+          "name": "VALIDITYSTARTDATE",
+          "type": "date",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 10
+        },
+        {
+          "name": "_UpdateTimeStamp",
+          "type": "datetime2",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 11
+        },
+        {
+          "name": "_SystemName",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 12
+        },
+        {
+          "name": "Key",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 13
+        },
+        {
+          "name": "_Delete",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 14
+        }
+      ],
+      "compound_key": [
+        "_SystemName",
+        "CONTROLLINGAREA",
+        "HIERARCHYNODE",
+        "PROFITCENTERHIERARCHY",
+        "VALIDITYENDDATE"
+      ]
+    },
+    {
+      "name": "ZMSF_CUSTOMER_LINK",
+      "business_key": [
+        "CUSTOMER"
+      ],
+      "columns": [
+        {
+          "name": "__SEQUENCE_NUMBER",
+          "type": "decimal",
+          "precision": 20,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 1
+        },
+        {
+          "name": "__TIMESTAMP",
+          "type": "datetime2",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 2
+        },
+        {
+          "name": "CUSTOMER",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 3
+        },
+        {
+          "name": "CUSTOMER_KEY",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 4
+        },
+        {
+          "name": "SALESFORCE_CONTACT_ID",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 5
+        },
+        {
+          "name": "_UpdateTimeStamp",
+          "type": "datetime2",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 6
+        },
+        {
+          "name": "_SystemName",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 7
+        },
+        {
+          "name": "Key",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 8
+        },
+        {
+          "name": "_Delete",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 9
+        }
+      ],
+      "compound_key": [
+        "_SystemName",
+        "CUSTOMER"
+      ]
+    },
+    {
+      "name": "ZMSF_PLAN",
+      "business_key": [
+        "PLAN_ID",
+        "VERSION"
+      ],
+      "columns": [
+        {
+          "name": "__SEQUENCE_NUMBER",
+          "type": "decimal",
+          "precision": 20,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 1
+        },
+        {
+          "name": "__TIMESTAMP",
+          "type": "datetime2",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 2
+        },
+        {
+          "name": "PLAN_ID",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 3
+        },
+        {
+          "name": "VERSION",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 4
+        },
+        {
+          "name": "NAME",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 5
+        },
+        {
+          "name": "PRODUCT",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 6
+        },
+        {
+          "name": "TERRITORY",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 7
+        },
+        {
+          "name": "CURRENCY",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 8
+        },
+        {
+          "name": "MONTHLY_NET",
+          "type": "decimal",
+          "precision": 23,
+          "scale": 2,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 9
+        },
+        {
+          "name": "VAT_RATE",
+          "type": "decimal",
+          "precision": 9,
+          "scale": 4,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 10
+        },
+        {
+          "name": "VALID_FROM",
+          "type": "date",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 11
+        },
+        {
+          "name": "VALID_TO_EXCLUSIVE",
+          "type": "date",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 12
+        },
+        {
+          "name": "CONTRACT_ID",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 13
+        },
+        {
+          "name": "CONTRACT_VERSION",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 14
+        },
+        {
+          "name": "_UpdateTimeStamp",
+          "type": "datetime2",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 15
+        },
+        {
+          "name": "_SystemName",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 16
+        },
+        {
+          "name": "Key",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 17
+        },
+        {
+          "name": "_Delete",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 18
+        }
+      ],
+      "compound_key": [
+        "_SystemName",
+        "PLAN_ID",
+        "VERSION"
+      ]
+    },
+    {
+      "name": "ZMSF_SUBSCRIPTION",
+      "business_key": [
+        "SUBSCRIPTION_ID"
+      ],
+      "columns": [
+        {
+          "name": "__SEQUENCE_NUMBER",
+          "type": "decimal",
+          "precision": 20,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 1
+        },
+        {
+          "name": "__TIMESTAMP",
+          "type": "datetime2",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 2
+        },
+        {
+          "name": "SUBSCRIPTION_ID",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 3
+        },
+        {
+          "name": "CUSTOMER",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 4
+        },
+        {
+          "name": "PLAN_ID",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 5
+        },
+        {
+          "name": "PLAN_VERSION",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 6
+        },
+        {
+          "name": "SERVICE_FROM",
+          "type": "date",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 7
+        },
+        {
+          "name": "SERVICE_TO_EXCLUSIVE",
+          "type": "date",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 8
+        },
+        {
+          "name": "STATUS",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 9
+        },
+        {
+          "name": "RENEWAL_POLICY",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 10
+        },
+        {
+          "name": "_UpdateTimeStamp",
+          "type": "datetime2",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 11
+        },
+        {
+          "name": "_SystemName",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 12
+        },
+        {
+          "name": "Key",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 13
+        },
+        {
+          "name": "_Delete",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 14
+        }
+      ],
+      "compound_key": [
+        "_SystemName",
+        "SUBSCRIPTION_ID"
+      ]
+    },
+    {
+      "name": "ZMSF_RIGHTS_CONTRACT",
+      "business_key": [
+        "CONTRACT_ID",
+        "VERSION"
+      ],
+      "columns": [
+        {
+          "name": "__SEQUENCE_NUMBER",
+          "type": "decimal",
+          "precision": 20,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 1
+        },
+        {
+          "name": "__TIMESTAMP",
+          "type": "datetime2",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 2
+        },
+        {
+          "name": "CONTRACT_ID",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 3
+        },
+        {
+          "name": "VERSION",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 4
+        },
+        {
+          "name": "SUPPLIER",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 5
+        },
+        {
+          "name": "VALID_FROM",
+          "type": "date",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 6
+        },
+        {
+          "name": "VALID_TO_EXCLUSIVE",
+          "type": "date",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 7
+        },
+        {
+          "name": "CURRENCY",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 8
+        },
+        {
+          "name": "FIXED_NET",
+          "type": "decimal",
+          "precision": 23,
+          "scale": 2,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 9
+        },
+        {
+          "name": "REVENUE_SHARE",
+          "type": "decimal",
+          "precision": 9,
+          "scale": 4,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 10
+        },
+        {
+          "name": "REVENUE_BASIS",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 11
+        },
+        {
+          "name": "SIMULATION_ONLY",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 12
+        },
+        {
+          "name": "_UpdateTimeStamp",
+          "type": "datetime2",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 13
+        },
+        {
+          "name": "_SystemName",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 14
+        },
+        {
+          "name": "Key",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 15
+        },
+        {
+          "name": "_Delete",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 16
+        }
+      ],
+      "compound_key": [
+        "_SystemName",
+        "CONTRACT_ID",
+        "VERSION"
+      ]
+    },
+    {
+      "name": "ZMSF_RIGHTS_COVERAGE",
+      "business_key": [
+        "CONTRACT_ID",
+        "VERSION",
+        "CONTENT_KEY",
+        "TERRITORY",
+        "USAGE_TYPE"
+      ],
+      "columns": [
+        {
+          "name": "__SEQUENCE_NUMBER",
+          "type": "decimal",
+          "precision": 20,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 1
+        },
+        {
+          "name": "__TIMESTAMP",
+          "type": "datetime2",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 2
+        },
+        {
+          "name": "CONTRACT_ID",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 3
+        },
+        {
+          "name": "VERSION",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 4
+        },
+        {
+          "name": "CONTENT_KEY",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 5
+        },
+        {
+          "name": "TERRITORY",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 6
+        },
+        {
+          "name": "USAGE_TYPE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 7
+        },
+        {
+          "name": "CATALOG_DISTRIBUTOR_KEY",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 8
+        },
+        {
+          "name": "CATALOG_SAP_PARTNER_CODE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 9
+        },
+        {
+          "name": "VALID_FROM",
+          "type": "date",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 10
+        },
+        {
+          "name": "VALID_TO_EXCLUSIVE",
+          "type": "date",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 11
+        },
+        {
+          "name": "SIMULATION_ONLY",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 12
+        },
+        {
+          "name": "_UpdateTimeStamp",
+          "type": "datetime2",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 13
+        },
+        {
+          "name": "_SystemName",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 14
+        },
+        {
+          "name": "Key",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 15
+        },
+        {
+          "name": "_Delete",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 16
+        }
+      ],
+      "compound_key": [
+        "_SystemName",
+        "CONTRACT_ID",
+        "VERSION",
+        "CONTENT_KEY",
+        "TERRITORY",
+        "USAGE_TYPE"
+      ]
+    },
+    {
+      "name": "ZMSF_BILLING_LINK",
+      "business_key": [
+        "BILLINGDOCUMENT",
+        "BILLINGDOCUMENTITEM"
+      ],
+      "columns": [
+        {
+          "name": "__SEQUENCE_NUMBER",
+          "type": "decimal",
+          "precision": 20,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 1
+        },
+        {
+          "name": "__TIMESTAMP",
+          "type": "datetime2",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 2
+        },
+        {
+          "name": "BILLINGDOCUMENT",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 3
+        },
+        {
+          "name": "BILLINGDOCUMENTITEM",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 4
+        },
+        {
+          "name": "SUBSCRIPTION_ID",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 5
+        },
+        {
+          "name": "SERVICE_FROM",
+          "type": "date",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 6
+        },
+        {
+          "name": "SERVICE_TO_EXCLUSIVE",
+          "type": "date",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 7
+        },
+        {
+          "name": "ORIGINAL_BILLINGDOCUMENT",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 8
+        },
+        {
+          "name": "ORDER_ID",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 9
+        },
+        {
+          "name": "_UpdateTimeStamp",
+          "type": "datetime2",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 10
+        },
+        {
+          "name": "_SystemName",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 11
+        },
+        {
+          "name": "_Delete",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 12
+        },
+        {
+          "name": "_key_ZMSFSUBSCRIPTION",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 13
+        },
+        {
+          "name": "_Reprocess",
+          "type": "bit",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 14
+        }
+      ],
+      "compound_key": [
+        "_SystemName",
+        "BILLINGDOCUMENT",
+        "BILLINGDOCUMENTITEM"
+      ]
+    },
+    {
+      "name": "ZMSF_CONTRACT_CHARGE",
+      "business_key": [
+        "CONTRACT_ID",
+        "VERSION",
+        "PERIOD_START",
+        "CHARGE_TYPE"
+      ],
+      "columns": [
+        {
+          "name": "__SEQUENCE_NUMBER",
+          "type": "decimal",
+          "precision": 20,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 1
+        },
+        {
+          "name": "__TIMESTAMP",
+          "type": "datetime2",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 2
+        },
+        {
+          "name": "CONTRACT_ID",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 3
+        },
+        {
+          "name": "VERSION",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 4
+        },
+        {
+          "name": "PERIOD_START",
+          "type": "date",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 5
+        },
+        {
+          "name": "CHARGE_TYPE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 6
+        },
+        {
+          "name": "BASIS_NET",
+          "type": "decimal",
+          "precision": 23,
+          "scale": 2,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 7
+        },
+        {
+          "name": "RATE",
+          "type": "decimal",
+          "precision": 9,
+          "scale": 4,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 8
+        },
+        {
+          "name": "CHARGE_NET",
+          "type": "decimal",
+          "precision": 23,
+          "scale": 2,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 9
+        },
+        {
+          "name": "COMPANYCODE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 10
+        },
+        {
+          "name": "FISCALYEAR",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 11
+        },
+        {
+          "name": "ACCOUNTINGDOCUMENT",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 12
+        },
+        {
+          "name": "_UpdateTimeStamp",
+          "type": "datetime2",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 13
+        },
+        {
+          "name": "_SystemName",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 14
+        },
+        {
+          "name": "_Delete",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 15
+        },
+        {
+          "name": "_key_ZMSFRIGHTSCONTRACT",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 16
+        },
+        {
+          "name": "_Reprocess",
+          "type": "bit",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 17
+        }
+      ],
+      "compound_key": [
+        "_SystemName",
+        "CONTRACT_ID",
+        "VERSION",
+        "PERIOD_START",
+        "CHARGE_TYPE"
+      ]
+    },
+    {
+      "name": "C_BILLINGDOCITEMBASICDEX_1",
+      "business_key": [
+        "BILLINGDOCUMENT",
+        "BILLINGDOCUMENTITEM"
+      ],
+      "columns": [
+        {
+          "name": "__SEQUENCE_NUMBER",
+          "type": "decimal",
+          "precision": 20,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 1
+        },
+        {
+          "name": "__TIMESTAMP",
+          "type": "datetime2",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 2
+        },
+        {
+          "name": "BILLINGDOCUMENT",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 3
+        },
+        {
+          "name": "BILLINGDOCUMENTITEM",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 4
+        },
+        {
+          "name": "ACCOUNTINGDOCUMENT",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 5
+        },
+        {
+          "name": "BASEUNIT",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 6
+        },
+        {
+          "name": "BILLINGDOCUMENTCATEGORY",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 7
+        },
+        {
+          "name": "BILLINGDOCUMENTDATE",
+          "type": "date",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 8
+        },
+        {
+          "name": "BILLINGDOCUMENTITEMTEXT",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 9
+        },
+        {
+          "name": "BILLINGDOCUMENTTYPE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 10
+        },
+        {
+          "name": "BILLINGPLANRULE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 11
+        },
+        {
+          "name": "BILLINGQUANTITY",
+          "type": "decimal",
+          "precision": 13,
+          "scale": 3,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 12
+        },
+        {
+          "name": "BILLINGQUANTITYINBASEUNIT",
+          "type": "decimal",
+          "precision": 13,
+          "scale": 3,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 13
+        },
+        {
+          "name": "BILLINGQUANTITYUNIT",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 14
+        },
+        {
+          "name": "BILLTOPARTY",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 15
+        },
+        {
+          "name": "BUSINESSAREA",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 16
+        },
+        {
+          "name": "COMPANYCODE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 17
+        },
+        {
+          "name": "CONTROLLINGAREA",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 18
+        },
+        {
+          "name": "COSTCENTER",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 19
+        },
+        {
+          "name": "CURRENCY",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 20
+        },
+        {
+          "name": "CUSTOMERGROUP",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 21
+        },
+        {
+          "name": "DISTRIBUTIONCHANNEL",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 22
+        },
+        {
+          "name": "DIVISION",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 23
+        },
+        {
+          "name": "FISCALPERIOD",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 24
+        },
+        {
+          "name": "FISCALYEAR",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 25
+        },
+        {
+          "name": "FISCALYEARVARIANT",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 26
+        },
+        {
+          "name": "GROSSAMOUNT",
+          "type": "decimal",
+          "precision": 23,
+          "scale": 2,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 27
+        },
+        {
+          "name": "NETAMOUNT",
+          "type": "decimal",
+          "precision": 23,
+          "scale": 2,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 28
+        },
+        {
+          "name": "OVERALLBILLINGSTATUS",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 29
+        },
+        {
+          "name": "PAYERPARTY",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 30
+        },
+        {
+          "name": "PLANT",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 31
+        },
+        {
+          "name": "PRODUCT",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 32
+        },
+        {
+          "name": "PRODUCTGROUP",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 33
+        },
+        {
+          "name": "PROFITCENTER",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 34
+        },
+        {
+          "name": "SALESEMPLOYEE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 35
+        },
+        {
+          "name": "SALESORGANIZATION",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 36
+        },
+        {
+          "name": "SALESORGANIZATIONCURRENCY",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 37
+        },
+        {
+          "name": "SHIPPINGPOINT",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 38
+        },
+        {
+          "name": "SHIPTOPARTY",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 39
+        },
+        {
+          "name": "SOLDTOPARTY",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 40
+        },
+        {
+          "name": "TAXAMOUNT",
+          "type": "decimal",
+          "precision": 23,
+          "scale": 2,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 41
+        },
+        {
+          "name": "TRANSACTIONCURRENCY",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 42
+        },
+        {
+          "name": "_UpdateTimeStamp",
+          "type": "datetime2",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 43
+        },
+        {
+          "name": "_SystemName",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 44
+        },
+        {
+          "name": "_Delete",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 45
+        },
+        {
+          "name": "_key_IBILLINGDOCUMENTTYPE",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 46
+        },
+        {
+          "name": "_key_IBILLINGPLANRULE",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 47
+        },
+        {
+          "name": "_key_IBUSINESSAREA",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 48
+        },
+        {
+          "name": "_key_ICOMPANYCODE",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 49
+        },
+        {
+          "name": "_key_ICONTROLLINGAREA",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 50
+        },
+        {
+          "name": "_key_ICOSTCENTER",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 51
+        },
+        {
+          "name": "_key_ICUSTOMERBillToParty",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 52
+        },
+        {
+          "name": "_key_ICUSTOMERPayerParty",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 53
+        },
+        {
+          "name": "_key_ICUSTOMERShipToParty",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 54
+        },
+        {
+          "name": "_key_ICUSTOMERSoldToParty",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 55
+        },
+        {
+          "name": "_key_ICUSTOMERGROUP",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 56
+        },
+        {
+          "name": "_key_IDISTRIBUTIONCHANNEL",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 57
+        },
+        {
+          "name": "_key_IDIVISION",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 58
+        },
+        {
+          "name": "_key_IFISCALPERIODFORVARIANT",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 59
+        },
+        {
+          "name": "_key_IOVERALLBILLINGSTATUS",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 60
+        },
+        {
+          "name": "_key_IPERSONWORKAGREEMENT1",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 61
+        },
+        {
+          "name": "_key_IPLANT",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 62
+        },
+        {
+          "name": "_key_IPRODUCT",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 63
+        },
+        {
+          "name": "_key_IPRODUCTGROUP2",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 64
+        },
+        {
+          "name": "_key_IPROFITCENTER",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 65
+        },
+        {
+          "name": "_key_ISALESORGANIZATION",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 66
+        },
+        {
+          "name": "_key_ISHIPPINGPOINT",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 67
+        },
+        {
+          "name": "_Reprocess",
+          "type": "bit",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 68
+        },
+        {
+          "name": "_change_type",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 69
+        },
+        {
+          "name": "_COMMIT_VERSION",
+          "type": "bigint",
+          "precision": 19,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 70
+        }
+      ],
+      "compound_key": [
+        "_SystemName",
+        "BILLINGDOCUMENT",
+        "BILLINGDOCUMENTITEM"
+      ]
+    },
+    {
+      "name": "I_GLACCOUNTLINEITEMRAWDATA",
+      "business_key": [
+        "ACCOUNTINGDOCUMENT",
+        "COMPANYCODE",
+        "FISCALYEAR",
+        "LEDGERGLLINEITEM",
+        "SOURCELEDGER"
+      ],
+      "columns": [
+        {
+          "name": "__SEQUENCE_NUMBER",
+          "type": "decimal",
+          "precision": 20,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 1
+        },
+        {
+          "name": "__TIMESTAMP",
+          "type": "datetime2",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 2
+        },
+        {
+          "name": "ACCOUNTINGDOCUMENT",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 3
+        },
+        {
+          "name": "COMPANYCODE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 4
+        },
+        {
+          "name": "FISCALYEAR",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 5
+        },
+        {
+          "name": "LEDGERGLLINEITEM",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 6
+        },
+        {
+          "name": "SOURCELEDGER",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 7
+        },
+        {
+          "name": "ACCOUNTINGDOCUMENTCATEGORY",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 8
+        },
+        {
+          "name": "ACCOUNTINGDOCUMENTITEM",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 9
+        },
+        {
+          "name": "ACCOUNTINGDOCUMENTTYPE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 10
+        },
+        {
+          "name": "ADDITIONALCURRENCY1",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 11
+        },
+        {
+          "name": "AMOUNTINADDITIONALCURRENCY1",
+          "type": "decimal",
+          "precision": 23,
+          "scale": 2,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 12
+        },
+        {
+          "name": "AMOUNTINCOMPANYCODECURRENCY",
+          "type": "decimal",
+          "precision": 23,
+          "scale": 2,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 13
+        },
+        {
+          "name": "AMOUNTINFUNCTIONALCURRENCY",
+          "type": "decimal",
+          "precision": 23,
+          "scale": 2,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 14
+        },
+        {
+          "name": "AMOUNTINGLOBALCURRENCY",
+          "type": "decimal",
+          "precision": 23,
+          "scale": 2,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 15
+        },
+        {
+          "name": "AMOUNTINTRANSACTIONCURRENCY",
+          "type": "decimal",
+          "precision": 23,
+          "scale": 2,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 16
+        },
+        {
+          "name": "BILLINGDOCUMENT",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 17
+        },
+        {
+          "name": "BUSINESSAREA",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 18
+        },
+        {
+          "name": "CHARTOFACCOUNTS",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 19
+        },
+        {
+          "name": "CLEARINGACCOUNTINGDOCUMENT",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 20
+        },
+        {
+          "name": "CLEARINGDATE",
+          "type": "date",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 21
+        },
+        {
+          "name": "CLEARINGDOCFISCALYEAR",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 22
+        },
+        {
+          "name": "COMPANY",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 23
+        },
+        {
+          "name": "COMPANYCODECURRENCY",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 24
+        },
+        {
+          "name": "CONTROLLINGAREA",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 25
+        },
+        {
+          "name": "COSTCENTER",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 26
+        },
+        {
+          "name": "COSTCTRACTIVITYTYPE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 27
+        },
+        {
+          "name": "CUSTOMER",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 28
+        },
+        {
+          "name": "CUSTOMERGROUP",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 29
+        },
+        {
+          "name": "DEBITCREDITCODE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 30
+        },
+        {
+          "name": "DOCUMENTDATE",
+          "type": "date",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 31
+        },
+        {
+          "name": "DOCUMENTITEMTEXT",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 32
+        },
+        {
+          "name": "DUNNINGAREA",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 33
+        },
+        {
+          "name": "DUNNINGKEY",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 34
+        },
+        {
+          "name": "EQUIPMENT",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 35
+        },
+        {
+          "name": "FINANCIALACCOUNTTYPE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 36
+        },
+        {
+          "name": "FISCALPERIOD",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 37
+        },
+        {
+          "name": "FISCALYEARPERIOD",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 38
+        },
+        {
+          "name": "FISCALYEARVARIANT",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 39
+        },
+        {
+          "name": "FIXEDASSET",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 40
+        },
+        {
+          "name": "FUNCTIONALAREA",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 41
+        },
+        {
+          "name": "FUNCTIONALCURRENCY",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 42
+        },
+        {
+          "name": "FUNCTIONALLOCATION",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 43
+        },
+        {
+          "name": "GLACCOUNT",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 44
+        },
+        {
+          "name": "GLOBALCURRENCY",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 45
+        },
+        {
+          "name": "INVOICEITEMREFERENCE",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 46
+        },
+        {
+          "name": "INVOICEREFERENCE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 47
+        },
+        {
+          "name": "INVOICEREFERENCEFISCALYEAR",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 48
+        },
+        {
+          "name": "ISOPENITEMMANAGED",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 49
+        },
+        {
+          "name": "LEDGERFISCALYEAR",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 50
+        },
+        {
+          "name": "MASTERFIXEDASSET",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 51
+        },
+        {
+          "name": "NETDUEDATE",
+          "type": "date",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 52
+        },
+        {
+          "name": "PARTNERCOMPANY",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 53
+        },
+        {
+          "name": "PARTNERCOMPANYCODE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 54
+        },
+        {
+          "name": "PAYMENTBLOCKINGREASON",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 55
+        },
+        {
+          "name": "PAYMENTTERMS",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 56
+        },
+        {
+          "name": "PLANT",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 57
+        },
+        {
+          "name": "POSTINGDATE",
+          "type": "date",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 58
+        },
+        {
+          "name": "POSTINGKEY",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 59
+        },
+        {
+          "name": "PRODUCT",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 60
+        },
+        {
+          "name": "PRODUCTGROUP",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 61
+        },
+        {
+          "name": "PROFITCENTER",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 62
+        },
+        {
+          "name": "SEGMENT",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 63
+        },
+        {
+          "name": "SPECIALGLCODE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 64
+        },
+        {
+          "name": "SUPPLIER",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 65
+        },
+        {
+          "name": "TAXCODE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 66
+        },
+        {
+          "name": "TAXCOUNTRY",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 67
+        },
+        {
+          "name": "TRANSACTIONCURRENCY",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 68
+        },
+        {
+          "name": "WBSELEMENTINTERNALID",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 69
+        },
+        {
+          "name": "_UpdateTimeStamp",
+          "type": "datetime2",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 70
+        },
+        {
+          "name": "_SystemName",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 71
+        },
+        {
+          "name": "_Delete",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 72
+        },
+        {
+          "name": "_key_IACCOUNTINGDOCUMENTTYPE",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 73
+        },
+        {
+          "name": "_key_IBUSINESSAREA",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 74
+        },
+        {
+          "name": "_key_ICHARTOFACCOUNTS",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 75
+        },
+        {
+          "name": "_key_ICOMPANYCODE",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 76
+        },
+        {
+          "name": "_key_ICONTROLLINGAREA",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 77
+        },
+        {
+          "name": "_key_ICOSTCENTER",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 78
+        },
+        {
+          "name": "_key_ICOSTCTRACTIVITYTYPE",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 79
+        },
+        {
+          "name": "_key_ICUSTOMER",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 80
+        },
+        {
+          "name": "_key_ICUSTOMERGROUP",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 81
+        },
+        {
+          "name": "_key_IDEBITCREDITCODE",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 82
+        },
+        {
+          "name": "_key_IEQUIPMENT",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 83
+        },
+        {
+          "name": "_key_IFISCALPERIODFORVARIANT",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 84
+        },
+        {
+          "name": "_key_IFISCALYEARFORCOMPANYCODE",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 85
+        },
+        {
+          "name": "_key_IFISCALYEARVARIANT",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 86
+        },
+        {
+          "name": "_key_IFIXEDASSET",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 87
+        },
+        {
+          "name": "_key_IFUNCTIONALAREA",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 88
+        },
+        {
+          "name": "_key_IFUNCTIONALLOCATION",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 89
+        },
+        {
+          "name": "_key_IGLACCOUNTINCHARTOFACCOUNTS",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 90
+        },
+        {
+          "name": "_key_IGLOBALCOMPANYPartnerCompany",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 91
+        },
+        {
+          "name": "_key_IGLOBALCOMPANYCompany",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 92
+        },
+        {
+          "name": "_key_ILEDGER",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 93
+        },
+        {
+          "name": "_key_IPLANT",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 94
+        },
+        {
+          "name": "_key_IPRODUCT",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 95
+        },
+        {
+          "name": "_key_IPRODUCTGROUP2",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 96
+        },
+        {
+          "name": "_key_IPROFITCENTER",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 97
+        },
+        {
+          "name": "_key_ISEGMENT",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 98
+        },
+        {
+          "name": "_key_ISUPPLIER",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 99
+        },
+        {
+          "name": "_key_IWBSELEMENTDATA_2",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 100
+        },
+        {
+          "name": "_Reprocess",
+          "type": "bit",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 101
+        },
+        {
+          "name": "_change_type",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 102
+        },
+        {
+          "name": "_COMMIT_VERSION",
+          "type": "bigint",
+          "precision": 19,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 103
+        }
+      ],
+      "compound_key": [
+        "_SystemName",
+        "ACCOUNTINGDOCUMENT",
+        "COMPANYCODE",
+        "FISCALYEAR",
+        "LEDGERGLLINEITEM",
+        "SOURCELEDGER"
+      ]
+    },
+    {
+      "name": "I_OPERATIONALACCTGDOCITEM",
+      "business_key": [
+        "COMPANYCODE",
+        "ACCOUNTINGDOCUMENT",
+        "FISCALYEAR",
+        "ACCOUNTINGDOCUMENTITEM"
+      ],
+      "columns": [
+        {
+          "name": "__SEQUENCE_NUMBER",
+          "type": "decimal",
+          "precision": 20,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 1
+        },
+        {
+          "name": "__TIMESTAMP",
+          "type": "datetime2",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 2
+        },
+        {
+          "name": "COMPANYCODE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 3
+        },
+        {
+          "name": "ACCOUNTINGDOCUMENT",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 4
+        },
+        {
+          "name": "FISCALYEAR",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 5
+        },
+        {
+          "name": "ACCOUNTINGDOCUMENTITEM",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 6
+        },
+        {
+          "name": "ACCOUNTINGDOCUMENTCATEGORY",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 7
+        },
+        {
+          "name": "ACCOUNTINGDOCUMENTTYPE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 8
+        },
+        {
+          "name": "ADDITIONALCURRENCY1",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 9
+        },
+        {
+          "name": "AMOUNTINADDITIONALCURRENCY1",
+          "type": "decimal",
+          "precision": 23,
+          "scale": 2,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 10
+        },
+        {
+          "name": "AMOUNTINCOMPANYCODECURRENCY",
+          "type": "decimal",
+          "precision": 23,
+          "scale": 2,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 11
+        },
+        {
+          "name": "AMOUNTINFUNCTIONALCURRENCY",
+          "type": "decimal",
+          "precision": 23,
+          "scale": 2,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 12
+        },
+        {
+          "name": "AMOUNTINGLOBALCURRENCY",
+          "type": "decimal",
+          "precision": 23,
+          "scale": 2,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 13
+        },
+        {
+          "name": "AMOUNTINTRANSACTIONCURRENCY",
+          "type": "decimal",
+          "precision": 23,
+          "scale": 2,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 14
+        },
+        {
+          "name": "BILLINGDOCUMENT",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 15
+        },
+        {
+          "name": "BUSINESSAREA",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 16
+        },
+        {
+          "name": "CHARTOFACCOUNTS",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 17
+        },
+        {
+          "name": "CLEARINGACCOUNTINGDOCUMENT",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 18
+        },
+        {
+          "name": "CLEARINGDATE",
+          "type": "date",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 19
+        },
+        {
+          "name": "CLEARINGDOCFISCALYEAR",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 20
+        },
+        {
+          "name": "COMPANY",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 21
+        },
+        {
+          "name": "COMPANYCODECURRENCY",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 22
+        },
+        {
+          "name": "CONTROLLINGAREA",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 23
+        },
+        {
+          "name": "COSTCENTER",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 24
+        },
+        {
+          "name": "COSTCTRACTIVITYTYPE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 25
+        },
+        {
+          "name": "CUSTOMER",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 26
+        },
+        {
+          "name": "CUSTOMERGROUP",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 27
+        },
+        {
+          "name": "DEBITCREDITCODE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 28
+        },
+        {
+          "name": "DOCUMENTDATE",
+          "type": "date",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 29
+        },
+        {
+          "name": "DOCUMENTITEMTEXT",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 30
+        },
+        {
+          "name": "DUNNINGAREA",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 31
+        },
+        {
+          "name": "DUNNINGKEY",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 32
+        },
+        {
+          "name": "EQUIPMENT",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 33
+        },
+        {
+          "name": "FINANCIALACCOUNTTYPE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 34
+        },
+        {
+          "name": "FISCALPERIOD",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 35
+        },
+        {
+          "name": "FISCALYEARPERIOD",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 36
+        },
+        {
+          "name": "FISCALYEARVARIANT",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 37
+        },
+        {
+          "name": "FIXEDASSET",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 38
+        },
+        {
+          "name": "FUNCTIONALAREA",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 39
+        },
+        {
+          "name": "FUNCTIONALCURRENCY",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 40
+        },
+        {
+          "name": "FUNCTIONALLOCATION",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 41
+        },
+        {
+          "name": "GLACCOUNT",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 42
+        },
+        {
+          "name": "GLOBALCURRENCY",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 43
+        },
+        {
+          "name": "INVOICEITEMREFERENCE",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 44
+        },
+        {
+          "name": "INVOICEREFERENCE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 45
+        },
+        {
+          "name": "INVOICEREFERENCEFISCALYEAR",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 46
+        },
+        {
+          "name": "ISOPENITEMMANAGED",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 47
+        },
+        {
+          "name": "LEDGERFISCALYEAR",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 48
+        },
+        {
+          "name": "MASTERFIXEDASSET",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 49
+        },
+        {
+          "name": "NETDUEDATE",
+          "type": "date",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 50
+        },
+        {
+          "name": "PARTNERCOMPANY",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 51
+        },
+        {
+          "name": "PARTNERCOMPANYCODE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 52
+        },
+        {
+          "name": "PAYMENTBLOCKINGREASON",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 53
+        },
+        {
+          "name": "PAYMENTTERMS",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 54
+        },
+        {
+          "name": "PLANT",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 55
+        },
+        {
+          "name": "POSTINGDATE",
+          "type": "date",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 56
+        },
+        {
+          "name": "POSTINGKEY",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 57
+        },
+        {
+          "name": "PRODUCT",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 58
+        },
+        {
+          "name": "PRODUCTGROUP",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 59
+        },
+        {
+          "name": "PROFITCENTER",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 60
+        },
+        {
+          "name": "SEGMENT",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 61
+        },
+        {
+          "name": "SPECIALGLCODE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 62
+        },
+        {
+          "name": "SUPPLIER",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 63
+        },
+        {
+          "name": "TAXCODE",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 64
+        },
+        {
+          "name": "TAXCOUNTRY",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 65
+        },
+        {
+          "name": "TRANSACTIONCURRENCY",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 66
+        },
+        {
+          "name": "WBSELEMENTINTERNALID",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 67
+        },
+        {
+          "name": "_UpdateTimeStamp",
+          "type": "datetime2",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 68
+        },
+        {
+          "name": "_SystemName",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 69
+        },
+        {
+          "name": "_Delete",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 70
+        },
+        {
+          "name": "_key_IACCOUNTINGDOCUMENTCATEGORY",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 71
+        },
+        {
+          "name": "_key_IACCOUNTINGDOCUMENTTYPE",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 72
+        },
+        {
+          "name": "_key_IBUSINESSAREA",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 73
+        },
+        {
+          "name": "_key_ICHARTOFACCOUNTS",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 74
+        },
+        {
+          "name": "_key_ICOMPANYCODE",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 75
+        },
+        {
+          "name": "_key_ICONTROLLINGAREA",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 76
+        },
+        {
+          "name": "_key_ICOSTCENTER",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 77
+        },
+        {
+          "name": "_key_ICUSTOMER",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 78
+        },
+        {
+          "name": "_key_ICUSTOMERPAYMENTTERMS",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 79
+        },
+        {
+          "name": "_key_IDEBITCREDITCODE",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 80
+        },
+        {
+          "name": "_key_IDUNNINGAREA",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 81
+        },
+        {
+          "name": "_key_IDUNNINGKEY",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 82
+        },
+        {
+          "name": "_key_IFISCALYEARFORCOMPANYCODE",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 83
+        },
+        {
+          "name": "_key_IGLACCOUNTINCHARTOFACCOUNTS",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 84
+        },
+        {
+          "name": "_key_IPAYMENTBLOCKINGREASON",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 85
+        },
+        {
+          "name": "_key_IPAYMENTTERMS",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 86
+        },
+        {
+          "name": "_key_IPOSTINGKEY",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 87
+        },
+        {
+          "name": "_key_IPROFITCENTER",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 88
+        },
+        {
+          "name": "_key_ISPECIALGLCODE",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 89
+        },
+        {
+          "name": "_key_ISUPPLIER",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 90
+        },
+        {
+          "name": "_key_IFISCALPERIODFORVARIANT",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 91
+        },
+        {
+          "name": "_Reprocess",
+          "type": "bit",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 92
+        },
+        {
+          "name": "_change_type",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 93
+        },
+        {
+          "name": "_COMMIT_VERSION",
+          "type": "bigint",
+          "precision": 19,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 94
+        }
+      ],
+      "compound_key": [
+        "_SystemName",
+        "COMPANYCODE",
+        "ACCOUNTINGDOCUMENT",
+        "FISCALYEAR",
+        "ACCOUNTINGDOCUMENTITEM"
+      ]
+    },
+    {
+      "name": "I_CUSTOMER",
+      "business_key": [
+        "CUSTOMER"
+      ],
+      "columns": [
+        {
+          "name": "__SEQUENCE_NUMBER",
+          "type": "decimal",
+          "precision": 20,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 1
+        },
+        {
+          "name": "__TIMESTAMP",
+          "type": "datetime2",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 2
+        },
+        {
+          "name": "CUSTOMER",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 3
+        },
+        {
+          "name": "COUNTRY",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 4
+        },
+        {
+          "name": "CUSTOMERFULLNAME",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 5
+        },
+        {
+          "name": "CUSTOMERNAME",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 6
+        },
+        {
+          "name": "_UpdateTimeStamp",
+          "type": "datetime2",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 7
+        },
+        {
+          "name": "_SystemName",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 8
+        },
+        {
+          "name": "Key",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 9
+        },
+        {
+          "name": "_Delete",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 10
+        }
+      ],
+      "compound_key": [
+        "_SystemName",
+        "CUSTOMER"
+      ]
+    },
+    {
+      "name": "ZMSF_ORDER_LINK",
+      "business_key": [
+        "BILLINGDOCUMENT",
+        "BILLINGDOCUMENTITEM"
+      ],
+      "columns": [
+        {
+          "name": "__SEQUENCE_NUMBER",
+          "type": "decimal",
+          "precision": 20,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 1
+        },
+        {
+          "name": "__TIMESTAMP",
+          "type": "datetime2",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 2
+        },
+        {
+          "name": "BILLINGDOCUMENT",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 3
+        },
+        {
+          "name": "BILLINGDOCUMENTITEM",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 4
+        },
+        {
+          "name": "CUSTOMER",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 5
+        },
+        {
+          "name": "ORDER_ID",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 6
+        },
+        {
+          "name": "ORDER_LINE_NUMBER",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 7
+        },
+        {
+          "name": "ORIGINAL_BILLINGDOCUMENT",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 8
+        },
+        {
+          "name": "ORIGINAL_BILLINGDOCUMENTITEM",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 9
+        },
+        {
+          "name": "SIMULATION_ONLY",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 10
+        },
+        {
+          "name": "_UpdateTimeStamp",
+          "type": "datetime2",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 11
+        },
+        {
+          "name": "_SystemName",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 12
+        },
+        {
+          "name": "_Delete",
+          "type": "varchar",
+          "precision": null,
+          "scale": null,
+          "max_length": 8000,
+          "nullable": true,
+          "ordinal_position": 13
+        },
+        {
+          "name": "_key_ICUSTOMER",
+          "type": "int",
+          "precision": 10,
+          "scale": 0,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 14
+        },
+        {
+          "name": "_Reprocess",
+          "type": "bit",
+          "precision": null,
+          "scale": null,
+          "max_length": null,
+          "nullable": true,
+          "ordinal_position": 15
+        }
+      ],
+      "compound_key": [
+        "_SystemName",
+        "BILLINGDOCUMENT",
+        "BILLINGDOCUMENTITEM"
+      ]
+    }
+  ],
+  "relations": [
+    {
+      "fact": "C_BILLINGDOCITEMBASICDEX_1",
+      "dimension": "I_BILLINGDOCUMENTTYPE",
+      "source_conditions": [
+        [
+          "BILLINGDOCUMENTTYPE",
+          "BILLINGDOCUMENTTYPE",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_IBILLINGDOCUMENTTYPE",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "C_BILLINGDOCITEMBASICDEX_1",
+      "dimension": "I_BILLINGPLANRULE",
+      "source_conditions": [
+        [
+          "BILLINGPLANRULE",
+          "BILLINGPLANRULE",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_IBILLINGPLANRULE",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "C_BILLINGDOCITEMBASICDEX_1",
+      "dimension": "I_BUSINESSAREA",
+      "source_conditions": [
+        [
+          "BUSINESSAREA",
+          "BUSINESSAREA",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_IBUSINESSAREA",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "C_BILLINGDOCITEMBASICDEX_1",
+      "dimension": "I_COMPANYCODE",
+      "source_conditions": [
+        [
+          "COMPANYCODE",
+          "COMPANYCODE",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_ICOMPANYCODE",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "C_BILLINGDOCITEMBASICDEX_1",
+      "dimension": "I_CONTROLLINGAREA",
+      "source_conditions": [
+        [
+          "CONTROLLINGAREA",
+          "CONTROLLINGAREA",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_ICONTROLLINGAREA",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "C_BILLINGDOCITEMBASICDEX_1",
+      "dimension": "I_COSTCENTER",
+      "source_conditions": [
+        [
+          "COSTCENTER",
+          "COSTCENTER",
+          "=="
+        ],
+        [
+          "CONTROLLINGAREA",
+          "CONTROLLINGAREA",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_ICOSTCENTER",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "C_BILLINGDOCITEMBASICDEX_1",
+      "dimension": "I_CUSTOMER",
+      "source_conditions": [
+        [
+          "PAYERPARTY",
+          "CUSTOMER",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_ICUSTOMERPayerParty",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "C_BILLINGDOCITEMBASICDEX_1",
+      "dimension": "I_CUSTOMER",
+      "source_conditions": [
+        [
+          "BILLTOPARTY",
+          "CUSTOMER",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_ICUSTOMERBillToParty",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "C_BILLINGDOCITEMBASICDEX_1",
+      "dimension": "I_CUSTOMER",
+      "source_conditions": [
+        [
+          "SHIPTOPARTY",
+          "CUSTOMER",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_ICUSTOMERShipToParty",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "C_BILLINGDOCITEMBASICDEX_1",
+      "dimension": "I_CUSTOMER",
+      "source_conditions": [
+        [
+          "SOLDTOPARTY",
+          "CUSTOMER",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_ICUSTOMERSoldToParty",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "C_BILLINGDOCITEMBASICDEX_1",
+      "dimension": "I_CUSTOMERGROUP",
+      "source_conditions": [
+        [
+          "CUSTOMERGROUP",
+          "CUSTOMERGROUP",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_ICUSTOMERGROUP",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "C_BILLINGDOCITEMBASICDEX_1",
+      "dimension": "I_DISTRIBUTIONCHANNEL",
+      "source_conditions": [
+        [
+          "DISTRIBUTIONCHANNEL",
+          "DISTRIBUTIONCHANNEL",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_IDISTRIBUTIONCHANNEL",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "C_BILLINGDOCITEMBASICDEX_1",
+      "dimension": "I_DIVISION",
+      "source_conditions": [
+        [
+          "DIVISION",
+          "DIVISION",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_IDIVISION",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "C_BILLINGDOCITEMBASICDEX_1",
+      "dimension": "I_FISCALPERIODFORVARIANT",
+      "source_conditions": [
+        [
+          "FISCALYEARVARIANT",
+          "FISCALYEARVARIANT",
+          "=="
+        ],
+        [
+          "BILLINGDOCUMENTDATE",
+          "FISCALPERIODSTARTDATE",
+          ">="
+        ],
+        [
+          "BILLINGDOCUMENTDATE",
+          "FISCALPERIODENDDATE",
+          "<="
+        ]
+      ],
+      "native_surrogate": "_key_IFISCALPERIODFORVARIANT",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "C_BILLINGDOCITEMBASICDEX_1",
+      "dimension": "I_OVERALLBILLINGSTATUS",
+      "source_conditions": [
+        [
+          "OVERALLBILLINGSTATUS",
+          "OVERALLBILLINGSTATUS",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_IOVERALLBILLINGSTATUS",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "C_BILLINGDOCITEMBASICDEX_1",
+      "dimension": "I_PERSONWORKAGREEMENT_1",
+      "source_conditions": [
+        [
+          "SALESEMPLOYEE",
+          "PERSONWORKAGREEMENT",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_IPERSONWORKAGREEMENT1",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "C_BILLINGDOCITEMBASICDEX_1",
+      "dimension": "I_PLANT",
+      "source_conditions": [
+        [
+          "PLANT",
+          "PLANT",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_IPLANT",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "C_BILLINGDOCITEMBASICDEX_1",
+      "dimension": "I_PRODUCT",
+      "source_conditions": [
+        [
+          "PRODUCT",
+          "PRODUCT",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_IPRODUCT",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "C_BILLINGDOCITEMBASICDEX_1",
+      "dimension": "I_PRODUCTGROUP_2",
+      "source_conditions": [
+        [
+          "PRODUCTGROUP",
+          "PRODUCTGROUP",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_IPRODUCTGROUP2",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "C_BILLINGDOCITEMBASICDEX_1",
+      "dimension": "I_PROFITCENTER",
+      "source_conditions": [
+        [
+          "PROFITCENTER",
+          "PROFITCENTER",
+          "=="
+        ],
+        [
+          "CONTROLLINGAREA",
+          "CONTROLLINGAREA",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_IPROFITCENTER",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "C_BILLINGDOCITEMBASICDEX_1",
+      "dimension": "I_SALESORGANIZATION",
+      "source_conditions": [
+        [
+          "SALESORGANIZATION",
+          "SALESORGANIZATION",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_ISALESORGANIZATION",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "C_BILLINGDOCITEMBASICDEX_1",
+      "dimension": "I_SHIPPINGPOINT",
+      "source_conditions": [
+        [
+          "SHIPPINGPOINT",
+          "SHIPPINGPOINT",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_ISHIPPINGPOINT",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "I_GLACCOUNTLINEITEMRAWDATA",
+      "dimension": "I_ACCOUNTINGDOCUMENTTYPE",
+      "source_conditions": [
+        [
+          "ACCOUNTINGDOCUMENTTYPE",
+          "ACCOUNTINGDOCUMENTTYPE",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_IACCOUNTINGDOCUMENTTYPE",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "I_GLACCOUNTLINEITEMRAWDATA",
+      "dimension": "I_BUSINESSAREA",
+      "source_conditions": [
+        [
+          "BUSINESSAREA",
+          "BUSINESSAREA",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_IBUSINESSAREA",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "I_GLACCOUNTLINEITEMRAWDATA",
+      "dimension": "I_CHARTOFACCOUNTS",
+      "source_conditions": [
+        [
+          "CHARTOFACCOUNTS",
+          "CHARTOFACCOUNTS",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_ICHARTOFACCOUNTS",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "I_GLACCOUNTLINEITEMRAWDATA",
+      "dimension": "I_COMPANYCODE",
+      "source_conditions": [
+        [
+          "COMPANYCODE",
+          "COMPANYCODE",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_ICOMPANYCODE",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "I_GLACCOUNTLINEITEMRAWDATA",
+      "dimension": "I_CONTROLLINGAREA",
+      "source_conditions": [
+        [
+          "CONTROLLINGAREA",
+          "CONTROLLINGAREA",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_ICONTROLLINGAREA",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "I_GLACCOUNTLINEITEMRAWDATA",
+      "dimension": "I_COSTCENTER",
+      "source_conditions": [
+        [
+          "COSTCENTER",
+          "COSTCENTER",
+          "=="
+        ],
+        [
+          "CONTROLLINGAREA",
+          "CONTROLLINGAREA",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_ICOSTCENTER",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "I_GLACCOUNTLINEITEMRAWDATA",
+      "dimension": "I_COSTCENTERACTIVITYTYPE",
+      "source_conditions": [
+        [
+          "COSTCTRACTIVITYTYPE",
+          "COSTCTRACTIVITYTYPE",
+          "=="
+        ],
+        [
+          "CONTROLLINGAREA",
+          "CONTROLLINGAREA",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_ICOSTCTRACTIVITYTYPE",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "I_GLACCOUNTLINEITEMRAWDATA",
+      "dimension": "I_CUSTOMER",
+      "source_conditions": [
+        [
+          "CUSTOMER",
+          "CUSTOMER",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_ICUSTOMER",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "I_GLACCOUNTLINEITEMRAWDATA",
+      "dimension": "I_CUSTOMERGROUP",
+      "source_conditions": [
+        [
+          "CUSTOMERGROUP",
+          "CUSTOMERGROUP",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_ICUSTOMERGROUP",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "I_GLACCOUNTLINEITEMRAWDATA",
+      "dimension": "I_DEBITCREDITCODE",
+      "source_conditions": [
+        [
+          "DEBITCREDITCODE",
+          "DEBITCREDITCODE",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_IDEBITCREDITCODE",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "I_GLACCOUNTLINEITEMRAWDATA",
+      "dimension": "I_EQUIPMENT",
+      "source_conditions": [
+        [
+          "EQUIPMENT",
+          "EQUIPMENT",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_IEQUIPMENT",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "I_GLACCOUNTLINEITEMRAWDATA",
+      "dimension": "I_FISCALPERIODFORVARIANT",
+      "source_conditions": [
+        [
+          "FISCALYEARVARIANT",
+          "FISCALYEARVARIANT",
+          "=="
+        ],
+        [
+          "FISCALYEAR",
+          "FISCALYEAR",
+          "=="
+        ],
+        [
+          "FISCALPERIOD",
+          "FISCALPERIOD",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_IFISCALPERIODFORVARIANT",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "I_GLACCOUNTLINEITEMRAWDATA",
+      "dimension": "I_FISCALYEARFORCOMPANYCODE",
+      "source_conditions": [
+        [
+          "COMPANYCODE",
+          "COMPANYCODE",
+          "=="
+        ],
+        [
+          "FISCALYEAR",
+          "FISCALYEAR",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_IFISCALYEARFORCOMPANYCODE",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "I_GLACCOUNTLINEITEMRAWDATA",
+      "dimension": "I_FISCALYEARVARIANT",
+      "source_conditions": [
+        [
+          "FISCALYEARVARIANT",
+          "FISCALYEARVARIANT",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_IFISCALYEARVARIANT",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "I_GLACCOUNTLINEITEMRAWDATA",
+      "dimension": "I_FIXEDASSET",
+      "source_conditions": [
+        [
+          "COMPANYCODE",
+          "COMPANYCODE",
+          "=="
+        ],
+        [
+          "FIXEDASSET",
+          "FIXEDASSET",
+          "=="
+        ],
+        [
+          "MASTERFIXEDASSET",
+          "MASTERFIXEDASSET",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_IFIXEDASSET",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "I_GLACCOUNTLINEITEMRAWDATA",
+      "dimension": "I_FUNCTIONALAREA",
+      "source_conditions": [
+        [
+          "FUNCTIONALAREA",
+          "FUNCTIONALAREA",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_IFUNCTIONALAREA",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "I_GLACCOUNTLINEITEMRAWDATA",
+      "dimension": "I_FUNCTIONALLOCATION",
+      "source_conditions": [
+        [
+          "FUNCTIONALLOCATION",
+          "FUNCTIONALLOCATION",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_IFUNCTIONALLOCATION",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "I_GLACCOUNTLINEITEMRAWDATA",
+      "dimension": "I_GLACCOUNTINCHARTOFACCOUNTS",
+      "source_conditions": [
+        [
+          "GLACCOUNT",
+          "GLACCOUNT",
+          "=="
+        ],
+        [
+          "CHARTOFACCOUNTS",
+          "CHARTOFACCOUNTS",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_IGLACCOUNTINCHARTOFACCOUNTS",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "I_GLACCOUNTLINEITEMRAWDATA",
+      "dimension": "I_GLOBALCOMPANY",
+      "source_conditions": [
+        [
+          "COMPANY",
+          "COMPANY",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_IGLOBALCOMPANYPartnerCompany",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "I_GLACCOUNTLINEITEMRAWDATA",
+      "dimension": "I_GLOBALCOMPANY",
+      "source_conditions": [
+        [
+          "PARTNERCOMPANY",
+          "COMPANY",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_IGLOBALCOMPANYCompany",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "I_GLACCOUNTLINEITEMRAWDATA",
+      "dimension": "I_LEDGER",
+      "source_conditions": [
+        [
+          "SOURCELEDGER",
+          "LEDGER",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_ILEDGER",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "I_GLACCOUNTLINEITEMRAWDATA",
+      "dimension": "I_PLANT",
+      "source_conditions": [
+        [
+          "PLANT",
+          "PLANT",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_IPLANT",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "I_GLACCOUNTLINEITEMRAWDATA",
+      "dimension": "I_PRODUCT",
+      "source_conditions": [
+        [
+          "PRODUCT",
+          "PRODUCT",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_IPRODUCT",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "I_GLACCOUNTLINEITEMRAWDATA",
+      "dimension": "I_PRODUCTGROUP_2",
+      "source_conditions": [
+        [
+          "PRODUCTGROUP",
+          "PRODUCTGROUP",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_IPRODUCTGROUP2",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "I_GLACCOUNTLINEITEMRAWDATA",
+      "dimension": "I_PROFITCENTER",
+      "source_conditions": [
+        [
+          "PROFITCENTER",
+          "PROFITCENTER",
+          "=="
+        ],
+        [
+          "CONTROLLINGAREA",
+          "CONTROLLINGAREA",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_IPROFITCENTER",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "I_GLACCOUNTLINEITEMRAWDATA",
+      "dimension": "I_SEGMENT",
+      "source_conditions": [
+        [
+          "SEGMENT",
+          "SEGMENT",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_ISEGMENT",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "I_GLACCOUNTLINEITEMRAWDATA",
+      "dimension": "I_SUPPLIER",
+      "source_conditions": [
+        [
+          "SUPPLIER",
+          "SUPPLIER",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_ISUPPLIER",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "I_GLACCOUNTLINEITEMRAWDATA",
+      "dimension": "I_WBSELEMENTDATA_2",
+      "source_conditions": [
+        [
+          "WBSELEMENTINTERNALID",
+          "WBSELEMENTINTERNALID",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_IWBSELEMENTDATA_2",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "I_OPERATIONALACCTGDOCITEM",
+      "dimension": "I_ACCOUNTINGDOCUMENTCATEGORY",
+      "source_conditions": [
+        [
+          "ACCOUNTINGDOCUMENTCATEGORY",
+          "ACCOUNTINGDOCUMENTCATEGORY",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_IACCOUNTINGDOCUMENTCATEGORY",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "I_OPERATIONALACCTGDOCITEM",
+      "dimension": "I_ACCOUNTINGDOCUMENTTYPE",
+      "source_conditions": [
+        [
+          "ACCOUNTINGDOCUMENTTYPE",
+          "ACCOUNTINGDOCUMENTTYPE",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_IACCOUNTINGDOCUMENTTYPE",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "I_OPERATIONALACCTGDOCITEM",
+      "dimension": "I_BUSINESSAREA",
+      "source_conditions": [
+        [
+          "BUSINESSAREA",
+          "BUSINESSAREA",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_IBUSINESSAREA",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "I_OPERATIONALACCTGDOCITEM",
+      "dimension": "I_CHARTOFACCOUNTS",
+      "source_conditions": [
+        [
+          "CHARTOFACCOUNTS",
+          "CHARTOFACCOUNTS",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_ICHARTOFACCOUNTS",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "I_OPERATIONALACCTGDOCITEM",
+      "dimension": "I_COMPANYCODE",
+      "source_conditions": [
+        [
+          "COMPANYCODE",
+          "COMPANYCODE",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_ICOMPANYCODE",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "I_OPERATIONALACCTGDOCITEM",
+      "dimension": "I_CONTROLLINGAREA",
+      "source_conditions": [
+        [
+          "CONTROLLINGAREA",
+          "CONTROLLINGAREA",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_ICONTROLLINGAREA",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "I_OPERATIONALACCTGDOCITEM",
+      "dimension": "I_COSTCENTER",
+      "source_conditions": [
+        [
+          "COSTCENTER",
+          "COSTCENTER",
+          "=="
+        ],
+        [
+          "CONTROLLINGAREA",
+          "CONTROLLINGAREA",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_ICOSTCENTER",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "I_OPERATIONALACCTGDOCITEM",
+      "dimension": "I_CUSTOMER",
+      "source_conditions": [
+        [
+          "CUSTOMER",
+          "CUSTOMER",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_ICUSTOMER",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "I_OPERATIONALACCTGDOCITEM",
+      "dimension": "I_CUSTOMERPAYMENTTERMS",
+      "source_conditions": [
+        [
+          "PAYMENTTERMS",
+          "CUSTOMERPAYMENTTERMS",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_ICUSTOMERPAYMENTTERMS",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "I_OPERATIONALACCTGDOCITEM",
+      "dimension": "I_DEBITCREDITCODE",
+      "source_conditions": [
+        [
+          "DEBITCREDITCODE",
+          "DEBITCREDITCODE",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_IDEBITCREDITCODE",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "I_OPERATIONALACCTGDOCITEM",
+      "dimension": "I_DUNNINGAREA",
+      "source_conditions": [
+        [
+          "DUNNINGAREA",
+          "DUNNINGAREA",
+          "=="
+        ],
+        [
+          "COMPANYCODE",
+          "COMPANYCODE",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_IDUNNINGAREA",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "I_OPERATIONALACCTGDOCITEM",
+      "dimension": "I_DUNNINGKEY",
+      "source_conditions": [
+        [
+          "DUNNINGKEY",
+          "DUNNINGKEY",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_IDUNNINGKEY",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "I_OPERATIONALACCTGDOCITEM",
+      "dimension": "I_FISCALYEARFORCOMPANYCODE",
+      "source_conditions": [
+        [
+          "COMPANYCODE",
+          "COMPANYCODE",
+          "=="
+        ],
+        [
+          "FISCALYEAR",
+          "FISCALYEAR",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_IFISCALYEARFORCOMPANYCODE",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "I_OPERATIONALACCTGDOCITEM",
+      "dimension": "I_GLACCOUNTINCHARTOFACCOUNTS",
+      "source_conditions": [
+        [
+          "GLACCOUNT",
+          "GLACCOUNT",
+          "=="
+        ],
+        [
+          "CHARTOFACCOUNTS",
+          "CHARTOFACCOUNTS",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_IGLACCOUNTINCHARTOFACCOUNTS",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "I_OPERATIONALACCTGDOCITEM",
+      "dimension": "I_PAYMENTBLOCKINGREASON",
+      "source_conditions": [
+        [
+          "PAYMENTBLOCKINGREASON",
+          "PAYMENTBLOCKINGREASON",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_IPAYMENTBLOCKINGREASON",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "I_OPERATIONALACCTGDOCITEM",
+      "dimension": "I_PAYMENTTERMS",
+      "source_conditions": [
+        [
+          "PAYMENTTERMS",
+          "PAYMENTTERMS",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_IPAYMENTTERMS",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "I_OPERATIONALACCTGDOCITEM",
+      "dimension": "I_POSTINGKEY",
+      "source_conditions": [
+        [
+          "POSTINGKEY",
+          "POSTINGKEY",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_IPOSTINGKEY",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "I_OPERATIONALACCTGDOCITEM",
+      "dimension": "I_PROFITCENTER",
+      "source_conditions": [
+        [
+          "PROFITCENTER",
+          "PROFITCENTER",
+          "=="
+        ],
+        [
+          "CONTROLLINGAREA",
+          "CONTROLLINGAREA",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_IPROFITCENTER",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "I_OPERATIONALACCTGDOCITEM",
+      "dimension": "I_SPECIALGLCODE",
+      "source_conditions": [
+        [
+          "SPECIALGLCODE",
+          "SPECIALGLCODE",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_ISPECIALGLCODE",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "I_OPERATIONALACCTGDOCITEM",
+      "dimension": "I_SUPPLIER",
+      "source_conditions": [
+        [
+          "SUPPLIER",
+          "SUPPLIER",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_ISUPPLIER",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "I_OPERATIONALACCTGDOCITEM",
+      "dimension": "I_FISCALPERIODFORVARIANT",
+      "source_conditions": [
+        [
+          "FISCALYEARVARIANT",
+          "FISCALYEARVARIANT",
+          "=="
+        ],
+        [
+          "POSTINGDATE",
+          "FISCALPERIODSTARTDATE",
+          ">="
+        ],
+        [
+          "POSTINGDATE",
+          "FISCALPERIODENDDATE",
+          "<="
+        ]
+      ],
+      "native_surrogate": "_key_IFISCALPERIODFORVARIANT",
+      "evidence": "versioned contract + live column"
+    },
+    {
+      "fact": "ZMSF_BILLING_LINK",
+      "dimension": "ZMSF_SUBSCRIPTION",
+      "source_conditions": [
+        [
+          "SUBSCRIPTION_ID",
+          "SUBSCRIPTION_ID",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_ZMSFSUBSCRIPTION",
+      "evidence": "custom native source observation"
+    },
+    {
+      "fact": "ZMSF_CONTRACT_CHARGE",
+      "dimension": "ZMSF_RIGHTS_CONTRACT",
+      "source_conditions": [
+        [
+          "CONTRACT_ID",
+          "CONTRACT_ID",
+          "=="
+        ],
+        [
+          "VERSION",
+          "VERSION",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_ZMSFRIGHTSCONTRACT",
+      "evidence": "custom native source observation"
+    },
+    {
+      "fact": "ZMSF_ORDER_LINK",
+      "dimension": "I_CUSTOMER",
+      "source_conditions": [
+        [
+          "CUSTOMER",
+          "CUSTOMER",
+          "=="
+        ]
+      ],
+      "native_surrogate": "_key_ICUSTOMER",
+      "evidence": "expanded native catalog and verified order/customer mapping"
+    }
+  ],
+  "deployment": {
+    "status": "verified",
+    "system": "S4M",
+    "companies": [
+      "1710",
+      "1720",
+      "1730"
+    ],
+    "currencies": [
+      "EUR",
+      "CAD",
+      "CHF"
+    ],
+    "views": 30,
+    "inline_tvfs": 5,
+    "retired_copies": 24,
+    "retired_legacy_views": 9,
+    "expanded_checks": 20,
+    "planning": "pending",
+    "cockpit": "not modified or integrated",
+    "artifact_binding": "SHA-256 of the reviewed environment-rendered artifact, retained in local deployment proof"
+  }
+}

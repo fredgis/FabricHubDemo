@@ -128,8 +128,10 @@ concurrency.
 - SAP and Planning are part of the overall architecture. The initial workstream
   provisioned neither and claims no qualified SAP/Planning data. The separately
   authorized SAP storage and native Fabric foundation is described below;
-  data processing and Warehouse publication belong to the separate SAP finance
-  change set. The user subsequently authorized Flixy and enabled the required
+  native processing is now qualified. SAP serving reuses BPS Gold through
+  zero-copy SQL interfaces; the copied-table publisher is retired in the
+  SAP zero-copy change set. See [SAP data model](SAP-DATA-MODEL.md) for actual
+  keys, scope and missing links. The user subsequently authorized Flixy and enabled the required
   Azure OpenAI cross-region processing and conversation-storage settings.
 - In-cockpit Flixy requires an enabled, administrator-managed, caller-scoped
   `FlixyAccessGrant` (app owner and specifically approved operator account only).
