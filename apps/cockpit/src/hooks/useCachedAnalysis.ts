@@ -19,7 +19,7 @@ function savedSelection<Filters extends object>(value: unknown): Partial<Filters
 export function useCachedAnalysis<Filters extends object, Result extends { filters: Filters }>(
   active: boolean,
   refreshKey: number,
-  namespace: 'insights' | 'campaign',
+  namespace: 'insights' | 'campaign' | 'finance',
   load: (filters: Partial<Filters>) => Promise<Result>,
 ) {
   const { cache, revision } = useReadCache();

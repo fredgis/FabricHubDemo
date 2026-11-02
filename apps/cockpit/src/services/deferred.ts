@@ -1,5 +1,6 @@
 export const loadGraphCode = () => import('@/components/OntologyGraph').then(module => ({ default: module.OntologyGraph }));
 export const loadInsightsCode = () => import('@/pages/InsightsPage').then(module => ({ default: module.InsightsPage }));
+export const loadFinanceCode = () => import('@/pages/FinancePage').then(module => ({ default: module.FinancePage }));
 export const loadCampaignCode = () => import('@/pages/CampaignImpactPage').then(module => ({ default: module.CampaignImpactPage }));
 export const loadMarkdownCode = () => import('@/components/FlixyMarkdown');
 export const loadDataFlowCode = () => import('@/pages/DataFlowPage').then(module => ({ default: module.DataFlowPage }));

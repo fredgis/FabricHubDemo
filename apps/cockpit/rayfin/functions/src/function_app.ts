@@ -12,6 +12,8 @@ import { readGoldInsights } from './gold-insights.js';
 import type { GoldInsights } from './gold-insights-contract.js';
 import { readCampaignImpact } from './gold-campaign-impact.js';
 import type { CampaignImpact } from './gold-campaign-contract.js';
+import { readSapFinance } from './sap-finance.js';
+import type { SapFinance } from './sap-finance-contract.js';
 import{readOntologyGraph,type OntologyGraph}from'./ontology-graph.js';
 import { askNativeFlixy, assertFlixyIdentity, flixyAgentId, type FlixyAnswer } from './flixy.js';
 
@@ -75,6 +77,10 @@ udf.func('businessViews',async(ctx:RayfinContext<AppSchema,AudienceType.Sql>):Pr
 udf.func('businessInsights', async (filtersJson: string,
   ctx: RayfinContext<AppSchema, AudienceType.Sql>): Promise<GoldInsights> => {
   return readGoldInsights(await analytics(ctx), ctx.Tokens.Sql, filtersJson);
+}, []);
+udf.func('businessFinance', async (filtersJson: string,
+  ctx: RayfinContext<AppSchema, AudienceType.Sql>): Promise<SapFinance> => {
+  return readSapFinance(await analytics(ctx), ctx.Tokens.Sql, filtersJson);
 }, []);
 udf.func('getCampaignImpact', async (filtersJson: string,
   ctx: RayfinContext<AppSchema, AudienceType.Sql>): Promise<CampaignImpact> => {

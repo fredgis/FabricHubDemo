@@ -16,6 +16,8 @@
  * resolved by the frontend app's TypeScript compiler.
  */
 
+import type { SapFinance } from './sap-finance-contract.js';
+
 export type AppFunctionsSchema = {
   capabilities: {
     input: Record<string, never>;
@@ -40,6 +42,10 @@ export type AppFunctionsSchema = {
   businessInsights: {
     input: { filtersJson: string };
     output: { state: 'ready' | 'empty' | 'unpublished'; freshness: { queried_at: string; published_at: null | string; publication_run_id: null | string }; source: { name: string; workspace_id: string; item_id: string }; filters: { from: string; to: string; territory: string; genre: string; transactionType: '' | 'TVOD' | 'EST'; currency: string }; options: { from: null | string; to: null | string; territories: string[]; genres: string[]; currencies: string[]; currencyMinorExponents: { currency: string; minorExponent: number }[] }; scope: { orders: 'created-at-cohort'; sessions: 'latest-recorded-state-for-cohort-orders'; money: 'booked-order-value-not-recognized-revenue' | 'nominal-booked-order-value-no-fx'; contactableCustomers: 'cohort-customers-current-marketing-consent-any-channel'; campaigns: 'selected-territory-all-dates'; touches: 'cohort-customer-touches-in-date-range'; conversions: 'explicit-conversions-for-cohort-orders' }; summary: { orders: number; orderLines: number; customers: number; titles: number; bookedMinor: string; sessions: number; playedOrders: number; completedSessions: number }; daily: { date: string; orders: number; bookedMinor: string; sessions: number }[]; heatmap: { territory: string; genre: string; orders: number; bookedMinor: string }[]; titles: { contentKey: string; title: string; genre: string; orders: number; bookedMinor: string; sessions: number; completedSessions: number; averageProgress: null | number }[]; territories: { territory: string; orders: number; customers: number; bookedMinor: string; sessions: number }[]; audience: { customerCount: number; contactableCustomers: null | number; campaigns: number; touches: null | number; conversions: null | number }; sources: { name: 'Oracle' | 'Salesforce' | 'RTI' | 'SAP'; state: 'published' | 'not-published'; detail: string; tables: string[] }[] };
+  };
+  businessFinance: {
+    input: { filtersJson: string };
+    output: SapFinance;
   };
   getCampaignImpact: {
     input: { filtersJson: string };

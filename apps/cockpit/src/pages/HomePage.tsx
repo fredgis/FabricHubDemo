@@ -1,5 +1,5 @@
 import { lazy, useCallback, useEffect, useMemo, useRef, useState, type FormEvent, type ReactNode } from 'react';
-import { ArrowRight, ArrowsClockwise, ArrowsIn, ArrowsOut, Broadcast, ChartBar, FilmSlate, FlowArrow, Graph, House,
+import { ArrowRight, ArrowsClockwise, ArrowsIn, ArrowsOut, Bank, Broadcast, ChartBar, FilmSlate, FlowArrow, Graph, House,
   Play, ShoppingBag, SignOut, Target, UsersThree } from '@phosphor-icons/react';
 import { useAuth } from '@/hooks/AuthContext';
 import { useReadCache } from '@/hooks/ReadCacheContext';
@@ -10,7 +10,7 @@ import {GoldBusinessDashboard}from'@/components/GoldBusinessDashboard';
 import type { GraphReadState } from '@/components/OntologyGraph';
 import { DeferredPanel } from '@/components/DeferredPanel';
 import { LedgerPagination } from '@/components/LedgerPagination';
-import { canPrefetch, duringIdle, loadGraphCode, loadInsightsCode, loadCampaignCode, loadMarkdownCode, loadDataFlowCode } from '@/services/deferred';
+import { canPrefetch, duringIdle, loadGraphCode, loadInsightsCode, loadFinanceCode, loadCampaignCode, loadMarkdownCode, loadDataFlowCode } from '@/services/deferred';
 import './DataFlowPage.css';
 import { useCockpitReads } from '@/hooks/useCockpitReads';
 import type{GoldPages}from'../../rayfin/functions/src/gold-pages';
@@ -18,6 +18,7 @@ import{catalogArt}from'@/assets/catalog-art.generated';
 import { catalogArtVariants } from '@/assets/catalog-art-variants.generated';
 import { DemoPage } from '@/pages/DemoPage';
 import type { InsightsReadState } from '@/pages/InsightsPage';
+import type { FinanceReadState } from '@/pages/FinancePage';
 import type { CampaignImpactReadState } from '@/pages/CampaignImpactPage';
 import { FlixyAssistant } from '@/components/FlixyAssistant';
 import { Artwork } from '@/components/CatalogArtwork';
@@ -27,6 +28,7 @@ import type { Capabilities, CommandResult } from '../../rayfin/functions/src/dom
 
 const OntologyGraph = lazy(loadGraphCode);
 const InsightsPage = lazy(loadInsightsCode);
+const FinancePage = lazy(loadFinanceCode);
 const CampaignImpactPage = lazy(loadCampaignCode);
 const DataFlowPage = lazy(loadDataFlowCode);
 
@@ -37,6 +39,7 @@ const sections = [
   { key: 'audiences', name: 'Audiences & Campaigns', icon: UsersThree },
   { key: 'graph', name: 'Business Graph', icon: Graph },
   { key: 'insights', name: 'MSFlix Insights', icon: ChartBar },
+  { key: 'finance', name: 'Finance', icon: Bank },
   { key: 'campaign-impact', name: 'Campaign Impact', icon: Target },
   { key: 'demo', name: 'Demo', icon: Play },
   { key: 'operations', name: 'Operations', icon: Broadcast },
@@ -93,6 +96,9 @@ function CockpitHome({ route = '/', onNavigate, localSection, setSection }: Home
   const [insightsVisited, setInsightsVisited] = useState(section === 'insights');
   const [insightsRefreshKey, setInsightsRefreshKey] = useState(0);
   const [insightsRead, setInsightsRead] = useState<InsightsReadState>({ loading: false, queriedAt: null });
+  const [financeVisited, setFinanceVisited] = useState(section === 'finance');
+  const [financeRefreshKey, setFinanceRefreshKey] = useState(0);
+  const [financeRead, setFinanceRead] = useState<FinanceReadState>({ loading: false, queriedAt: null });
   const [campaignVisited, setCampaignVisited] = useState(route === '/campaign-impact');
   const [campaignRefreshKey, setCampaignRefreshKey] = useState(0);
   const [campaignRead, setCampaignRead] = useState<CampaignImpactReadState>({ loading: false, queriedAt: null });
@@ -142,13 +148,13 @@ function CockpitHome({ route = '/', onNavigate, localSection, setSection }: Home
   const canOperate = capabilities.can_operate && !busy && !loading && !error;
   const context = { snapshot, canOperate, busy, command };
   const selected = sections.find(s => s.key === section)!;
-  const readAt = section === 'graph' ? graphRead.queriedAt : section === 'campaign-impact' ? campaignRead.queriedAt : section === 'insights' ? insightsRead.queriedAt : gold?.pages.dashboard.freshness.queried_at ?? updated;
-  const refreshing = section === 'dataflow' ? false : section === 'graph' ? graphRead.loading : section === 'campaign-impact' ? campaignRead.loading : section === 'insights' ? insightsRead.loading : loading || goldLoading;
+  const readAt = section === 'graph' ? graphRead.queriedAt : section === 'campaign-impact' ? campaignRead.queriedAt : section === 'insights' ? insightsRead.queriedAt : section === 'finance' ? financeRead.queriedAt : gold?.pages.dashboard.freshness.queried_at ?? updated;
+  const refreshing = section === 'dataflow' ? false : section === 'graph' ? graphRead.loading : section === 'campaign-impact' ? campaignRead.loading : section === 'insights' ? insightsRead.loading : section === 'finance' ? financeRead.loading : loading || goldLoading;
   useEffect(() => {
     if (!intent || intent === section || refreshing || busy || !canPrefetch()) return;
     const timer = window.setTimeout(() => {
       if (intent === 'catalog' || intent === 'audiences') void prefetch(intent);
-      const load = intent === 'graph' ? loadGraphCode : intent === 'insights' ? loadInsightsCode
+      const load = intent === 'graph' ? loadGraphCode : intent === 'insights' ? loadInsightsCode : intent === 'finance' ? loadFinanceCode
         : intent === 'campaign-impact' ? loadCampaignCode : undefined;
       if (load) void load().catch(() => {});
     }, 120);
@@ -159,7 +165,7 @@ function CockpitHome({ route = '/', onNavigate, localSection, setSection }: Home
     if (refreshing || busy || codePrepared.current || !canPrefetch()) return;
     let stopped = false;
     let cancel = () => {};
-    const loaders = [loadGraphCode, loadInsightsCode, loadCampaignCode, loadMarkdownCode];
+    const loaders = [loadGraphCode, loadInsightsCode, loadFinanceCode, loadCampaignCode, loadMarkdownCode];
     const next = () => {
       if (stopped) return;
       const load = loaders.shift();
@@ -175,6 +181,7 @@ function CockpitHome({ route = '/', onNavigate, localSection, setSection }: Home
   const refreshSection = () => {
     if (section === 'graph') setGraphRefreshKey(value => value + 1);
     else if (section === 'insights') setInsightsRefreshKey(value => value + 1);
+    else if (section === 'finance') setFinanceRefreshKey(value => value + 1);
     else if (section === 'campaign-impact') setCampaignRefreshKey(value => value + 1);
     else if (section === 'dataflow') setDataFlowRefreshKey(value => value + 1);
     else void refresh();
@@ -184,6 +191,7 @@ function CockpitHome({ route = '/', onNavigate, localSection, setSection }: Home
     cancelPrefetch();
     if (next === 'graph') setGraphVisited(true);
     if (next === 'insights') setInsightsVisited(true);
+    if (next === 'finance') setFinanceVisited(true);
     if (next === 'campaign-impact') {
       setCampaignVisited(true);
       if (onNavigate) { onNavigate('/campaign-impact'); return; }
@@ -220,7 +228,7 @@ function CockpitHome({ route = '/', onNavigate, localSection, setSection }: Home
             {dataFlowExpanded ? <ArrowsIn aria-hidden="true" /> : <ArrowsOut aria-hidden="true" />}
             {dataFlowExpanded ? 'Restore navigation' : 'Expand view'}</button>}
           <button onClick={refreshSection} disabled={refreshing || (section !== 'dataflow' && busy)}>
-            <ArrowsClockwise aria-hidden="true" />{refreshing ? 'Refreshing…' : section === 'dataflow' ? 'Refresh data flow' : section === 'graph' ? 'Refresh graph' : section === 'insights' ? 'Refresh insights' : section === 'campaign-impact' ? 'Refresh campaign impact' : 'Refresh data'}</button>
+            <ArrowsClockwise aria-hidden="true" />{refreshing ? 'Refreshing…' : section === 'dataflow' ? 'Refresh data flow' : section === 'graph' ? 'Refresh graph' : section === 'insights' ? 'Refresh insights' : section === 'finance' ? 'Refresh finance' : section === 'campaign-impact' ? 'Refresh campaign impact' : 'Refresh data'}</button>
         </div></header>
       <main id="main" tabIndex={-1}>
         {section !== 'dataflow' && <><div className="page-heading"><div><p className="eyebrow">ENTERTAINMENT BUSINESS</p>
@@ -230,6 +238,7 @@ function CockpitHome({ route = '/', onNavigate, localSection, setSection }: Home
               : section === 'audiences' ? 'Fictional customer identities, stored in actual Salesforce CRM records.'
                 : section === 'graph' ? 'Read the actual consolidated business ontology.'
                   : section === 'insights' ? 'From catalogue to customer to screen. One connected view of published Gold data.'
+                  : section === 'finance' ? 'Live SAP ledger: revenue, cash, open items and distributor contracts, per company code.'
                   : section === 'campaign-impact' ? 'Campaign contacts, recorded orders and playback progression in one Gold view.'
                   : section === 'demo' ? 'Bounded real rental, purchase, and playback journeys. Delivery and publication are separate.'
                   : section === 'operations' ? 'Real connections, command receipts and delivery acknowledgements.'
@@ -241,7 +250,7 @@ function CockpitHome({ route = '/', onNavigate, localSection, setSection }: Home
         {commandError && <p className="notice" role="alert">{commandError} Retrying the same command reuses its idempotency key.</p>}
         {receipt && <div className="receipt" role="status"><strong>Command persisted: {receipt.status}</strong>
           <span>Entity {receipt.entity_key}</span><span>{receipt.event_ids.length} returned event receipts. Broker delivery is separate.</span></div>}
-        {!['insights', 'campaign-impact', 'graph'].includes(section) && error && <ErrorState message={`${snapshot ? 'Refresh failed. The records below are from the last successful read. ' : ''}${error}`} retry={() => void refresh()} />}</>}
+        {!['insights', 'finance', 'campaign-impact', 'graph'].includes(section) && error && <ErrorState message={`${snapshot ? 'Refresh failed. The records below are from the last successful read. ' : ''}${error}`} retry={() => void refresh()} />}</>}
         {['overview','catalog','audiences'].includes(section)&&<>
           {goldLoading&&!gold&&<LoadingState/>}
           {goldError&&<ErrorState message={`Gold business read failed: ${goldError} ${gold?'The last successful Gold read remains visible.':'No operational fallback.'}`} retry={()=>void refresh()}/>}
@@ -258,6 +267,9 @@ function CockpitHome({ route = '/', onNavigate, localSection, setSection }: Home
         </DeferredPanel></div>}
         {insightsVisited && <div hidden={section !== 'insights'}><DeferredPanel label="MSFlix Insights">
           <InsightsPage active={section === 'insights'} refreshKey={insightsRefreshKey} onRead={setInsightsRead} />
+        </DeferredPanel></div>}
+        {financeVisited && <div hidden={section !== 'finance'}><DeferredPanel label="Finance">
+          <FinancePage active={section === 'finance'} refreshKey={financeRefreshKey} onRead={setFinanceRead} />
         </DeferredPanel></div>}
         {(campaignVisited || section === 'campaign-impact') && <div hidden={section !== 'campaign-impact'}><DeferredPanel label="Campaign Impact">
           <CampaignImpactPage active={section === 'campaign-impact'} refreshKey={campaignRefreshKey} onRead={setCampaignRead} />
