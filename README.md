@@ -120,16 +120,17 @@ Publishing is a separate operation requiring explicit authorization.
 [Workspace Task Flow and folders](docs/TASK-FLOW.md) · [Cockpit](docs/COCKPIT.md) ·
 [Automatic Demo propagation](docs/DEMO-AUTOMATION.md) · [Flixy](docs/FLIXY.md)
 
-[SAP local data contract](docs/IMPLEMENTATION-PLAN.md#sap-pr-1-local-data-contract):
-the separately developed, synthetic subscription/billing/content-contract scenario
-retains its local-only generator. The [native SAP integration](docs/IMPLEMENTATION-PLAN.md#sap-native-bps-and-warehouse-publication)
-adds a separately authorized private Datasphere landing, native SAP mirroring and
-isolated BPS processing. The first qualified native Gold scenario is now published
-in `MSFlixGold`: 22 SAP domain tables, nine serving views and separate SAP freshness.
-The synthetic November 2026 case reports EUR 28 net revenue, EUR 13.60 content
-expense and EUR 14.40 contribution after content cost only. Every subsequent
-publication still requires actual native Silver/Gold qualification; neither
-Planning nor cockpit changes are included.
+[SAP data model and cross-domain links](docs/SAP-DATA-MODEL.md) ·
+[Visual model](docs/assets/sap-msflix-model.html).
+The [native SAP integration](docs/IMPLEMENTATION-PLAN.md#sap-native-bps-and-warehouse-publication)
+uses a private Datasphere landing, mirroring and isolated BPS processing.
+SAP serving is moving to **native BPS Gold → `sap_live` SQL views/functions,
+without copied Warehouse SAP tables or a second feeding pipeline**.
+The old Warehouse writer is retired; Silver/Gold qualification and upstream
+BPS processing remain. Final deployment status is recorded in the
+[execution plan](docs/IMPLEMENTATION-PLAN.md#sap-zero-copy-serving--migration-authorized).
+The scenario remains synthetic SVOD; the native ORDER_ID link to TVOD/EST orders
+is not populated. This change does not implement SAP in the cockpit or Planning.
 
 Customer identities are fictional. No real bank charge or commercial
 film-distribution right is claimed. Sourced imagery retains its individual
@@ -166,9 +167,9 @@ Full prerequisites and source commands are in the
 [BPS](docs/SALESFORCE-BPS.md), [RTI](docs/RTI.md) and
 [Warehouse](docs/WAREHOUSE-ONTOLOGY.md) deep dives. The native BPS Touch/facts
 relationship gate is separate; it does not block loading its processed Silver
-data into this Warehouse. SAP uses its own
-[native-Gold-only publication](docs/IMPLEMENTATION-PLAN.md#sap-native-bps-and-warehouse-publication);
-the operational refresh neither replaces SAP tables nor advances `gold.sap_publication`.
+data into this Warehouse. SAP reuses native BPS Gold through zero-copy SQL
+interfaces; the operational refresh does not load SAP. Do not invoke the retired
+Warehouse SAP publisher.
 
 </details>
 

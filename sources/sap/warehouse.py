@@ -1,9 +1,9 @@
-"""Additive native BPS Gold -> MSFlixGold SAP publication.
+"""Read-only native SAP qualification; the Warehouse copy writer is retired.
 
-Preview is offline. --inspect-source only reads Fabric/TDS and records a qualified
-catalog; --apply requires that catalog, fresh job readback and SQL reconciliation.
-No local scenario row is ever an INSERT payload. All ingress is INSERT ... SELECT
-from the uniquely discovered, same-workspace native Gold SQL endpoint.
+Preview is offline. --inspect-source and --inspect-silver only read Fabric/TDS
+and save local qualification evidence. Silver proof version 1 remains the native
+BPS processing contract. --apply and legacy writer calls fail closed; serving
+uses zero-copy sap_live views, never a Warehouse SAP table copy.
 """
 from __future__ import annotations
 
@@ -31,25 +31,17 @@ from sources.salesforce.bps.jobs import _save
 from sources.sap.scenario import build
 
 ROOT = Path(__file__).resolve().parents[2]
-SQL_ROOT = ROOT / "fabric" / "gold"
 DEFAULT_METADATA = ROOT / ".state" / "sap-native" / "native-contract-with-custom.json"
 VERSION = 1
+RETIRED_WRITER = (
+    "SAP Warehouse writer is retired; use the zero-copy sap_live views. "
+    "Only --inspect-source and --inspect-silver qualification are supported."
+)
 LABEL = "MSFlix_SAP_native_gold_publication"
-STAMPS = {
-    "source_system": "varchar(16)", "company_scope": "varchar(4)",
-    "scenario_id": "varchar(128)", "run_id": "varchar(128)", "as_of": "date",
-}
-PUBLICATION_TYPES = {
-    **STAMPS, "source_workspace_id": "varchar(36)", "source_item_id": "varchar(36)",
-    "source_endpoint_id": "varchar(36)", "source_database": "varchar(128)",
-    "b2s_job_id": "varchar(36)", "s2g_job_id": "varchar(36)",
-    "input_sha256": "varchar(64)", "catalog_sha256": "varchar(64)", "data_sha256": "varchar(64)",
-    "journal_lines": "bigint", "accounting_documents": "bigint", "completed_at": "datetime2(6)",
-    **{k: "decimal(23,2)" for k in ("net_billings", "recognized_revenue", "content_cost",
-                                   "receivables", "payables", "net_bank_movement", "net_vat_liability")},
-}
+
+
 # Native source business keys, not BPS Key/SK columns, define every table's grain.
-# These are separate from every table replaced by fabric/gold/load.sql.
+# Legacy aliases are retained only for input/qualification API compatibility, not DDL.
 TABLES = {
     "I_COMPANYCODE": "sap_company",
     "I_GLACCOUNTINCHARTOFACCOUNTS": "sap_account",
@@ -103,11 +95,6 @@ def ident(value):
 
 def text(value):
     return literal(value)
-
-
-def batch_literal(value):
-    require(isinstance(value, str) and len(value) < 1000000 and "\0" not in value, "invalid SQL batch")
-    return "'" + value.replace("'", "''") + "'"
 
 
 def canonical(value):
@@ -689,122 +676,9 @@ def reference_rows(connection):
     )
 
 
-def domain_ddl(contract):
-    batches = []
-    for name, table in TABLES.items():
-        columns = [f"{ident(k)} {v} NOT NULL" for k, v in STAMPS.items()]
-        columns += [f"{ident(f.name)} {sql_type(f)} {'NOT NULL' if f.key else 'NULL'}"
-                    for f in selected_fields(contract, name)]
-        columns += ["[NATIVE_DIMENSION_KEY] bigint NULL", "[NATIVE_UPDATE_TIMESTAMP] datetime2(6) NOT NULL"]
-        batches.append(f"IF OBJECT_ID('gold.{table}','U') IS NULL\n"
-                       f"CREATE TABLE gold.{ident(table)} (\n    " + ",\n    ".join(columns) + "\n);")
-    return "\n".join(batches)
-
-
-def checked(connection, query):
-    return execute(connection, "BEGIN TRY\n" + query + "\nEND TRY\n"
-                   "BEGIN CATCH\n IF @@TRANCOUNT>0 ROLLBACK TRANSACTION;\n THROW;\nEND CATCH;")
-
-
-def scope(config):
-    return (f"source_system={text(config['source_system'])} AND company_scope={text(config['company_code'])}"
-            f" AND scenario_id={text(config['scenario_id'])}")
-
-
-def target_schema(connection, contract):
-    actual = execute(connection, "SELECT TABLE_NAME,COLUMN_NAME,DATA_TYPE,CHARACTER_MAXIMUM_LENGTH,"
-                     "NUMERIC_PRECISION,NUMERIC_SCALE FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_SCHEMA='gold';")
-    tables = {
-        table: {**STAMPS, **{f.name: sql_type(f) for f in selected_fields(contract, name)},
-                "NATIVE_DIMENSION_KEY": "bigint", "NATIVE_UPDATE_TIMESTAMP": "datetime2(6)"}
-        for name, table in TABLES.items()
-    }
-    tables["sap_publication"] = PUBLICATION_TYPES
-    tables["sap_writer_guard"] = {"resource_name": "varchar(128)", "generation": "bigint"}
-    for table, expected_types in tables.items():
-        columns = {r["COLUMN_NAME"]: r for r in actual if r["TABLE_NAME"] == table}
-        require(set(columns) == set(expected_types), table + ": target COLUMNCOUNT/schema drift; no automatic migration")
-        for col, sql in expected_types.items():
-            row = columns[col]
-            require(row["DATA_TYPE"] == sql.split("(")[0], table + "." + col + ": target type drift")
-            if sql.startswith("varchar"):
-                require(row["CHARACTER_MAXIMUM_LENGTH"] == int(sql[8:-1]), table + "." + col + ": target CHAR drift")
-            if sql.startswith("decimal"):
-                precision, scale = map(int, sql[8:-1].split(","))
-                require((row["NUMERIC_PRECISION"], row["NUMERIC_SCALE"]) == (precision, scale),
-                        table + "." + col + ": target decimal drift")
-
-
-def view_batches():
-    sql = (SQL_ROOT / "sap-views.sql").read_text(encoding="utf-8")
-    for role, account in ACCOUNTS.items():
-        sql = sql.replace("{{ACCOUNT_" + role.upper() + "}}", text(account[0]))
-    sql = sql.replace("{{CHART}}", text(CHART))
-    require("{{" not in sql, "unresolved SAP reporting account role")
-    return [batch.strip() for batch in sql.split("-- @batch") if batch.strip()]
-
-
 def publish(connection, contract, bindings, source_database, config, run_id, qualification, rows, proof):
-    """One SAP writer resource; snapshot write conflicts abort, never retry silently."""
-    require(re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}", run_id), "invalid run_id")
-    filter_sql = scope(config)
-    stamp_values = [text(config["source_system"]), text(config["company_code"]), text(config["scenario_id"]),
-                    text(run_id), "CAST(" + text(qualification["as_of"].isoformat()) + " AS date)"]
-    try:
-        # Fabric Warehouse has no XACT_ABORT; checked() rolls back SQL errors.
-        checked(connection, "SET NOCOUNT ON; BEGIN TRANSACTION;\n"
-                + (SQL_ROOT / "sap-ddl.sql").read_text(encoding="utf-8").replace("{{SAP_DOMAIN_DDL}}", domain_ddl(contract)))
-        target_schema(connection, contract)
-        for name, table in TABLES.items():
-            names, values = projection(contract, name, bindings[name])
-            source = source_coordinate(bindings[name], source_database)
-            where = source_filter(config, names)
-            all_names = ",".join(ident(n) for n in [*STAMPS, *names])
-            selected = ",".join(stamp_values + values)
-            keys = ",".join(ident(k) for k in contract.schemas[name].keys)
-            checked(connection, f"""
-                IF EXISTS (SELECT 1 FROM {source} s WHERE {where} AND ({source_domain_errors(contract, name)}))
-                    THROW 51103, 'Native source CHAR/NUMC domain changed; no truncation allowed', 1;
-                DELETE FROM gold.{ident(table)} WHERE {filter_sql};
-                INSERT INTO gold.{ident(table)} ({all_names})
-                SELECT {selected} FROM {source} s WHERE {where} OPTION (LABEL = '{LABEL}');
-                IF (SELECT COUNT_BIG(*) FROM gold.{ident(table)} WHERE {filter_sql})<>{len(rows[name])}
-                    THROW 51101, 'SAP target count differs from qualified native Gold', 1;
-                IF EXISTS (SELECT {keys} FROM gold.{ident(table)} WHERE {filter_sql}
-                           GROUP BY {keys} HAVING COUNT_BIG(*)<>1)
-                    THROW 51102, 'SAP target business PK duplicate', 1;
-            """)
-            copied = execute(connection, f"SELECT {','.join(ident(n) for n in names)} FROM gold.{ident(table)} "
-                             f"WHERE {filter_sql} OPTION (LABEL = '{LABEL}_reconcile');")
-            require(fingerprint(copied) == fingerprint(rows[name]),
-                    table + ": target values/counts/sums changed since qualified source read; rollback")
-        # Reference masters are read only, including inside the target transaction.
-        qualify(rows, contract, config, proof["references"], qualification, *reference_rows(connection))
-        require(qualify_native_relationships(connection, bindings, config, rows, source_database)
-                == proof["native_relationships"], "native surrogate relationships changed; rollback")
-        for batch in view_batches():
-            checked(connection, "EXEC(" + batch_literal(batch) + ");")
-        columns = ["source_system", "company_scope", "scenario_id", "run_id", "as_of", "source_workspace_id",
-                   "source_item_id", "source_endpoint_id", "source_database", "b2s_job_id", "s2g_job_id",
-                   "input_sha256", "catalog_sha256", "data_sha256", "journal_lines", "accounting_documents",
-                   "net_billings", "recognized_revenue", "content_cost", "receivables", "payables",
-                   "net_bank_movement", "net_vat_liability"]
-        values = stamp_values + [text(proof[k]) for k in ("workspace_id", "source_item_id", "source_endpoint_id", "database")]
-        values += [text(proof["jobs"][s]["job_id"]) for s in ("b2s", "s2g")]
-        values += [text(proof[k]) for k in ("input_sha256", "catalog_sha256", "data_sha256")]
-        values += [str(qualification[k]) for k in columns[14:]]
-        checked(connection, f"DELETE FROM gold.sap_publication WHERE {filter_sql};\n"
-                f"INSERT INTO gold.sap_publication ({','.join(ident(c) for c in columns)},completed_at) "
-                f"SELECT {','.join(values)},SYSUTCDATETIME();")
-        marker = execute(connection, "SELECT run_id,data_sha256 FROM gold.sap_publication WHERE " + filter_sql + ";")
-        require(marker == [{"run_id": run_id, "data_sha256": proof["data_sha256"]}], "target SAP publication marker mismatch")
-        checked(connection, "COMMIT TRANSACTION;")
-    except Exception:
-        execute(connection, "IF @@TRANCOUNT>0 ROLLBACK TRANSACTION;")
-        raise
-    return {"mode": "published", "native_bps_gold": True, "synthetic": True, "warehouse": "MSFlixGold",
-            "run_id": run_id, "source_database": source_database, "tables": {TABLES[n]: len(r) for n, r in rows.items()},
-            "reconciliation": qualification, "shared_masters_mutated": False}
+    """Retired compatibility entrypoint; never use the supplied connection."""
+    raise DeploymentError(RETIRED_WRITER)
 
 
 def inspect_silver(target, config, references, metadata, evidence, catalog_path, run_id, source_schema="dbo"):
@@ -838,13 +712,11 @@ def inspect_silver(target, config, references, metadata, evidence, catalog_path,
 
 
 def run(target, config, references, metadata, evidence, catalog_path, run_id, source_schema="dbo", inspect=False):
+    """Read-only Gold qualification; legacy writer calls fail before any I/O."""
+    if inspect is not True:
+        raise DeploymentError(RETIRED_WRITER)
     contract, totals, input_hash = inputs(config, references, metadata)
     jobs = local_jobs(target, evidence)
-    pinned = None if inspect else read_json(catalog_path)
-    if pinned is not None:
-        require(pinned.get("version") == VERSION and pinned.get("run_id") == run_id
-                and pinned.get("input_sha256") == input_hash and pinned.get("jobs") == jobs,
-                "qualified catalog/run/config/native jobs changed; inspect source again explicitly")
     client = ScopedClient(target)
     live_jobs(client, jobs)
     source, warehouse = discover(client)
@@ -867,18 +739,13 @@ def run(target, config, references, metadata, evidence, catalog_path, run_id, so
         }
         # Detect a metadata change during bounded source qualification.
         require(catalog(source_connection, contract, source_schema) == bindings, "source COLUMNCOUNT/schema drift during read")
-        if inspect:
-            require(not catalog_path.exists(), "qualified catalog already exists; use a new explicit path")
-            catalog_path.parent.mkdir(parents=True, exist_ok=True)
-            with catalog_path.open("x", encoding="utf-8") as stream:
-                json.dump(canonical(proof), stream, indent=2)
-                stream.write("\n")
-            return {"mode": "source_qualified_only", "warehouse_written": False, "catalog": str(catalog_path),
-                    "source_database": database, "reconciliation": reconciliation}
-        require(canonical(proof) == pinned, "native source coordinate/COLUMNCOUNT/data changed since explicit qualification")
-        live_jobs(client, jobs)
-        return publish(target_connection, contract, bindings, database, config, run_id,
-                       reconciliation, actual, {**proof, "references": references})
+        require(not catalog_path.exists(), "qualified catalog already exists; use a new explicit path")
+        catalog_path.parent.mkdir(parents=True, exist_ok=True)
+        with catalog_path.open("x", encoding="utf-8") as stream:
+            json.dump(canonical(proof), stream, indent=2)
+            stream.write("\n")
+        return {"mode": "source_qualified_only", "warehouse_written": False, "catalog": str(catalog_path),
+                "source_database": database, "reconciliation": reconciliation}
 
 
 def main():
@@ -894,28 +761,30 @@ def main():
     mode = parser.add_mutually_exclusive_group()
     mode.add_argument("--inspect-source", action="store_true")
     mode.add_argument("--inspect-silver", action="store_true")
-    mode.add_argument("--apply", action="store_true")
+    mode.add_argument("--apply", action="store_true", help="Retired: fails without reading inputs or connecting")
     args = parser.parse_args()
     try:
+        if args.apply:
+            raise DeploymentError(RETIRED_WRITER)
         target = load_target(args.target)
         config, references = read_json(args.config), read_json(args.references)
         require(re.fullmatch(r"[A-Za-z0-9][A-Za-z0-9_.:-]{0,127}", args.run_id), "invalid run_id")
         if args.inspect_silver:
             result = inspect_silver(target, config, references, args.metadata, args.processing_evidence,
                                     args.catalog, args.run_id, args.source_schema)
-        elif not (args.inspect_source or args.apply):
+        elif not args.inspect_source:
             _, totals, _ = inputs(config, references, args.metadata)
-            result = {"mode": "offline_preview", "warehouse_written": False, "expected": totals,
-                      "source": "bps_gold_" + target["system_suffix"], "target": "MSFlixGold",
-                      "tables": TABLES, "gates": ["Completed local + live b2s/s2g jobs", "exact native SQL catalog",
+            result = {"mode": "offline_preview", "warehouse_written": False, "writer_retired": True,
+                      "expected": totals, "source": "bps_gold_" + target["system_suffix"],
+                      "target": "MSFlixGold", "serving_schema": "sap_live", "source_tables": sorted(TABLES),
+                      "gates": ["Completed local + live b2s/s2g jobs", "exact native SQL catalog",
                           "independent source reconciliation", "existing CRM/catalog references",
-                          "native custom surrogate relationships", "qualified catalog unchanged",
-                          "transactional target reconciliation"]}
+                          "native custom surrogate relationships"]}
         else:
             result = run(target, config, references, args.metadata, args.processing_evidence,
-                         args.catalog, args.run_id, args.source_schema, args.inspect_source)
+                         args.catalog, args.run_id, args.source_schema, inspect=True)
     except (ValueError, OSError, DeploymentError) as exc:
-        parser.exit(2, f"SAP Warehouse publication failed; no success claimed: {exc}\n")
+        parser.exit(2, f"SAP qualification failed; no success claimed: {exc}\n")
     print(json.dumps(canonical(result), indent=2))
 
 
